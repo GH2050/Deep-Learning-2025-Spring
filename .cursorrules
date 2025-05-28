@@ -1,0 +1,18 @@
+## 环境
+
+WSL2 ubuntu 24.04
+
+python==3.12
+torch==2.7
+虚拟环境  /opt/venvs/base
+
+## 目录
+
+src/ 源代码
+data/ 数据集
+logs/ 日志
+report/ 报告
+
+## 任务
+
+先根据CIFAR-100分类思路_.md 实现精简版resNet的训练和测试。
