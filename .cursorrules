@@ -3,8 +3,9 @@
 WSL2 ubuntu 24.04
 
 python==3.12
-torch==2.7
-transformers
+torch==2.7.0
+transformers==4.52.3
+
 虚拟环境  /opt/venvs/base
 
 ## 目录
@@ -26,6 +27,6 @@ requirements.md 题目要求
 
 先根据README.md, report/CIFAR-100分类思路.md 实现精简版resNet的训练和测试。
 
-训练一定要记录日志到logs/
+训练一定要记录详细日志到logs/
 
 更新进展到README.md并自动进行git提交

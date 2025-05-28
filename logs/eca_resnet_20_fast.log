@@ -1,0 +1,5 @@
+eca_resnet_20 快速训练开始 (epochs=15)
+Epoch 1 [  0/196] Loss: 4.6924 Acc: 0.39%
+Epoch 1 [ 50/196] Loss: 3.9559 Acc: 5.12%
+Epoch 1 [100/196] Loss: 3.6603 Acc: 6.91%
+Epoch 1 [150/196] Loss: 3.6218 Acc: 8.62%
