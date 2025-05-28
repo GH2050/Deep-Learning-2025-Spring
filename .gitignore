@@ -1,0 +1,53 @@
+# 临时文件和编译输出
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.dll
+*.o
+*.a
+
+# 开发环境文件
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE 和编辑器文件
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# 日志和数据库文件
+*.log
+*.sqlite
+*.db
+
+# 数据文件
+*.csv
+*.h5
+*.pth
+*.pt
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 测试覆盖率文件
+.coverage
+htmlcov/
+
+# 包和依赖
+/dist/
+/build/
+*.egg-info/
+*.egg
+
+# Jupyter Notebook 检查点
+.ipynb_checkpoints/ 
