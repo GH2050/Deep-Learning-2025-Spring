@@ -1,5 +1,7 @@
 # DL-2025 项目
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## 项目目标
 
 使用 PyTorch (CPU 版本) 实现 CIFAR-100 分类任务，基于精简版 ResNet 作为基础网络，探索并对比多种先进的深度学习网络架构或注意力机制。
