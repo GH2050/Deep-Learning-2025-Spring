@@ -15,6 +15,7 @@ data/ 数据集
 logs/ 日志
 report/ 报告、思路、论文
 requirements.md 题目要求
+default_config.yaml accelerate配置文件
 
 ## 代码规范
 
@@ -29,4 +30,4 @@ requirements.md 题目要求
 
 训练一定要记录详细日志到logs/
 
-更新进展到README.md并自动进行git提交
+更新进展到README.md并自动进行git提交（add,commit,push）
