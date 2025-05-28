@@ -4,6 +4,7 @@ WSL2 ubuntu 24.04
 
 python==3.12
 torch==2.7
+transformers
 虚拟环境  /opt/venvs/base
 
 ## 目录
@@ -11,8 +12,20 @@ torch==2.7
 src/ 源代码
 data/ 数据集
 logs/ 日志
-report/ 报告
+report/ 报告、思路、论文
+requirements.md 题目要求
+
+## 代码规范
+
+- 使用PEP 8风格
+- 使用PyTorch的API
+- 使用Hugging Face的API
+- 使用transformers的API
 
 ## 任务
 
-先根据CIFAR-100分类思路_.md 实现精简版resNet的训练和测试。
+先根据README.md, report/CIFAR-100分类思路.md 实现精简版resNet的训练和测试。
+
+训练一定要记录日志到logs/
+
+更新进展到README.md并自动进行git提交

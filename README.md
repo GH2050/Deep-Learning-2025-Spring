@@ -4,7 +4,27 @@
 
 ## 项目目标
 
-使用 PyTorch (CPU 版本) 实现 CIFAR-100 分类任务，基于精简版 ResNet 作为基础网络，探索并对比多种先进的深度学习网络架构或注意力机制。
+使用 PyTorch 实现 CIFAR-100 分类任务，基于精简版 ResNet 作为基础网络，探索并对比多种先进的深度学习网络架构或注意力机制。
+
+**技术栈要求**：
+- **PyTorch**：主要深度学习框架
+- **datasets**：数据集加载和处理
+- **accelerate**：训练加速和优化
+- **huggingface_hub**：模型和数据资源管理
+- **transformers**：预训练模型
+  
+## hugginface 镜像配置
+
+```python
+os.environ['HF_ENDPOINT'] = 'https://hf-api.gitee.com'
+os.environ['HF_HOME'] = 'your/path'
+```
+
+## quick start
+
+```python
+pip install -r requirements.txt
+```
 
 ## 核心要求
 
