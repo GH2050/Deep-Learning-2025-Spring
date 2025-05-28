@@ -24,8 +24,7 @@ ENV/
 *.sln
 *.swp
 
-# 日志和数据库文件
-*.log
+# 数据库文件
 *.sqlite
 *.db
 
@@ -34,6 +33,7 @@ ENV/
 *.h5
 *.pth
 *.pt
+data/
 
 # 系统文件
 .DS_Store
