@@ -1,12 +1,24 @@
-# DL-2025 项目
+# DL-2025
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 项目目标
+## 目标
 
 使用 PyTorch 实现 CIFAR-100 分类任务，基于精简版 ResNet 作为基础网络，探索并对比多种先进的深度学习网络架构或注意力机制。
+**ddl==2025.6.4**
 
-**技术栈要求**：
+## 目录
+
+```plaintext
+src/ 源代码
+data/ 数据集
+logs/ 日志
+report/ 报告、思路、论文
+requirements.md 题目要求
+```
+
+## 技术栈
+
 - **PyTorch**：主要深度学习框架
 - **datasets**：数据集加载和处理
 - **accelerate**：训练加速和优化
