@@ -5,7 +5,9 @@
 使用 PyTorch 实现 CIFAR-100 分类。
 在精简版的 ResNet 作为基础网络之上，探索、实现并对比多种先进的深度学习网络架构或注意力机制。
 
+
 **技术栈要求**：
+
 - **PyTorch**：主要深度学习框架，用于模型构建和训练
 - **datasets**：用于数据集加载、预处理和管理
 - **accelerate**：用于训练加速、分布式训练和性能优化
@@ -18,7 +20,7 @@
 
 1.  **基础模型**: 采用精简版 ResNet。
 2.  **技术选型与参考论文**:
-    * 从以下列表中**至少选择并实现 3 种**不同的方法（可以选择一种或多种进行组合）。以下是这些方法的具体名称和对应的参考论文：
+    实现以下列表中全部10种不同的方法（可以一种或多种进行组合）。以下是这些方法的具体名称和对应的参考论文：
 
         1.  **ConvNeXt**: A ConvNet for the 2020s
             * 论文: `https://openaccess.thecvf.com/content/CVPR2022/papers/Liu_A_ConvNet_for_the_2020s_CVPR_2022_paper.pdf`
@@ -40,6 +42,8 @@
             * 论文: `https://openaccess.thecvf.com/content/CVPR2022W/ECV/papers/Zhang_ResNeSt_Split-Attention_Networks_CVPRW_2022_paper.pdf`
         10. **Pay Attention to MLPs** (MLP-Mixer)
             * 论文: `https://proceedings.neurips.cc/paper/2021/file/4ccb653b2c3537e5d1e917d413c686ff-Paper.pdf`
+
+你需要考虑推荐的三种或多种选择。
 
 3.  **团队合作**: 以 **5 人**为一组进行。
 
