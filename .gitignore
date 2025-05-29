@@ -175,7 +175,6 @@ data/cifar-100-python.tar.gz
 
 # Model checkpoints and logs
 logs/checkpoints/
-logs/results/
 *.pth
 *.pt
 
