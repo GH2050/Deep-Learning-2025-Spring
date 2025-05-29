@@ -1,12 +1,16 @@
 import json
+import matplotlib
+matplotlib.use('Agg')  # 使用非交互式后端
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import pandas as pd
+import seaborn as sns
 
 # 支持中文
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
+plt.ioff()  # 关闭交互模式
 
 def load_results():
     """加载所有模型的训练结果"""
@@ -28,6 +32,30 @@ def load_results():
                 all_results[model_name] = result
     
     return all_results
+
+def load_ablation_results():
+    """加载消融实验结果"""
+    results_dir = Path('logs/ablation_results')
+    ablation_results = {}
+    
+    summary_file = results_dir / 'all_ablation_summary.json'
+    if summary_file.exists():
+        with open(summary_file, 'r', encoding='utf-8') as f:
+            ablation_results = json.load(f)
+    
+    return ablation_results
+
+def load_comparison_results():
+    """加载对比实验结果"""
+    results_dir = Path('logs/comparison_results')
+    comparison_results = {}
+    
+    summary_file = results_dir / 'all_comparison_summary.json'
+    if summary_file.exists():
+        with open(summary_file, 'r', encoding='utf-8') as f:
+            comparison_results = json.load(f)
+    
+    return comparison_results
 
 def create_summary_table(results):
     """创建结果汇总表"""
@@ -95,7 +123,7 @@ def plot_accuracy_comparison(results):
     
     plt.tight_layout()
     plt.savefig('assets/accuracy_comparison.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.close()  # 关闭图形以释放内存
 
 def plot_efficiency_analysis(results):
     """绘制效率分析图"""
@@ -140,7 +168,7 @@ def plot_efficiency_analysis(results):
     
     plt.tight_layout()
     plt.savefig('assets/efficiency_analysis.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.close()  # 关闭图形以释放内存
 
 def plot_training_curves(results, model_names=None):
     """绘制训练曲线"""
@@ -178,9 +206,92 @@ def plot_training_curves(results, model_names=None):
     
     plt.tight_layout()
     plt.savefig('assets/training_curves.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    plt.close()  # 关闭图形以释放内存
 
-def create_comprehensive_report(results):
+def plot_ablation_analysis(ablation_results):
+    """绘制消融实验分析图"""
+    if not ablation_results:
+        print("没有消融实验结果数据")
+        return
+    
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    
+    for i, (exp_name, exp_results) in enumerate(ablation_results.items()):
+        if i >= 3:
+            break
+            
+        ax = axes[i]
+        
+        valid_results = {k: v for k, v in exp_results.items() if 'error' not in v}
+        if not valid_results:
+            continue
+            
+        model_names = list(valid_results.keys())
+        accuracies = [result['best_acc'] for result in valid_results.values()]
+        parameters = [result['parameters'] for result in valid_results.values()]
+        
+        bars = ax.bar(range(len(model_names)), accuracies, 
+                     color=['red' if name == 'baseline' else 'blue' for name in model_names],
+                     alpha=0.7)
+        
+        ax.set_title(exp_name, fontsize=12, fontweight='bold')
+        ax.set_ylabel('准确率 (%)')
+        ax.set_xticks(range(len(model_names)))
+        ax.set_xticklabels([name.replace('_', '\n') for name in model_names], rotation=45, ha='right')
+        ax.grid(axis='y', alpha=0.3)
+        
+        for bar, acc, param in zip(bars, accuracies, parameters):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
+                   f'{acc:.1f}%\n{param:.2f}M', ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig('assets/ablation_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()  # 关闭图形以释放内存
+
+def plot_architecture_comparison(comparison_results):
+    """绘制架构类型对比图"""
+    if not comparison_results:
+        print("没有对比实验结果数据")
+        return
+    
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    axes = axes.flatten()
+    
+    for i, (group_name, group_results) in enumerate(comparison_results.items()):
+        if i >= 6:
+            break
+            
+        ax = axes[i]
+        
+        valid_results = {k: v for k, v in group_results.items() if 'error' not in v}
+        if not valid_results:
+            ax.text(0.5, 0.5, '无有效结果', ha='center', va='center', transform=ax.transAxes)
+            ax.set_title(group_name)
+            continue
+        
+        model_names = list(valid_results.keys())
+        accuracies = [result['best_acc'] for result in valid_results.values()]
+        parameters = [result['parameters'] for result in valid_results.values()]
+        
+        bars = ax.bar(range(len(model_names)), accuracies, alpha=0.7)
+        ax.set_title(group_name, fontsize=12, fontweight='bold')
+        ax.set_ylabel('准确率 (%)')
+        ax.set_xticks(range(len(model_names)))
+        ax.set_xticklabels([name.replace('_', '\n') for name in model_names], rotation=45, ha='right')
+        ax.grid(axis='y', alpha=0.3)
+        
+        for bar, acc, param in zip(bars, accuracies, parameters):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                   f'{acc:.1f}%', ha='center', va='bottom', fontsize=9)
+    
+    for i in range(len(comparison_results), 6):
+        axes[i].set_visible(False)
+    
+    plt.tight_layout()
+    plt.savefig('assets/architecture_comparison.png', dpi=300, bbox_inches='tight')
+    plt.close()  # 关闭图形以释放内存
+
+def create_comprehensive_report(results, ablation_results=None, comparison_results=None):
     """创建综合报告"""
     print("=" * 80)
     print("CIFAR-100 分类任务 - 十种先进架构对比分析报告")
