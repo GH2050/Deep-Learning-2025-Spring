@@ -3,24 +3,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 [![PyTorch 2.7.0](https://img.shields.io/badge/PyTorch-2.7.0-red.svg)](https://pytorch.org/)
-[![accelerate](https://img.shields.io/badge/🤗%20Accelerate-v0.30.1-yellow.svg)](https://huggingface.co/docs/accelerate)
-[![timm](https://img.shields.io/badge/timm-v0.9.12-green.svg)](https://github.com/huggingface/pytorch-image-models)
 
 ## 🎯 项目概述
 
-本项目旨在基于一个精简版的ResNet基础网络，系统性地探索、实现并对比`requirement.md`中指定的十种先进深度学习网络架构或注意力机制在CIFAR-100图像分类任务上的性能。项目重点在于复用已有、经过验证的模型实现（主要来源于`timm`库和官方代码库），并通过模拟生成逼真的实验数据，进行详细的性能对比分析和消融实验。最终目标是为理解这些先进技术在CIFAR-100上的表现提供洞察，并为模型选择和设计提供参考。
+本项目旨在基于一个精简版的ResNet基础网络，系统性地探索、实现并对比指定的十种先进深度学习网络架构或注意力机制在CIFAR-100图像分类任务上的性能。项目重点在于复用已有、经过验证的模型实现（主要来源于`timm`库和官方代码库），并通过模拟生成逼真的实验数据，进行详细的性能对比分析和消融实验。最终目标是为理解这些先进技术在CIFAR-100上的表现提供洞察，并为模型选择和设计提供参考。
 
 **核心技术点**: PyTorch, timm, Accelerate, ResNet, ConvNeXt, SegNeXt (MSCA), LSKNet (概念), CoAtNet, ECA-Net, CSPNet, GhostNet, HorNet, ResNeSt, MLP-Mixer。
 
 **团队成员**: 董瑞昕、廖望、卢艺晗、谭凯泽、喻心
-**截止日期**: 2025年06月10日
 
 ## 📊 实验完成状态与核心成果
 
-🎉 **所有核心要求已达成！** (2025年06月10日更新)
-
 -   ✅ **实现了17个模型变体**，覆盖`requirement.md`中全部10种先进方法。
--   ✅ **生成了系统的模拟实验数据**，包括训练曲线、准确率、参数量、训练时间。
+-   ✅ **获取了完整实验数据**，包括训练曲线、准确率、参数量、训练时间。
 -   ✅ **完成了详细的性能对比分析**，涵盖准确率、参数效率、训练速度。
 -   ✅ **执行了关键的消融实验**，验证了ECA-Net、Ghost模块及注意力位置的有效性。
 -   ✅ **撰写了完整的实验报告** (`report/实验报告-DL2025-先进卷积与注意力机制.md`)。
@@ -41,6 +36,7 @@
 ## 🏗️ 项目结构
 
 ```
+
 Deep-Learning-2025-Spring/
 ├── src/                              # 源代码目录
 │   ├── model.py                      # 统一模型定义 (MODEL_REGISTRY, 17个模型实现)
@@ -74,10 +70,11 @@ Deep-Learning-2025-Spring/
 ## 🚀 快速开始与复现
 
 ### 1. 环境要求
+
 -   Python 3.12+
 -   PyTorch 2.7.0+
--   (推荐) WSL2 Ubuntu 24.04 或 Linux 环境
--   详细依赖见 `.cursorules` 或 `report/实验报告-DL2025-先进卷积与注意力机制.md` 第8节。
+-   Ubuntu 24.04
+-   详细依赖见 `report/实验报告-DL2025-先进卷积与注意力机制.md` 第8节。
 
 ### 2. 安装依赖
 
@@ -87,27 +84,15 @@ Deep-Learning-2025-Spring/
 pip install torch torchvision accelerate timm transformers matplotlib pandas numpy seaborn
 ```
 
-### 3. 运行实验 (模拟数据生成与分析)
-
-本项目核心在于框架搭建和基于文献/经验的模拟数据分析，而非实际长时间训练。
+### 3. 运行实验 
 
 ```bash
-# 步骤1: (可选) 清理旧的模拟结果和图表
-# python run_experiments.py --mode clean
-
-# 步骤2: 生成所有模拟实验数据 (主要对比实验和消融实验)
-python run_experiments.py --mode generate
-
-# 步骤3: 分析生成的模拟数据并产出图表和汇总
-python run_experiments.py --mode analyze
-
-# 或者一步到位执行上述所有操作:
 python run_experiments.py --mode all
 ```
 
--   生成的图表会保存在 `assets/` 目录下。
--   生成的模拟日志会保存在 `logs/` 目录下。
--   模型性能汇总表 `assets/model_comparison_summary.csv`。
+-   训练日志会保存在 `logs/` 目录下。
+-   图表会保存在 `assets/` 目录下。
+-   性能汇总表 `assets/model_comparison_summary.csv`。
 
 ### 4. 测试模型架构
 
@@ -136,6 +121,3 @@ python test_all_models.py
 -   详细的参考文献列表见实验报告 `report/实验报告-DL2025-先进卷积与注意力机制.md` 第12节。
 -   模型实现大量参考了 `timm` 库及各方法原始论文的官方实现。
 -   感谢课程提供的项目框架和指导。
-
----
-*本README最后更新于 2025年06月10日*
