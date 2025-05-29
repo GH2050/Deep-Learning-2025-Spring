@@ -2,153 +2,411 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import json
+import time
+import pandas as pd
 
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
+
+# --- Hyperparameter Configuration (from Report Section 3.4.3) ---
+# Note: Batch sizes here are per GPU (V100 16GB). Total batch size will be this * num_gpus.
+# All models trained for 200 epochs.
+
+REPORT_HYPERPARAMETERS = {
+    'epochs': 200,
+    'categories': {
+        'ResNet_Variants': { # resnet_20, resnet_32, resnet_56, eca_resnet_20, eca_resnet_32
+            'optimizer_type': 'sgd',
+            'lr': 0.1,
+            'scheduler_type': 'cosine_annealing',
+            'warmup_epochs': 0, # SGD with CosineAnnealing typically doesn't use warmup here
+            'weight_decay': 5e-4,
+            'batch_size_per_gpu': 128,
+            'use_imagenet_norm': False,
+            'model_specific_params': {
+                'eca_resnet_20': {'k_size': 3}, # Report: ECA k_size=3 or 5
+                'eca_resnet_32': {'k_size': 5}, # Report: ECA k_size=3 or 5, choosing 5 for variety
+            }
+        },
+        'GhostNet_Variants': { # ghost_resnet_20, ghost_resnet_32, ghostnet_100 (timm)
+            'optimizer_type': 'sgd', # GhostNet paper often uses SGD
+            'lr': 0.1, # Could be higher for GhostNet, but aligning with ResNet for start
+            'scheduler_type': 'cosine_annealing',
+            'warmup_epochs': 5, # Slight warmup can be beneficial
+            'weight_decay': 4e-5, # GhostNet paper uses 4e-5
+            'batch_size_per_gpu': 128, # GhostNets are efficient
+            'use_imagenet_norm': False, # For our GhostResNets. ghostnet_100_timm will use True if pretrained.
+            'model_specific_params': {
+                'ghost_resnet_20': {'ratio': 2},
+                'ghost_resnet_32': {'ratio': 2},
+                'ghostnet_100': {'use_imagenet_norm': True, 'batch_size_per_gpu': 64} # Timm model, often needs ImageNet norm, potentially smaller BS for larger model
+            }
+        },
+        'ConvNeXt_Tiny': { # convnext_tiny (custom), convnext_tiny_timm
+            'optimizer_type': 'adamw',
+            'lr': 4e-3, # ConvNeXt paper: base_lr (5e-4 for ImageNet 1k) * batch_size / 1024. For 8xV100 * 64 = 512 total batch size, this could be 5e-4 * 512 / 1024 = 2.5e-4. Report says 0.004 for CIFAR.
+            'scheduler_type': 'cosine_annealing_warmup', # Warmup is common
+            'warmup_epochs': 20, # ConvNeXt paper uses 20 warmup epochs
+            'weight_decay': 0.05,
+            'batch_size_per_gpu': 64, # ConvNeXt-T can be a bit heavy
+            'use_imagenet_norm': True, # ConvNeXt uses LayerNorm, ImageNet stats are standard
+            'model_specific_params': {
+                 'convnext_tiny_timm': {'batch_size_per_gpu': 64} # Ensure timm variant gets correct BS if different
+            }
+        },
+        'Hybrid_Attention_CNN': { # coatnet_0, cspresnet50, hornet_tiny, resnest50d
+            'optimizer_type': 'adamw',
+            'lr': 1e-3, # General AdamW LR for transformers/hybrids
+            'scheduler_type': 'cosine_annealing_warmup',
+            'warmup_epochs': 10,
+            'weight_decay': 0.05,
+            'batch_size_per_gpu': 64, # These models can be larger
+            'use_imagenet_norm': True, # Typically pretrained on ImageNet
+            'model_specific_params': {}
+        },
+        'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (timm)
+            'optimizer_type': 'adamw',
+            'lr': 1e-3,
+            'scheduler_type': 'cosine_annealing_warmup',
+            'warmup_epochs': 10,
+            'weight_decay': 0.05,
+            'batch_size_per_gpu': 128, # Mixers can be efficient
+            'use_imagenet_norm': False, # For custom tiny, can train from scratch. B16 uses True.
+            'model_specific_params': {
+                 'mlp_mixer_b16': {'use_imagenet_norm': True, 'batch_size_per_gpu': 64} # Timm B/16 is larger
+            }
+        },
+        'SegNeXt_MSCAN_Tiny': { # segnext_mscan_tiny (custom)
+            'optimizer_type': 'adamw',
+            'lr': 1e-3, # Similar to other transformer-like or modern CNNs
+            'scheduler_type': 'cosine_annealing_warmup',
+            'warmup_epochs': 10,
+            'weight_decay': 0.05,
+            'batch_size_per_gpu': 128,
+            'use_imagenet_norm': False, # Custom tiny trained from scratch
+            'model_specific_params': {}
+        }
+    },
+    'model_to_category': {
+        'resnet_20': 'ResNet_Variants',
+        'resnet_32': 'ResNet_Variants',
+        'resnet_56': 'ResNet_Variants',
+        'eca_resnet_20': 'ResNet_Variants',
+        'eca_resnet_32': 'ResNet_Variants',
+        'ghost_resnet_20': 'GhostNet_Variants',
+        'ghost_resnet_32': 'GhostNet_Variants',
+        'ghostnet_100': 'GhostNet_Variants', # Timm model
+        'convnext_tiny': 'ConvNeXt_Tiny', # Custom
+        'convnext_tiny_timm': 'ConvNeXt_Tiny', # Timm model
+        'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny', # Custom
+        'coatnet_0': 'Hybrid_Attention_CNN', # Timm model
+        'cspresnet50': 'Hybrid_Attention_CNN', # Timm model
+        'hornet_tiny': 'Hybrid_Attention_CNN', # Timm model
+        'resnest50d': 'Hybrid_Attention_CNN', # Timm model
+        'mlp_mixer_tiny': 'MLP_Mixer_Variants', # Custom
+        'mlp_mixer_b16': 'MLP_Mixer_Variants' # Timm model
+    }
+}
+
+def get_hyperparameters(model_name: str):
+    """
+    Retrieves hyperparameters for a given model based on REPORT_HYPERPARAMETERS.
+    Args:
+        model_name (str): The name of the model.
+    Returns:
+        dict: A dictionary containing hyperparameters.
+    """
+    category_name = REPORT_HYPERPARAMETERS['model_to_category'].get(model_name)
+    if not category_name:
+        raise ValueError(f"Model {model_name} not found in model_to_category mapping.")
+
+    category_hparams = REPORT_HYPERPARAMETERS['categories'][category_name].copy()
+    model_specific_hparams = category_hparams.get('model_specific_params', {}).get(model_name, {})
+    
+    # Start with general category defaults
+    final_hparams = {
+        'optimizer_type': category_hparams['optimizer_type'],
+        'lr': category_hparams['lr'],
+        'scheduler_type': category_hparams['scheduler_type'],
+        'warmup_epochs': category_hparams['warmup_epochs'],
+        'weight_decay': category_hparams['weight_decay'],
+        'batch_size_per_gpu': category_hparams['batch_size_per_gpu'],
+        'use_imagenet_norm': category_hparams['use_imagenet_norm'],
+        'epochs': REPORT_HYPERPARAMETERS['epochs'],
+        'model_name': model_name
+    }
+
+    # Override with model-specific settings from the category
+    final_hparams.update(model_specific_hparams)
+
+    # Add model-specific params that are not base hyperparameters (e.g. k_size, ratio)
+    # These should be passed to the model constructor via get_model(**model_constructor_params)
+    model_constructor_params = {}
+    if 'k_size' in model_specific_hparams:
+        model_constructor_params['k_size'] = model_specific_hparams['k_size']
+    if 'ratio' in model_specific_hparams:
+        model_constructor_params['ratio'] = model_specific_hparams['ratio']
+    
+    # If the model is a timm model, it's often better to use imagenet norm by default if not specified
+    # and if it was pretrained (which we assume for timm models here for hyperparams)
+    timm_models_in_report = ["convnext_tiny_timm", "coatnet_0", "cspresnet50", "ghostnet_100", "hornet_tiny", "resnest50d", "mlp_mixer_b16"]
+    if model_name in timm_models_in_report and not model_specific_hparams.get('use_imagenet_norm_explicitly_set', False):
+         # If use_imagenet_norm was not explicitly set to False for this specific timm model in model_specific_params
+         # then default to True.
+        if not ('use_imagenet_norm' in model_specific_hparams and model_specific_hparams['use_imagenet_norm'] == False):
+            final_hparams['use_imagenet_norm'] = True
+
+    final_hparams['model_constructor_params'] = model_constructor_params
+
+    return final_hparams
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def print_model_info(model, model_name="Model"):
     total_params = count_parameters(model)
-    print(f'{model_name} 总参数量: {total_params:,}')
-    print(f'{model_name} 总参数量: {total_params/1e6:.2f}M')
-    
-    x = torch.randn(1, 3, 32, 32)
-    with torch.no_grad():
-        y = model(x)
-    print(f'输入形状: {x.shape}')
-    print(f'输出形状: {y.shape}')
+    print(f'{model_name} 总参数量: {total_params:,} ({total_params/1e6:.2f}M)')
+    # Dummy input test removed, should be done in model testing or training script
 
-def plot_training_curves(history, model_name, save_path=None):
-    if save_path is None:
-        save_path = f'logs/{model_name}_training_curves.png'
+def plot_training_curves(history, model_name, save_dir='assets', base_filename=None):
+    if base_filename is None:
+        base_filename = model_name
+    save_path = os.path.join(save_dir, f'{base_filename}_training_curves.png')
     
-    os.makedirs('logs', exist_ok=True)
+    os.makedirs(save_dir, exist_ok=True)
     
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
+    fig.suptitle(f'{model_name} 训练曲线', fontsize=16)
     
-    epochs = range(1, len(history['train_losses']) + 1)
+    epochs_range = range(1, len(history['train_losses']) + 1)
     
-    ax1.plot(epochs, history['train_losses'], 'b-', label='训练损失')
-    ax1.plot(epochs, history['test_losses'], 'r-', label='测试损失')
-    ax1.set_title(f'{model_name} 损失曲线')
+    ax1.plot(epochs_range, history['train_losses'], 'b-', label='训练损失')
+    ax1.plot(epochs_range, history['test_losses'], 'r-', label='测试损失')
+    ax1.set_title('损失函数')
     ax1.set_xlabel('轮次')
     ax1.set_ylabel('损失')
     ax1.legend()
     ax1.grid(True)
     
-    ax2.plot(epochs, history['train_accs'], 'b-', label='训练准确率')
-    ax2.plot(epochs, history['test_accs'], 'r-', label='测试准确率')
-    ax2.set_title(f'{model_name} 准确率曲线')
+    ax2.plot(epochs_range, history['train_accs'], 'b-', label='训练准确率 Top-1')
+    ax2.plot(epochs_range, history['test_accs'], 'r-', label='测试准确率 Top-1')
+    ax2.set_title('准确率 Top-1')
     ax2.set_xlabel('轮次')
     ax2.set_ylabel('准确率 (%)')
     ax2.legend()
     ax2.grid(True)
     
-    last_n = min(20, len(epochs))
-    ax3.plot(epochs[-last_n:], history['train_losses'][-last_n:], 'b-', label='训练损失')
-    ax3.plot(epochs[-last_n:], history['test_losses'][-last_n:], 'r-', label='测试损失')
-    ax3.set_title(f'{model_name} 损失曲线（最后{last_n}轮）')
+    last_n = min(20, len(epochs_range))
+    ax3.plot(epochs_range[-last_n:], history['train_losses'][-last_n:], 'b-', label='训练损失')
+    ax3.plot(epochs_range[-last_n:], history['test_losses'][-last_n:], 'r-', label='测试损失')
+    ax3.set_title(f'损失函数（最后{last_n}轮）')
     ax3.set_xlabel('轮次')
     ax3.set_ylabel('损失')
     ax3.legend()
     ax3.grid(True)
     
-    ax4.plot(epochs[-last_n:], history['train_accs'][-last_n:], 'b-', label='训练准确率')
-    ax4.plot(epochs[-last_n:], history['test_accs'][-last_n:], 'r-', label='测试准确率')
-    ax4.set_title(f'{model_name} 准确率曲线（最后{last_n}轮）')
+    ax4.plot(epochs_range[-last_n:], history['train_accs'][-last_n:], 'b-', label='训练准确率 Top-1')
+    ax4.plot(epochs_range[-last_n:], history['test_accs'][-last_n:], 'r-', label='测试准确率 Top-1')
+    ax4.set_title(f'准确率 Top-1（最后{last_n}轮）')
     ax4.set_xlabel('轮次')
     ax4.set_ylabel('准确率 (%)')
     ax4.legend()
     ax4.grid(True)
     
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.96]) # Adjust layout to make space for suptitle
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print(f'训练曲线已保存到: {save_path}')
+    print(f'训练曲线图已保存到: {save_path}')
 
-def save_results(history, model_name, save_path='logs/results.txt'):
-    os.makedirs('logs', exist_ok=True)
-    with open(save_path, 'a') as f:
-        f.write(f'\n{model_name} 训练结果:\n')
-        f.write(f'最佳测试准确率: {history["best_acc"]:.2f}%\n')
-        f.write(f'最终训练损失: {history["train_losses"][-1]:.4f}\n')
-        f.write(f'最终测试损失: {history["test_losses"][-1]:.4f}\n')
-        f.write(f'最终训练准确率: {history["train_accs"][-1]:.2f}%\n')
-        f.write(f'最终测试准确率: {history["test_accs"][-1]:.2f}%\n')
-        f.write('-' * 50 + '\n')
+def create_markdown_table(df: pd.DataFrame) -> str:
+    """Converts a pandas DataFrame to a Markdown table string."""
+    return df.to_markdown(index=False)
+
+def save_experiment_results(
+    results_data: dict,
+    model_name: str, # This is the base model name
+    hparams: dict,
+    output_dir: str = 'logs/results',
+    metrics_history: dict = None, # e.g., train_losses, test_losses, train_accs, test_accs
+    run_label: str = None # New parameter for specific run identification (e.g., from ablation)
+    ):
+    """
+    Saves experiment results, metrics history, and hyperparameters to a JSON file.
+    Args:
+        results_data (dict): Core results (e.g., best_acc, final_acc, params_M, train_time_total_seconds).
+        model_name (str): Base name of the model.
+        hparams (dict): Hyperparameters used for the experiment.
+        output_dir (str): Directory to save the JSON file.
+        metrics_history (dict, optional): Per-epoch metrics history.
+        run_label (str, optional): A specific label for this run, used for unique filename if provided.
+                                   If None, filename is based on model_name only.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    
+    base_safe_model_name = model_name.replace('/', '_').replace(':', '_')
+    
+    # If a unique run_label is provided (especially for ablations on the same model_name),
+    # use it to make the filename unique.
+    if run_label:
+        safe_run_label = run_label.replace(' ', '_').replace('=', '-').replace('(', '').replace(')', '').replace('/', '_').replace(':', '_')
+        filename = os.path.join(output_dir, f'{base_safe_model_name}_{safe_run_label}_results.json')
+    else:
+        filename = os.path.join(output_dir, f'{base_safe_model_name}_results.json')
+
+    full_log = {
+        'model_name': model_name, # Base model name
+        'run_label': run_label if run_label else model_name, # Effective unique identifier for this run
+        'results': results_data, 
+        'hyperparameters': hparams,
+        'metrics_history': metrics_history if metrics_history else {},
+        'timestamp': time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+    
+    try:
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(full_log, f, indent=4, ensure_ascii=False)
+        print(f'详细实验结果已保存到: {filename}')
+    except IOError as e:
+        print(f'保存结果到 {filename} 失败: {e}')
+    except Exception as e:
+        print(f'序列化结果到JSON时发生错误: {e}')
 
 def compare_models(results_dict, save_path='logs/model_comparison.png'):
-    os.makedirs('logs', exist_ok=True)
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     
     models = list(results_dict.keys())
-    best_accs = [results_dict[model]['best_acc'] for model in models]
-    final_accs = [results_dict[model]['test_accs'][-1] for model in models]
+    # Assuming results_dict[model] has {'results': {'best_acc': X, 'test_accs': [...]}}
+    best_accs = [results_dict[model]['results'].get('best_test_acc_top1', 0) for model in models]
+    final_accs = [results_dict[model]['metrics_history'].get('test_accs', [0])[-1] for model in models]
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7))
+    fig.suptitle('模型性能对比 (Top-1准确率)', fontsize=16)
     
-    x = range(len(models))
+    x = np.arange(len(models))
     width = 0.35
     
-    ax1.bar([i - width/2 for i in x], best_accs, width, label='最佳准确率', alpha=0.8)
-    ax1.bar([i + width/2 for i in x], final_accs, width, label='最终准确率', alpha=0.8)
-    ax1.set_xlabel('模型')
-    ax1.set_ylabel('准确率 (%)')
-    ax1.set_title('模型性能对比')
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(models, rotation=45)
-    ax1.legend()
-    ax1.grid(True, alpha=0.3)
+    rects1 = ax1.bar(x - width/2, best_accs, width, label='最佳准确率', alpha=0.8, color='skyblue')
+    rects2 = ax1.bar(x + width/2, final_accs, width, label='最终准确率', alpha=0.8, color='lightcoral')
     
-    for i, (best, final) in enumerate(zip(best_accs, final_accs)):
-        ax1.text(i - width/2, best + 0.5, f'{best:.1f}%', ha='center', fontsize=10)
-        ax1.text(i + width/2, final + 0.5, f'{final:.1f}%', ha='center', fontsize=10)
+    ax1.set_xlabel('模型', fontsize=12)
+    ax1.set_ylabel('准确率 (%)', fontsize=12)
+    ax1.set_title('最佳 vs 最终测试准确率', fontsize=14)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(models, rotation=45, ha="right", fontsize=10)
+    ax1.legend()
+    ax1.grid(True, linestyle='--', alpha=0.7)
+    ax1.set_ylim(0, max(max(best_accs), max(final_accs)) * 1.1 + 5) # Adjust y-lim dynamically
+
+    def autolabel(rects, ax):
+        for rect in rects:
+            height = rect.get_height()
+            ax.annotate(f'{height:.1f}%', xy=(rect.get_x() + rect.get_width() / 2, height),
+                        xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=9)
+    autolabel(rects1, ax1)
+    autolabel(rects2, ax1)
     
     for model in models:
-        epochs = range(1, len(results_dict[model]['test_accs']) + 1)
-        ax2.plot(epochs, results_dict[model]['test_accs'], label=model, linewidth=2)
+        test_accs_history = results_dict[model]['metrics_history'].get('test_accs', [])
+        if test_accs_history:
+            epochs_range = range(1, len(test_accs_history) + 1)
+            ax2.plot(epochs_range, test_accs_history, label=model, linewidth=2, marker='.', markersize=5)
     
-    ax2.set_xlabel('轮次')
-    ax2.set_ylabel('测试准确率 (%)')
-    ax2.set_title('测试准确率变化曲线')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
+    ax2.set_xlabel('轮次', fontsize=12)
+    ax2.set_ylabel('测试准确率 (%)', fontsize=12)
+    ax2.set_title('测试准确率变化曲线', fontsize=14)
+    ax2.legend(fontsize=10, loc='lower right')
+    ax2.grid(True, linestyle='--', alpha=0.7)
+    ax2.set_ylim(min(final_accs)-10 if final_accs else 0, max(best_accs)+5 if best_accs else 100) # Dynamic y-lim
     
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f'模型对比图已保存到: {save_path}')
 
-def save_comparison_results(results_dict, save_path='logs/comparison_results.txt'):
-    os.makedirs('logs', exist_ok=True)
+def save_comparison_summary_text(results_dict, save_path='assets/comparison_summary.txt'):
+    # Renamed from save_comparison_results to avoid conflict if old one exists, and changed save path
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     
-    with open(save_path, 'w') as f:
-        f.write('='*60 + '\n')
-        f.write('CIFAR-100 分类模型性能对比结果\n')
-        f.write('='*60 + '\n\n')
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write('='*80 + '\n')
+        f.write('CIFAR-100 分类模型性能对比总结 (基于 *_results.json 文件)\n')
+        f.write('='*80 + '\n\n')
         
-        f.write(f'{"模型名称":<20} {"最佳准确率":<12} {"最终准确率":<12} {"参数量":<12}\n')
-        f.write('-'*60 + '\n')
+        header = f'{"模型名称":<25} {"最佳Top-1 (%)":<15} {"最终Top-1 (%)":<15} {"参数量 (M)":<15} {"训练时间 (h)":<15}'
+        f.write(header + '\n')
+        f.write('-'*len(header) + '\n')
         
-        for model_name, history in results_dict.items():
-            best_acc = history['best_acc']
-            final_acc = history['test_accs'][-1]
-            f.write(f'{model_name:<20} {best_acc:<12.2f} {final_acc:<12.2f}\n')
+        sorted_models = sorted(results_dict.keys(), key=lambda m: results_dict[m]['results'].get('best_test_acc_top1', 0), reverse=True)
+
+        for model_name in sorted_models:
+            res_data = results_dict[model_name]['results']
+            metrics_hist = results_dict[model_name]['metrics_history']
+            
+            best_acc = res_data.get('best_test_acc_top1', 0)
+            final_acc = metrics_hist.get('test_accs', [0])[-1]
+            params_m = res_data.get('params_M', 0)
+            train_time_s = res_data.get('train_time_total_seconds', 0)
+            train_time_h = train_time_s / 3600.0 if train_time_s else 0
+
+            f.write(f'{model_name:<25} {best_acc:<15.2f} {final_acc:<15.2f} {params_m:<15.2f} {train_time_h:<15.2f}\n')
         
-        f.write('\n' + '='*60 + '\n')
-        f.write('详细分析:\n')
-        f.write('='*60 + '\n')
+        f.write('\n' + '='*80 + '\n')
         
-        best_model = max(results_dict.keys(), key=lambda x: results_dict[x]['best_acc'])
-        f.write(f'最佳模型: {best_model} (准确率: {results_dict[best_model]["best_acc"]:.2f}%)\n')
+        if sorted_models:
+            best_overall_model = sorted_models[0]
+            best_overall_acc = results_dict[best_overall_model]['results'].get('best_test_acc_top1', 0)
+            f.write(f'综合最佳模型: {best_overall_model} (准确率: {best_overall_acc:.2f}%)\n')
         
-        baseline_acc = results_dict.get('ResNet-20', {}).get('best_acc', 0)
+        baseline_model_name = 'resnet_20' # Or choose a more appropriate baseline
+        baseline_acc = results_dict.get(baseline_model_name, {}).get('results', {}).get('best_test_acc_top1', 0)
+
         if baseline_acc > 0:
-            f.write(f'\n相对于基线ResNet-20的提升:\n')
-            for model_name, history in results_dict.items():
-                if model_name != 'ResNet-20':
-                    improvement = history['best_acc'] - baseline_acc
-                    f.write(f'{model_name}: {improvement:+.2f}%\n')
+            f.write(f'\n相对于基线 {baseline_model_name} ({baseline_acc:.2f}%) 的提升:\n')
+            for model_name in sorted_models:
+                if model_name != baseline_model_name:
+                    improvement = results_dict[model_name]['results'].get('best_test_acc_top1', 0) - baseline_acc
+                    f.write(f'{model_name:<25}: {improvement:+.2f}%\n')
     
-    print(f'对比结果已保存到: {save_path}') 
+    print(f'对比总结文本已保存到: {save_path}')
+
+if __name__ == '__main__':
+    # Test get_hyperparameters
+    test_models = [
+        'resnet_20', 'eca_resnet_20', 'ghost_resnet_32', 'convnext_tiny', 
+        'convnext_tiny_timm', 'coatnet_0', 'mlp_mixer_b16', 'segnext_mscan_tiny'
+    ]
+    print("--- Testing Hyperparameter Retrieval ---")
+    for model_name in test_models:
+        try:
+            hparams = get_hyperparameters(model_name)
+            print(f"Model: {model_name}")
+            print(f"  LR: {hparams['lr']}, Optim: {hparams['optimizer_type']}, WD: {hparams['weight_decay']}")
+            print(f"  BS/GPU: {hparams['batch_size_per_gpu']}, Scheduler: {hparams['scheduler_type']}")
+            print(f"  Warmup: {hparams['warmup_epochs']}, Use ImgNet Norm: {hparams['use_imagenet_norm']}")
+            print(f"  Model Params: {hparams['model_constructor_params']}")
+            assert hparams['epochs'] == 200
+        except ValueError as e:
+            print(f"Error for {model_name}: {e}")
+    
+    # Test save_experiment_results (dummy data)
+    print("\n--- Testing Experiment Results Saving with run_label ---")
+    dummy_hparams_labeled = get_hyperparameters('eca_resnet_20')
+    dummy_hparams_labeled['model_constructor_params'] = {'k_size': 5} # Simulate an override
+    save_experiment_results(
+        results_data=dummy_results_data, 
+        model_name='eca_resnet_20', 
+        hparams=dummy_hparams_labeled,
+        metrics_history=dummy_metrics_history,
+        output_dir='logs/results_test',
+        run_label='ECA-ResNet-20 (k_size=5)' # Test with a run label
+    )
+    assert os.path.exists('logs/results_test/eca_resnet_20_ECA-ResNet-20_k_size-5_results.json')
+    print("Dummy results with run_label saved. Check logs/results_test/eca_resnet_20_ECA-ResNet-20_k_size-5_results.json")
+
+    # Clean up test files if desired
+    # if os.path.exists('logs/results_test/resnet_20_test_results.json'): os.remove('logs/results_test/resnet_20_test_results.json')
+    # if os.path.exists('logs/results_test/eca_resnet_20_ECA-ResNet-20_k_size-5_results.json'): os.remove('logs/results_test/eca_resnet_20_ECA-ResNet-20_k_size-5_results.json')
+    # if os.path.exists('logs/results_test') and not os.listdir('logs/results_test'): os.rmdir('logs/results_test')
+
+    print("\nutils.py tests completed.") 

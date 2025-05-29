@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 import timm
-from typing import Optional, List
+from typing import Optional, List, Callable, Dict, Any
 
 class LayerNorm2d(nn.Module):
     def __init__(self, num_channels, eps=1e-6):
@@ -22,7 +22,7 @@ class LayerNorm2d(nn.Module):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1):
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
         super(BasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
@@ -44,13 +44,14 @@ class BasicBlock(nn.Module):
         return out
 
 class ECALayer(nn.Module):
-    def __init__(self, channels, gamma=2, b=1):
+    def __init__(self, channels, k_size=3):
         super(ECALayer, self).__init__()
-        t = int(abs((math.log(channels, 2) + b) / gamma))
-        k_size = t if t % 2 else t + 1
+        if k_size % 2 == 0:
+            k_size +=1
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)
         self.sigmoid = nn.Sigmoid()
+        self.k_size = k_size
 
     def forward(self, x):
         y = self.avg_pool(x)
@@ -61,13 +62,13 @@ class ECALayer(nn.Module):
 class ECABasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1):
+    def __init__(self, in_planes, planes, stride=1, k_size=3):
         super(ECABasicBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.eca = ECALayer(planes)
+        self.eca = ECALayer(planes, k_size=k_size)
 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != self.expansion * planes:
@@ -97,82 +98,70 @@ class GhostModule(nn.Module):
             nn.ReLU(inplace=True) if relu else nn.Sequential(),
         )
 
-        self.cheap_operation = nn.Sequential(
-            nn.Conv2d(init_channels, new_channels, dw_size, 1, dw_size//2, groups=init_channels, bias=False),
-            nn.BatchNorm2d(new_channels),
-            nn.ReLU(inplace=True) if relu else nn.Sequential(),
-        )
+        self.cheap_operation = nn.Sequential()
+        if new_channels > 0:
+            self.cheap_operation = nn.Sequential(
+                nn.Conv2d(init_channels, new_channels, dw_size, 1, dw_size//2, groups=init_channels, bias=False),
+                nn.BatchNorm2d(new_channels),
+                nn.ReLU(inplace=True) if relu else nn.Sequential(),
+            )
 
     def forward(self, x):
         x1 = self.primary_conv(x)
-        x2 = self.cheap_operation(x1)
-        out = torch.cat([x1, x2], dim=1)
+        if hasattr(self.cheap_operation, 'conv'):
+             x2 = self.cheap_operation(x1)
+             out = torch.cat([x1, x2], dim=1)
+        else:
+             out = x1
         return out[:, :self.oup, :, :]
 
-class GhostBottleneck(nn.Module):
+class GhostBasicBlock(nn.Module):
     expansion = 1
+    def __init__(self, in_planes, planes, stride=1, ratio=2):
+        super(GhostBasicBlock, self).__init__()
+        self.ghost1 = GhostModule(in_planes, planes, kernel_size=3, ratio=ratio, dw_size=3, stride=stride)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.ghost2 = GhostModule(planes, planes, kernel_size=3, ratio=ratio, dw_size=3, stride=1)
+        self.bn2 = nn.BatchNorm2d(planes)
 
-    def __init__(self, in_planes, planes, stride=1):
-        super(GhostBottleneck, self).__init__()
-        hidden_dim = in_planes
-        
-        self.ghost1 = GhostModule(in_planes, hidden_dim, kernel_size=1, relu=True)
-        
-        if stride > 1:
-            self.conv_dw = nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False)
-            self.bn_dw = nn.BatchNorm2d(hidden_dim)
-        
-        self.ghost2 = GhostModule(hidden_dim, planes, kernel_size=1, relu=False)
-        
         self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
+        if stride != 1 or in_planes != self.expansion * planes:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, planes, 1, stride, 0, bias=False),
-                nn.BatchNorm2d(planes),
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
             )
-        
-        self.stride = stride
-
+    
     def forward(self, x):
-        residual = x
-        
-        x = self.ghost1(x)
-        
-        if self.stride > 1:
-            x = self.bn_dw(self.conv_dw(x))
-            
-        x = self.ghost2(x)
-        
-        x += self.shortcut(residual)
-        return x
+        out = F.relu(self.bn1(self.ghost1(x)))
+        out = self.bn2(self.ghost2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
 
 class ConvNeXtBlock(nn.Module):
     def __init__(self, dim, drop_path=0., layer_scale_init_value=1e-6):
         super().__init__()
         self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)
-        self.norm = nn.LayerNorm(dim, eps=1e-6)
-        self.pwconv1 = nn.Linear(dim, 4 * dim)
+        self.norm = LayerNorm2d(dim)
+        self.pwconv1 = nn.Conv2d(dim, 4 * dim, kernel_size=1)
         self.act = nn.GELU()
-        self.pwconv2 = nn.Linear(4 * dim, dim)
+        self.pwconv2 = nn.Conv2d(4 * dim, dim, kernel_size=1)
         self.gamma = nn.Parameter(layer_scale_init_value * torch.ones((dim)), 
                                 requires_grad=True) if layer_scale_init_value > 0 else None
 
     def forward(self, x):
-        input = x
+        input_x = x
         x = self.dwconv(x)
-        x = x.permute(0, 2, 3, 1)
         x = self.norm(x)
         x = self.pwconv1(x)
         x = self.act(x)
         x = self.pwconv2(x)
         if self.gamma is not None:
-            x = self.gamma * x
-        x = x.permute(0, 3, 1, 2)
+            x = self.gamma.view(1, -1, 1, 1) * x
         
-        x = input + x
+        x = input_x + x
         return x
 
-# SegNeXt MSCA模块
 class MSCA(nn.Module):
     def __init__(self, dim, kernel_sizes=[7, 11], scale_factor=4):
         super().__init__()
@@ -180,9 +169,10 @@ class MSCA(nn.Module):
         self.conv0 = nn.Conv2d(dim, dim, 5, padding=2, groups=dim)
         
         self.scales = nn.ModuleList()
-        self.scales.append(nn.Identity())
+        actual_kernel_sizes = [3, 5]
         
-        for ks in kernel_sizes:
+        self.scales.append(nn.Identity())
+        for ks in actual_kernel_sizes:
             self.scales.append(
                 nn.Sequential(
                     nn.Conv2d(dim, dim, kernel_size=(1, ks), padding=(0, ks//2), groups=dim),
@@ -190,7 +180,7 @@ class MSCA(nn.Module):
                 )
             )
         
-        self.conv_channel_mixer = nn.Conv2d(dim, dim, 1)
+        self.conv_channel_mixer = nn.Conv2d(dim * (len(actual_kernel_sizes) +1) , dim, 1)
         self.sigmoid = nn.Sigmoid()
         
     def forward(self, x):
@@ -200,419 +190,411 @@ class MSCA(nn.Module):
         for scale_conv in self.scales:
             scale_outputs.append(scale_conv(base_feat))
         
-        summed_feats = torch.sum(torch.stack(scale_outputs), dim=0)
-        attention_map = self.conv_channel_mixer(summed_feats)
+        concatenated_feats = torch.cat(scale_outputs, dim=1)
+        
+        attention_map = self.conv_channel_mixer(concatenated_feats)
         attention_map = self.sigmoid(attention_map)
         
         return x * attention_map
 
 class MSCABlock(nn.Module):
-    def __init__(self, dim, drop_path=0.):
+    def __init__(self, dim, drop_path=0., mlp_ratio=4.):
         super().__init__()
         self.msca = MSCA(dim)
         self.norm1 = nn.BatchNorm2d(dim)
         
-        self.conv1 = nn.Conv2d(dim, dim * 4, 1)
-        self.conv2 = nn.Conv2d(dim * 4, dim, 1)
-        self.norm2 = nn.BatchNorm2d(dim * 4)
+        hidden_features = int(dim * mlp_ratio)
+        self.conv1 = nn.Conv2d(dim, hidden_features, 1)
+        self.conv2 = nn.Conv2d(hidden_features, dim, 1)
+        self.norm2 = nn.BatchNorm2d(hidden_features)
         self.act = nn.GELU()
         
     def forward(self, x):
         residual = x
-        x = self.norm1(x)
-        x = self.msca(x)
-        x = x + residual
+        x_norm = self.norm1(x)
+        attn_x = self.msca(x_norm)
+        x = attn_x + residual
         
         residual = x
-        x = self.conv1(x)
-        x = self.norm2(x)
-        x = self.act(x)
-        x = self.conv2(x)
-        x = x + residual
+        x_norm = self.norm1(x)
+        x_mlp = self.conv1(x_norm)
+        x_mlp = self.norm2(x_mlp)
+        x_mlp = self.act(x_mlp)
+        x_mlp = self.conv2(x_mlp)
+        x = x_mlp + residual
         
         return x
 
-# LSK模块
 class LSKBlock(nn.Module):
     def __init__(self, dim):
         super().__init__()
         self.conv0 = nn.Conv2d(dim, dim, 5, padding=2, groups=dim)
         self.conv_spatial = nn.Conv2d(dim, dim, 7, stride=1, padding=9, groups=dim, dilation=3)
-        self.conv1 = nn.Conv2d(dim, dim//2, 1)
-        self.conv2 = nn.Conv2d(dim//2, dim, 1)
-        self.conv3 = nn.Conv2d(dim//2, dim, 1)
-        
-    def forward(self, x):
-        attn1 = self.conv0(x)
-        attn2 = self.conv_spatial(attn1)
-        
-        attn1 = self.conv1(attn1)
-        attn2 = self.conv2(attn2)
-        attn = attn1 + attn2
-        
-        avg_attn = torch.mean(attn, dim=1, keepdim=True)
-        max_attn, _ = torch.max(attn, dim=1, keepdim=True)
-        agg = avg_attn + max_attn
-        
-        sig = torch.sigmoid(agg)
-        return x * sig
+        self.conv1 = nn.Conv2d(dim, dim // 2, 1)
+        self.conv2 = nn.Conv2d(dim // 2, dim, 1)
+        self.sigmoid = nn.Sigmoid()
 
-# CSP块
-class CSPLayer(nn.Module):
-    def __init__(self, in_channels, out_channels, num_blocks=1, shortcut=True):
-        super().__init__()
-        hidden_channels = out_channels // 2
-        self.conv1 = nn.Conv2d(in_channels, hidden_channels, 1)
-        self.conv2 = nn.Conv2d(in_channels, hidden_channels, 1)
-        self.conv3 = nn.Conv2d(2 * hidden_channels, out_channels, 1)
-        
-        module_list = []
-        for _ in range(num_blocks):
-            module_list.append(
-                nn.Sequential(
-                    nn.Conv2d(hidden_channels, hidden_channels, 3, padding=1),
-                    nn.BatchNorm2d(hidden_channels),
-                    nn.ReLU(inplace=True)
-                )
-            )
-        self.blocks = nn.Sequential(*module_list)
-        
     def forward(self, x):
-        x_1 = self.conv1(x)
-        x_2 = self.conv2(x)
-        x_1 = self.blocks(x_1)
-        x = torch.cat([x_1, x_2], dim=1)
-        return self.conv3(x)
-
-# ResNeSt分裂注意力
-class SplitAttention(nn.Module):
-    def __init__(self, channels, radix=2):
-        super().__init__()
-        self.radix = radix
-        self.channels = channels
-        self.inter_channels = max(channels * radix // 4, 32)
+        attn_map_base = self.conv0(x)
+        spatial_attn = self.conv_spatial(attn_map_base)
         
-        self.conv = nn.Conv2d(channels, self.inter_channels, 1, groups=1)
-        self.bn = nn.BatchNorm2d(self.inter_channels)
-        self.relu = nn.ReLU(inplace=True)
-        self.fc1 = nn.Conv2d(self.inter_channels, channels * radix, 1, groups=1)
-        self.rsoftmax = nn.Softmax(dim=1)
+        combined_attn = self.conv1(spatial_attn) 
+        combined_attn = F.relu(combined_attn)
+        combined_attn = self.conv2(combined_attn)
+        attention_scores = self.sigmoid(combined_attn)
         
-    def forward(self, x):
-        batch, channel = x.size()[:2]
-        splited = torch.split(x, channel // self.radix, dim=1)
-        gap = sum(splited)
-        gap = F.adaptive_avg_pool2d(gap, 1)
-        gap = self.conv(gap)
-        gap = self.bn(gap)
-        gap = self.relu(gap)
-        
-        atten = self.fc1(gap)
-        atten = atten.view(batch, self.radix, channel // self.radix)
-        atten = self.rsoftmax(atten)
-        atten = atten.view(batch, channel, 1, 1)
-        
-        attens = torch.split(atten, channel // self.radix, dim=1)
-        out = sum([att * split for att, split in zip(attens, splited)])
-        return out
-
-# MLP-Mixer块
-class MLPBlock(nn.Module):
-    def __init__(self, dim, hidden_dim, dropout=0.):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(dim, hidden_dim),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, dim),
-            nn.Dropout(dropout)
-        )
-        
-    def forward(self, x):
-        return self.net(x)
-
-class MixerBlock(nn.Module):
-    def __init__(self, dim, num_patches, token_dim, channel_dim, dropout=0.):
-        super().__init__()
-        self.token_mix = nn.Sequential(
-            nn.LayerNorm(dim),
-        )
-        
-        self.token_mlp = MLPBlock(num_patches, token_dim, dropout)
-        
-        self.channel_mix = nn.Sequential(
-            nn.LayerNorm(dim),
-        )
-        
-        self.channel_mlp = MLPBlock(dim, channel_dim, dropout)
-        
-    def forward(self, x):
-        # Token mixing: operate on the token dimension
-        residual = x
-        x = self.token_mix[0](x)  # LayerNorm
-        x = x.transpose(1, 2)  # (B, num_patches, dim) -> (B, dim, num_patches)
-        x = self.token_mlp(x)
-        x = x.transpose(1, 2)  # (B, dim, num_patches) -> (B, num_patches, dim)
-        x = x + residual
-        
-        # Channel mixing: operate on the channel dimension
-        residual = x
-        x = self.channel_mix[0](x)  # LayerNorm
-        x = self.channel_mlp(x)
-        x = x + residual
-        
-        return x
+        return x * attention_scores
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=100):
+    def __init__(self, block_type, num_blocks_list, num_classes=100, in_channels=3, block_kwargs=None):
         super(ResNet, self).__init__()
-        self.in_planes = 16
+        self.in_planes = 64
+        self.cifar_stem = True
 
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(16)
-        self.layer1 = self._make_layer(block, 16, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 32, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 64, num_blocks[2], stride=2)
+        if block_kwargs is None:
+            block_kwargs = {}
+
+        if self.cifar_stem:
+            self.in_planes = 16
+            self.conv1 = nn.Conv2d(in_channels, 16, kernel_size=3, stride=1, padding=1, bias=False)
+            self.bn1 = nn.BatchNorm2d(16)
+        else:
+            self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+            self.bn1 = nn.BatchNorm2d(64)
+            self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+        planes_list = [16, 32, 64] if self.cifar_stem else [64, 128, 256, 512]
+        strides = [1, 2, 2] if self.cifar_stem else [1, 2, 2, 2]
+        
+        current_planes = self.in_planes
+        self.layers = nn.ModuleList()
+        for i, num_blocks in enumerate(num_blocks_list):
+            stage_planes = planes_list[i]
+            stage_stride = strides[i] if i > 0 or not self.cifar_stem else 1
+            
+            self.layers.append(self._make_layer(block_type, stage_planes, num_blocks, stride=stage_stride, block_kwargs=block_kwargs))
+            current_planes = stage_planes * block_type.expansion
+            self.in_planes = current_planes
+
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(64 * block.expansion, num_classes)
+        self.linear = nn.Linear(current_planes, num_classes)
 
-    def _make_layer(self, block, planes, num_blocks, stride):
-        strides = [stride] + [1] * (num_blocks - 1)
+    def _make_layer(self, block_type, planes, num_blocks, stride, block_kwargs):
+        strides_list = [stride] + [1]*(num_blocks-1)
         layers = []
-        for stride in strides:
-            layers.append(block(self.in_planes, planes, stride))
-            self.in_planes = planes * block.expansion
+        for s in strides_list:
+            layers.append(block_type(self.in_planes, planes, s, **block_kwargs))
+            self.in_planes = planes * block_type.expansion
         return nn.Sequential(*layers)
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
-        out = self.layer1(out)
-        out = self.layer2(out)
-        out = self.layer3(out)
+        if not self.cifar_stem:
+            out = self.maxpool(out)
+        
+        for layer_module in self.layers:
+            out = layer_module(out)
+            
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
-        out = self.fc(out)
+        out = self.linear(out)
         return out
 
-class ConvNeXtResNet(nn.Module):
-    def __init__(self, depths=[3, 3, 3], dims=[16, 32, 64], num_classes=100):
+class ConvNeXtCustom(nn.Module):
+    def __init__(self, depths=[2, 2, 6, 2], dims=[48, 96, 192, 384], num_classes=100, drop_path_rate=0.):
         super().__init__()
-        
+        self.depths = depths
+        self.dims = dims
+
         self.stem = nn.Sequential(
             nn.Conv2d(3, dims[0], kernel_size=4, stride=4),
             LayerNorm2d(dims[0])
         )
-        
+
         self.stages = nn.ModuleList()
+        dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))] 
+        cur = 0
         for i in range(len(depths)):
-            stage = nn.Sequential(*[ConvNeXtBlock(dims[i]) for _ in range(depths[i])])
-            self.stages.append(stage)
-            
+            stage_blocks = []
+            for j in range(depths[i]):
+                stage_blocks.append(ConvNeXtBlock(dims[i], drop_path=dp_rates[cur + j], layer_scale_init_value=1e-6))
+            self.stages.append(nn.Sequential(*stage_blocks))
             if i < len(depths) - 1:
-                downsample = nn.Sequential(
+                self.stages.append(nn.Sequential(
                     LayerNorm2d(dims[i]),
                     nn.Conv2d(dims[i], dims[i+1], kernel_size=2, stride=2)
-                )
-                self.stages.append(downsample)
-                
-        self.norm = LayerNorm2d(dims[-1])
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+                ))
+            cur += depths[i]
+
+        self.norm_out = LayerNorm2d(dims[-1])
         self.head = nn.Linear(dims[-1], num_classes)
 
-    def forward(self, x):
+    def forward_features(self, x):
         x = self.stem(x)
-        for stage in self.stages:
-            x = stage(x)
-        x = self.norm(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        stage_idx = 0
+        for i in range(len(self.depths)):
+            x = self.stages[stage_idx](x)
+            stage_idx +=1
+            if i < len(self.depths) - 1:
+                x = self.stages[stage_idx](x)
+                stage_idx +=1
+        return self.norm_out(x)
+
+    def forward(self, x):
+        x = self.forward_features(x)
+        x = x.mean([-2, -1])
         x = self.head(x)
         return x
 
-# MSCAN编码器
-class MSCANEncoder(nn.Module):
-    def __init__(self, dims=[32, 64, 128], depths=[3, 4, 6], num_classes=100):
+class MSCANEncoderCustom(nn.Module):
+    def __init__(self, dims=[32, 64, 128, 256], depths=[2, 2, 4, 2], num_classes=100, mlp_ratios=[4,4,4,4], drop_path_rate=0.0):
         super().__init__()
-        
+        self.depths = depths
+        self.dims = dims
+
         self.stem = nn.Sequential(
-            nn.Conv2d(3, dims[0], 7, 4, 3),
+            nn.Conv2d(3, dims[0], kernel_size=3, stride=2, padding=1),
             nn.BatchNorm2d(dims[0]),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
         
         self.stages = nn.ModuleList()
+        dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
+        cur_dp_idx = 0
+        
         for i in range(len(depths)):
-            stage = nn.Sequential(*[MSCABlock(dims[i]) for _ in range(depths[i])])
-            self.stages.append(stage)
+            stage_blocks = []
+            for j in range(depths[i]):
+                stage_blocks.append(MSCABlock(dims[i], drop_path=dp_rates[cur_dp_idx + j], mlp_ratio=mlp_ratios[i]))
+            
+            self.stages.append(nn.Sequential(*stage_blocks))
             
             if i < len(depths) - 1:
-                downsample = nn.Sequential(
-                    nn.Conv2d(dims[i], dims[i+1], 3, 2, 1),
+                self.stages.append(nn.Sequential(
+                    nn.Conv2d(dims[i], dims[i+1], kernel_size=2, stride=2),
                     nn.BatchNorm2d(dims[i+1])
-                )
-                self.stages.append(downsample)
-        
-        self.norm = nn.BatchNorm2d(dims[-1])
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+                ))
+            cur_dp_idx += depths[i]
+
+        self.norm_out = nn.BatchNorm2d(dims[-1])
         self.head = nn.Linear(dims[-1], num_classes)
-        
-    def forward(self, x):
+
+    def forward_features(self, x):
         x = self.stem(x)
-        for stage in self.stages:
-            x = stage(x)
-        x = self.norm(x)
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        stage_idx = 0
+        for i in range(len(self.depths)):
+            x = self.stages[stage_idx](x)
+            stage_idx += 1
+            if i < len(self.depths) - 1:
+                x = self.stages[stage_idx](x)
+                stage_idx += 1
+        return self.norm_out(x)
+
+    def forward(self, x):
+        x = self.forward_features(x)
+        x = x.mean([-2, -1])
         x = self.head(x)
         return x
 
-# MLP-Mixer实现
-class MLPMixer(nn.Module):
-    def __init__(self, image_size=32, patch_size=4, dim=256, num_classes=100, depth=8, token_dim=256, channel_dim=512):
+class MixerBlock(nn.Module):
+    def __init__(self, dim, num_patches, token_mlp_dim, channel_mlp_dim, dropout=0.):
         super().__init__()
-        assert image_size % patch_size == 0
-        self.num_patches = (image_size // patch_size) ** 2
-        self.patch_size = patch_size
-        self.dim = dim
+        self.token_mix = nn.Sequential(
+            nn.LayerNorm(dim),
+            nn.Linear(num_patches, token_mlp_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(token_mlp_dim, num_patches),
+            nn.Dropout(dropout)
+        )
+        self.channel_mix = nn.Sequential(
+            nn.LayerNorm(dim),
+            nn.Linear(dim, channel_mlp_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(channel_mlp_dim, dim),
+            nn.Dropout(dropout)
+        )
+
+    def forward(self, x):
+        x_token_mixed = self.token_mix(x.transpose(1, 2)).transpose(1, 2)
+        x = x + x_token_mixed
+        x_channel_mixed = self.channel_mix(x)
+        x = x + x_channel_mixed
+        return x
+
+class MLPMixerCustom(nn.Module):
+    def __init__(self, image_size, patch_size, dim, depth, num_classes, token_mlp_dim, channel_mlp_dim, dropout=0.):
+        super().__init__()
+        if image_size % patch_size != 0:
+            raise ValueError("Image dimensions must be divisible by the patch size.")
+        num_patches = (image_size // patch_size) ** 2
+        self.patch_embed = nn.Conv2d(3, dim, kernel_size=patch_size, stride=patch_size)
         
-        self.patch_embed = nn.Conv2d(3, dim, patch_size, patch_size)
-        
-        self.mixer_layers = nn.ModuleList([
-            MixerBlock(dim, self.num_patches, token_dim, channel_dim)
+        self.mixer_blocks = nn.ModuleList([
+            MixerBlock(dim, num_patches, token_mlp_dim, channel_mlp_dim, dropout)
             for _ in range(depth)
         ])
-        
-        self.layer_norm = nn.LayerNorm(dim)
+        self.norm = nn.LayerNorm(dim)
         self.head = nn.Linear(dim, num_classes)
-        
+
     def forward(self, x):
-        # Patch embedding: (B, 3, H, W) -> (B, dim, H/P, W/P) -> (B, num_patches, dim)
-        x = self.patch_embed(x)  # (B, dim, H/P, W/P)
-        B, C, H, W = x.shape
-        x = x.flatten(2).transpose(1, 2)  # (B, num_patches, dim)
-        
-        for mixer in self.mixer_layers:
-            x = mixer(x)
-            
-        x = self.layer_norm(x)
-        x = x.mean(dim=1)  # Global average pooling
-        return self.head(x)
+        x = self.patch_embed(x) 
+        x = x.flatten(2).transpose(1, 2) # [B, num_patches, dim]
+        for mixer_block in self.mixer_blocks:
+            x = mixer_block(x)
+        x = self.norm(x)
+        x = x.mean(dim=1) # Global average pooling over patches
+        x = self.head(x)
+        return x
 
-def resnet20():
-    return ResNet(BasicBlock, [3, 3, 3])
+MODEL_REGISTRY: Dict[str, Callable[..., nn.Module]] = {}
 
-def resnet32():
-    return ResNet(BasicBlock, [5, 5, 5])
+def register_model(name: str) -> Callable[..., Callable[..., nn.Module]]:
+    def decorator(builder: Callable[..., nn.Module]) -> Callable[..., nn.Module]:
+        MODEL_REGISTRY[name] = builder
+        return builder
+    return decorator
 
-def resnet56():
-    return ResNet(BasicBlock, [9, 9, 9])
+@register_model("resnet_20")
+def resnet20_builder(num_classes=100, **kwargs):
+    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs=kwargs)
 
-def eca_resnet20():
-    return ResNet(ECABasicBlock, [3, 3, 3])
+@register_model("resnet_32")
+def resnet32_builder(num_classes=100, **kwargs):
+    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs=kwargs)
 
-def eca_resnet32():
-    return ResNet(ECABasicBlock, [5, 5, 5])
+@register_model("resnet_56")
+def resnet56_builder(num_classes=100, **kwargs):
+    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes, block_kwargs=kwargs)
 
-def ghost_resnet20():
-    return ResNet(GhostBottleneck, [3, 3, 3])
+@register_model("eca_resnet_20")
+def eca_resnet20_builder(num_classes=100, k_size=3, **kwargs):
+    return ResNet(ECABasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size, **kwargs})
 
-def ghost_resnet32():
-    return ResNet(GhostBottleneck, [5, 5, 5])
+@register_model("eca_resnet_32")
+def eca_resnet32_builder(num_classes=100, k_size=3, **kwargs):
+    return ResNet(ECABasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs={'k_size': k_size, **kwargs})
 
-def convnext_tiny():
-    return ConvNeXtResNet([2, 2, 6], [16, 32, 64])
+@register_model("ghost_resnet_20")
+def ghost_resnet20_builder(num_classes=100, ratio=2, **kwargs):
+    return ResNet(GhostBasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'ratio': ratio, **kwargs})
 
-def segnext_mscan_tiny():
-    return MSCANEncoder([32, 64, 128], [2, 2, 4])
+@register_model("ghost_resnet_32")
+def ghost_resnet32_builder(num_classes=100, ratio=2, **kwargs):
+    return ResNet(GhostBasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs={'ratio': ratio, **kwargs})
 
-def mlp_mixer_tiny():
-    return MLPMixer(32, 4, 256, 100, 6, 256, 512)
+@register_model("convnext_tiny")
+def convnext_tiny_custom_builder(num_classes=100, **kwargs):
+    return ConvNeXtCustom(depths=[2,2,6,2], dims=[32,64,128,256], num_classes=num_classes, **kwargs)
 
-# 通过timm库创建预训练模型的包装函数
-def create_timm_model(model_name: str, num_classes: int = 100, pretrained: bool = True):
-    """创建timm预训练模型"""
-    try:
-        return timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
-    except Exception as e:
-        print(f"创建timm模型 {model_name} 失败: {e}")
-        return None
+@register_model("segnext_mscan_tiny")
+def segnext_mscan_tiny_custom_builder(num_classes=100, **kwargs):
+    return MSCANEncoderCustom(dims=[32,64,128], depths=[2,2,3], num_classes=num_classes, **kwargs)
 
-def convnext_tiny_timm():
-    return create_timm_model('convnext_tiny', 100, True)
+@register_model("mlp_mixer_tiny")
+def mlp_mixer_tiny_custom_builder(num_classes=100, **kwargs):
+    return MLPMixerCustom(image_size=32, patch_size=4, dim=128, depth=4, 
+                          token_mlp_dim=128, channel_mlp_dim=256,
+                          num_classes=num_classes, **kwargs)
 
-def coatnet_0():
-    return create_timm_model('coatnet_0_rw_224', 100, True)
-
-def cspresnet50():
-    return create_timm_model('cspresnet50', 100, True)
-
-def ghostnet_100():
-    return create_timm_model('ghostnet_100', 100, True)
-
-def hornet_tiny():
-    # 尝试不同的hornet模型名称
-    model_names = [
-        'hornet_tiny_7x7', 
-        'hornet_tiny', 
-        'hornet_tiny_224', 
-        'hornet_nano'
-    ]
-    
-    for name in model_names:
-        model = create_timm_model(name, 100, True)
-        if model is not None:
-            return model
-    
-    # 如果都失败了，返回None或者使用一个替代模型
-    print("警告: 所有HorNet模型都不可用，使用ConvNeXt作为替代")
-    return create_timm_model('convnext_nano', 100, True)
-
-def resnest50d():
-    return create_timm_model('resnest50d', 100, True)
-
-def mlp_mixer_b16():
-    return create_timm_model('mixer_b16_224', 100, True)
-
-# 模型映射字典
-MODEL_REGISTRY = {
-    'resnet_20': resnet20,
-    'resnet_32': resnet32,
-    'resnet_56': resnet56,
-    'eca_resnet_20': eca_resnet20,
-    'eca_resnet_32': eca_resnet32,
-    'ghost_resnet_20': ghost_resnet20,
-    'ghost_resnet_32': ghost_resnet32,
-    'convnext_tiny': convnext_tiny,
-    'convnext_tiny_timm': convnext_tiny_timm,
-    'segnext_mscan_tiny': segnext_mscan_tiny,
-    'coatnet_0': coatnet_0,
-    'cspresnet50': cspresnet50,
-    'ghostnet_100': ghostnet_100,
-    'hornet_tiny': hornet_tiny,
-    'resnest50d': resnest50d,
-    'mlp_mixer_tiny': mlp_mixer_tiny,
-    'mlp_mixer_b16': mlp_mixer_b16,
+TIMM_NAME_MAP = {
+    "convnext_tiny_timm": "convnext_tiny",
+    "coatnet_0": "coatnet_0",
+    "cspresnet50": "cspresnet50",
+    "ghostnet_100": "ghostnet_100",
+    "hornet_tiny": "hornet_tiny_7x7",
+    "resnest50d": "resnest50d",
+    "mlp_mixer_b16": "mixer_b16_224_in21k"
 }
 
-def get_model(model_name: str):
-    """根据模型名称获取模型"""
-    if model_name in MODEL_REGISTRY:
-        return MODEL_REGISTRY[model_name]()
-    else:
-        available_models = list(MODEL_REGISTRY.keys())
-        raise ValueError(f"未知模型: {model_name}. 可用模型: {available_models}")
+def get_model(model_name: str, num_classes: int = 100, pretrained_timm: bool = False, **kwargs: Any) -> nn.Module:
+    if pretrained_timm and model_name in TIMM_NAME_MAP:
+        # For timm models, pretrained=True implies ImageNet pretraining.
+        # kwargs might include specific timm features if necessary
+        model = timm.create_model(
+            TIMM_NAME_MAP[model_name],
+            pretrained=True,
+            num_classes=num_classes,
+            **kwargs.get('timm_extra_args', {}) # Pass any extra args for timm
+        )
+        # If 'drop_path_rate' is in kwargs, ensure it's applied if the model supports it
+        if 'drop_path_rate' in kwargs and hasattr(model, 'drop_path_rate'):
+            model.drop_path_rate = kwargs['drop_path_rate']
+        return model
+    
+    builder = MODEL_REGISTRY.get(model_name)
+    if builder:
+        # Pass only relevant kwargs to the builder
+        # This requires builders to be robust to extra kwargs or for us to filter them
+        # For simplicity here, we pass all, assuming builders handle them or use **kwargs
+        return builder(num_classes=num_classes, **kwargs)
+    
+    raise ValueError(f"Model {model_name} not found in MODEL_REGISTRY or TIMM_NAME_MAP for the given configuration.")
 
-def count_parameters(model):
-    """计算模型参数量"""
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+def count_parameters(model: nn.Module) -> float:
+    return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
 
-def get_model_info(model_name: str):
-    """获取模型信息"""
-    model = get_model(model_name)
-    params = count_parameters(model)
+def get_model_info(model: nn.Module, model_name: str, pretrained_timm: bool = False) -> Dict[str, Any]:
     return {
-        'name': model_name,
-        'parameters': params,
-        'parameters_M': params / 1e6,
-        'model': model
-    } 
+        "model_name": model_name,
+        "parameters_M": count_parameters(model),
+        "is_timm_pretrained": pretrained_timm
+    }
+
+if __name__ == '__main__':
+    model_names_to_test = [
+        "resnet_20", "resnet_32", "resnet_56",
+        "eca_resnet_20", "eca_resnet_32",
+        "ghost_resnet_20", "ghost_resnet_32",
+        "convnext_tiny", 
+        "segnext_mscan_tiny",
+        "mlp_mixer_tiny",
+        "convnext_tiny_timm", 
+        "coatnet_0", 
+        "cspresnet50",
+        "ghostnet_100",
+        "hornet_tiny",
+        "resnest50d",
+        "mlp_mixer_b16",
+    ]
+
+    for name in model_names_to_test:
+        print(f"--- Testing model: {name} ---")
+        try:
+            if name in ["eca_resnet_20", "eca_resnet_32"]:
+                model_instance = get_model(name, num_classes=100, pretrained_timm=(name.endswith("_timm")), k_size=3)
+            elif name in ["ghost_resnet_20", "ghost_resnet_32"]:
+                model_instance = get_model(name, num_classes=100, pretrained_timm=(name.endswith("_timm")), ratio=2)
+            else:
+                model_instance = get_model(name, num_classes=100, pretrained_timm=(name.endswith("_timm") or name in TIMM_NAME_MAP))
+            
+            dummy_input = torch.randn(2, 3, 32, 32)
+            output = model_instance(dummy_input)
+            print(f"Model: {name}, Output shape: {output.shape}, Params (M): {count_parameters(model_instance):.2f}")
+            
+            if name == "eca_resnet_20":
+                 model_instance_k5 = get_model(name, num_classes=100, k_size=5)
+                 output_k5 = model_instance_k5(dummy_input)
+                 print(f"Model: {name} (k_size=5), Output shape: {output_k5.shape}, Params (M): {count_parameters(model_instance_k5):.2f}")
+
+        except Exception as e:
+            print(f"Error testing model {name}: {e}")
+            import traceback
+            traceback.print_exc()
+
+# Cleanup old functions if they are fully replaced by the registry
+# The functions like resnet20(), eca_resnet20() defined globally are now replaced by builders
+# and called via get_model.
+
+# Remove or comment out old separate model functions if `get_model` and registry are comprehensive
+# def resnet20(): ... (old)
+# def eca_resnet20(): ... (old)
+# etc.
+
+# Remove create_timm_model as its logic is in get_model
+# def create_timm_model(model_name: str, num_classes: int = 100, pretrained: bool = True): (old)
+
+# Remove old get_model and get_model_info if fully replaced
+# def get_model(model_name: str): (old, different signature)
+# def get_model_info(model_name: str): (old) 
