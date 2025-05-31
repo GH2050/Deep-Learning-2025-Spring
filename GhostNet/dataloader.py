@@ -3,7 +3,6 @@ import torchvision
 import torchvision.transforms as transforms
 
 
-#数据加载
 # 设置标准归一化参数（与 CIFAR-100 官方统计一致）
 CIFAR100_MEAN = (0.5071, 0.4867, 0.4408)
 CIFAR100_STD = (0.2675, 0.2565, 0.2761)
@@ -55,3 +54,4 @@ if __name__ == '__main__':
     print(f"Image batch shape: {images.shape}")
     print(f"Label batch: {labels}")
     print(f"First 4 labels (as names): {[classes[l] for l in labels]}")
+    print(classes)
