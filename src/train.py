@@ -37,7 +37,7 @@ def print_model_summary(model, model_name):
     # 打印模型结构概览
     print(f"\nModel Structure:")
     print(f"├── Input: 3 channels (RGB)")
-    
+
     if "convnext" in model_name:
         # ConvNeXt 架构信息
         if "tiny" in model_name:
@@ -50,10 +50,10 @@ def print_model_summary(model, model_name):
             depths, dims = [2, 2, 18, 2], [96, 192, 384, 768]
         else:
             depths, dims = [2, 2, 6, 2], [48, 96, 192, 384]
-        
+
         print(f"├── Stem: 4×4 conv, stride=4 → {dims[0]} channels")
         print(f"├── Stage1: {depths[0]} blocks, {dims[0]} channels")
-        print(f"├── Stage2: {depths[1]} blocks, {dims[1]} channels") 
+        print(f"├── Stage2: {depths[1]} blocks, {dims[1]} channels")
         print(f"├── Stage3: {depths[2]} blocks, {dims[2]} channels")
         print(f"├── Stage4: {depths[3]} blocks, {dims[3]} channels")
         print(f"├── Features: 7×7 DWConv + LayerNorm + InvertedBottleneck")
@@ -62,7 +62,7 @@ def print_model_summary(model, model_name):
     else:
         # ResNet 架构信息
         print(f"├── Conv1: 3×3, stride=1, padding=1")
-        
+
         if "resnet20" in model_name:
             layers = [3, 3, 3]
         elif "resnet32" in model_name:
@@ -172,14 +172,23 @@ def get_default_lr_and_optimizer(model_name):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Deep Learning Training Framework for CIFAR-100")
+    parser = argparse.ArgumentParser(
+        description="Deep Learning Training Framework for CIFAR-100"
+    )
     parser.add_argument(
         "--model",
         type=str,
         default="resnet20",
         choices=[
-            "resnet20", "resnet32", "resnet56", "resnet20_slim", "resnet32_slim",
-            "convnext_tiny", "convnext_small", "convnext_base", "convnext_large"
+            "resnet20",
+            "resnet32",
+            "resnet56",
+            "resnet20_slim",
+            "resnet32_slim",
+            "convnext_tiny",
+            "convnext_small",
+            "convnext_base",
+            "convnext_large",
         ],
         help="Model architecture to train",
     )
@@ -189,11 +198,18 @@ def main():
     parser.add_argument(
         "--batch_size", type=int, default=128, help="Batch size for training"
     )
-    parser.add_argument("--lr", type=float, default=None, help="Initial learning rate (auto-selected if not specified)")
     parser.add_argument(
-        "--optimizer", type=str, default=None, 
+        "--lr",
+        type=float,
+        default=None,
+        help="Initial learning rate (auto-selected if not specified)",
+    )
+    parser.add_argument(
+        "--optimizer",
+        type=str,
+        default=None,
         choices=["sgd", "adamw"],
-        help="Optimizer type (auto-selected if not specified)"
+        help="Optimizer type (auto-selected if not specified)",
     )
     parser.add_argument(
         "--weight_decay", type=float, default=5e-4, help="Weight decay coefficient"
@@ -306,6 +322,21 @@ def main():
     print(f"Generating training curves...")
     trainer.plot_curves(save_dir / "training_curves.png")
 
+    # 导出模型用于可视化
+    print(f"\nExporting models for visualization...")
+    print("-" * 50)
+
+    # 导出 ONNX 模型（推荐用于 Netron）
+    onnx_path = trainer.export_model(model_name=args.model, input_size=(1, 3, 32, 32))
+
+    # 导出 TorchScript 模型
+    script_path = trainer.export_torchscript(
+        model_name=args.model, input_size=(1, 3, 32, 32)
+    )
+
+    # 保存模型结构摘要
+    summary_path = trainer.save_model_summary(model_name=args.model)
+
     # 最终总结
     print(f"\nTraining Summary:")
     print(f"├── Model: {args.model}")
@@ -313,7 +344,13 @@ def main():
     print(f"├── Final Train Accuracy: {history['train_acc'][-1]:.2f}%")
     print(f"├── Final Test Accuracy: {history['test_acc'][-1]:.2f}%")
     print(f"├── Checkpoints saved to: {save_dir}")
-    print(f"└── Training curves saved to: {save_dir / 'training_curves.png'}")
+    print(f"├── Training curves saved to: {save_dir / 'training_curves.png'}")
+    if onnx_path:
+        print(f"├── ONNX model saved to: {onnx_path}")
+    if script_path:
+        print(f"├── TorchScript model saved to: {script_path}")
+    if summary_path:
+        print(f"└── Model summary saved to: {summary_path}")
 
     print(f"\n{'='*80}")
     print(f"{'All Done!':^80}")

@@ -25,17 +25,92 @@ class Trainer:
         self.best_acc = 0.0
         self.start_time = None
     
+    def export_model(self, model_name="model", input_size=(1, 3, 32, 32)):
+        """导出模型为 ONNX 格式，用于 Netron 可视化"""
+        try:
+            print(f"Exporting model to ONNX format...")
+
+            self.model.eval()
+            dummy_input = torch.randn(input_size).to(self.device)
+            onnx_path = self.save_dir / f"{model_name}.onnx"
+            
+            # 导出为 ONNX
+            torch.onnx.export(
+                self.model,                     # 模型
+                dummy_input,                    # 示例输入
+                onnx_path,                      # 输出路径
+                export_params=True,             # 导出参数
+                opset_version=11,               # ONNX opset 版本
+                do_constant_folding=True,       # 常量折叠优化
+                input_names=['input'],          # 输入名称
+                output_names=['output'],        # 输出名称
+                dynamic_axes={                  # 动态轴（批大小）
+                    'input': {0: 'batch_size'},
+                    'output': {0: 'batch_size'}
+                }
+            )
+            
+            print(f"✓ ONNX model exported to: {onnx_path}")
+            print(f"  You can visualize it with Netron: https://netron.app")
+            print(f"  Or install Netron locally: pip install netron")
+            return str(onnx_path)
+            
+        except Exception as e:
+            print(f"✗ Failed to export ONNX model: {e}")
+            return None
+    
+    def export_torchscript(self, model_name="model", input_size=(1, 3, 32, 32)):
+        """导出模型为 TorchScript 格式"""
+        try:
+            print(f"Exporting model to TorchScript format...")
+            
+            self.model.eval()
+
+            dummy_input = torch.randn(input_size).to(self.device)
+            traced_model = torch.jit.trace(self.model, dummy_input)
+            script_path = self.save_dir / f"{model_name}.pt"
+            traced_model.save(script_path)
+            
+            print(f"✓ TorchScript model exported to: {script_path}")
+            return str(script_path)
+            
+        except Exception as e:
+            print(f"✗ Failed to export TorchScript model: {e}")
+            return None
+    
+    def save_model_summary(self, model_name="model"):
+        """保存模型结构摘要到文本文件"""
+        try:
+            summary_path = self.save_dir / f"{model_name}_summary.txt"
+            
+            with open(summary_path, 'w') as f:
+                f.write(f"Model Architecture Summary\n")
+                f.write(f"=" * 50 + "\n")
+                f.write(f"Model Name: {model_name}\n")
+                f.write(f"Total Parameters: {sum(p.numel() for p in self.model.parameters() if p.requires_grad):,}\n")
+                f.write(f"Model Size: {sum(p.numel() for p in self.model.parameters() if p.requires_grad) * 4 / 1024 / 1024:.2f} MB\n\n")
+                
+                f.write("Model Structure:\n")
+                f.write("-" * 50 + "\n")
+                f.write(str(self.model))
+                
+            print(f"✓ Model summary saved to: {summary_path}")
+            return str(summary_path)
+            
+        except Exception as e:
+            print(f"✗ Failed to save model summary: {e}")
+            return None
+
     def train_epoch(self, train_loader, optimizer, criterion, epoch, total_epochs):
         self.model.train()
         total_loss = 0.0
         correct = 0
         total = 0
         
-        # 创建进度条
         pbar = tqdm(
             train_loader, 
             desc=f'Epoch {epoch+1:3d}/{total_epochs} [Train]',
-            leave=False,  # 不保留进度条
+            leave=False,
             ncols=120,
             file=sys.stdout,
             dynamic_ncols=True
@@ -55,7 +130,6 @@ class Trainer:
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             
-            # 更新进度条
             current_acc = 100. * correct / total
             current_loss = total_loss / (batch_idx + 1)
             
@@ -75,11 +149,10 @@ class Trainer:
         correct = 0
         total = 0
         
-        # 创建进度条
         pbar = tqdm(
             test_loader, 
             desc=f'Epoch {epoch+1:3d}/{total_epochs} [Test ]',
-            leave=False,  # 不保留进度条
+            leave=False,
             ncols=120,
             file=sys.stdout,
             dynamic_ncols=True
@@ -96,7 +169,6 @@ class Trainer:
                 total += targets.size(0)
                 correct += predicted.eq(targets).sum().item()
                 
-                # 更新进度条
                 current_acc = 100. * correct / total
                 current_loss = total_loss / (batch_idx + 1)
                 
@@ -111,14 +183,11 @@ class Trainer:
     
     def print_epoch_summary(self, epoch, total_epochs, train_loss, train_acc, 
                           test_loss, test_acc, epoch_time, lr, is_best=False):
-        """打印epoch总结, 使用固定位置刷新"""
         elapsed_time = time.time() - self.start_time
         eta = (total_epochs - epoch - 1) * (elapsed_time / (epoch + 1))
         
-        # 清除当前行并回到行首
         print('\r' + ' ' * 120 + '\r', end='')
         
-        # 构建状态行
         status_line = (
             f"Epoch {epoch+1:3d}/{total_epochs} | "
             f"Train: {train_loss:.4f}/{train_acc:5.2f}% | "
@@ -140,19 +209,17 @@ class Trainer:
         if optimizer_type.lower() == "adamw":
             optimizer = optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
             print(f"Optimizer: AdamW(lr={lr}, weight_decay={weight_decay})")
-        else:  # 默认使用 SGD
+        else:
             optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=weight_decay)
             print(f"Optimizer: SGD(lr={lr}, momentum=0.9, weight_decay={weight_decay})")
         
         scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
-
         print(f"Scheduler: CosineAnnealingLR(T_max={epochs})")
         print(f"Loss function: CrossEntropyLoss")
         print()
         
         self.start_time = time.time()
         
-        # 打印表头
         print("=" * 120)
         print(f"{'Epoch':>5} | {'Train Loss':>10} {'Train Acc':>9} | {'Test Loss':>9} {'Test Acc':>8} | {'Best Acc':>8} | {'Time':>6} | {'ETA':>5} | {'LR':>8}")
         print("-" * 120)
@@ -160,7 +227,6 @@ class Trainer:
         for epoch in range(epochs):
             epoch_start = time.time()
             
-            # 训练和测试
             train_loss, train_acc = self.train_epoch(
                 train_loader, optimizer, criterion, epoch, epochs
             )
@@ -168,32 +234,26 @@ class Trainer:
                 test_loader, criterion, epoch, epochs
             )
             
-            # 更新学习率
             scheduler.step()
             
-            # 记录历史
             self.history['train_loss'].append(train_loss)
             self.history['train_acc'].append(train_acc)
             self.history['test_loss'].append(test_loss)
             self.history['test_acc'].append(test_acc)
             
-            # 保存最佳模型
             is_best = test_acc > self.best_acc
             if is_best:
                 self.best_acc = test_acc
                 self.save_checkpoint(epoch, 'best')
             
-            # 计算时间
             epoch_time = time.time() - epoch_start
             
-            # 打印epoch总结（刷新显示）
             self.print_epoch_summary(
                 epoch, epochs, train_loss, train_acc, 
                 test_loss, test_acc, epoch_time, 
                 optimizer.param_groups[0]['lr'], is_best
             )
             
-            # 每10个epoch或最佳结果时显示详细信息
             if epoch % 10 == 0 or is_best or epoch == epochs - 1:
                 if is_best:
                     print(f"    🎉 New best accuracy: {self.best_acc:.2f}% (saved checkpoint)")
