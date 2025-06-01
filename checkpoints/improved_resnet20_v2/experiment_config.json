@@ -1,0 +1,11 @@
+{
+  "model": "improved_resnet20_v2",
+  "epochs": 40,
+  "batch_size": 128,
+  "lr": null,
+  "optimizer": null,
+  "weight_decay": 0.0005,
+  "data_augmentation": true,
+  "model_parameters": 0.174868,
+  "timestamp": "2025-06-01T19:46:21.478105"
+}
