@@ -1,0 +1,135 @@
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Conv2d-1           [-1, 16, 32, 32]             432
+       BatchNorm2d-2           [-1, 16, 32, 32]              32
+              ReLU-3           [-1, 16, 32, 32]               0
+            Conv2d-4           [-1, 16, 32, 32]           2,304
+       BatchNorm2d-5           [-1, 16, 32, 32]              32
+              ReLU-6           [-1, 16, 32, 32]               0
+            Conv2d-7           [-1, 16, 32, 32]           2,304
+       BatchNorm2d-8           [-1, 16, 32, 32]              32
+ AdaptiveAvgPool2d-9             [-1, 16, 1, 1]               0
+           Conv1d-10                [-1, 1, 16]               3
+          Sigmoid-11             [-1, 16, 1, 1]               0
+         ECABlock-12           [-1, 16, 32, 32]               0
+             ReLU-13           [-1, 16, 32, 32]               0
+       BasicBlock-14           [-1, 16, 32, 32]               0
+           Conv2d-15           [-1, 16, 32, 32]           2,304
+      BatchNorm2d-16           [-1, 16, 32, 32]              32
+             ReLU-17           [-1, 16, 32, 32]               0
+           Conv2d-18           [-1, 16, 32, 32]           2,304
+      BatchNorm2d-19           [-1, 16, 32, 32]              32
+AdaptiveAvgPool2d-20             [-1, 16, 1, 1]               0
+           Conv1d-21                [-1, 1, 16]               3
+          Sigmoid-22             [-1, 16, 1, 1]               0
+         ECABlock-23           [-1, 16, 32, 32]               0
+             ReLU-24           [-1, 16, 32, 32]               0
+       BasicBlock-25           [-1, 16, 32, 32]               0
+           Conv2d-26           [-1, 16, 32, 32]           2,304
+      BatchNorm2d-27           [-1, 16, 32, 32]              32
+             ReLU-28           [-1, 16, 32, 32]               0
+           Conv2d-29           [-1, 16, 32, 32]           2,304
+      BatchNorm2d-30           [-1, 16, 32, 32]              32
+AdaptiveAvgPool2d-31             [-1, 16, 1, 1]               0
+           Conv1d-32                [-1, 1, 16]               3
+          Sigmoid-33             [-1, 16, 1, 1]               0
+         ECABlock-34           [-1, 16, 32, 32]               0
+             ReLU-35           [-1, 16, 32, 32]               0
+       BasicBlock-36           [-1, 16, 32, 32]               0
+           Conv2d-37           [-1, 32, 16, 16]           4,608
+      BatchNorm2d-38           [-1, 32, 16, 16]              64
+             ReLU-39           [-1, 32, 16, 16]               0
+           Conv2d-40           [-1, 32, 16, 16]           9,216
+      BatchNorm2d-41           [-1, 32, 16, 16]              64
+AdaptiveAvgPool2d-42             [-1, 32, 1, 1]               0
+           Conv1d-43                [-1, 1, 32]               3
+          Sigmoid-44             [-1, 32, 1, 1]               0
+         ECABlock-45           [-1, 32, 16, 16]               0
+           Conv2d-46           [-1, 32, 16, 16]             512
+      BatchNorm2d-47           [-1, 32, 16, 16]              64
+             ReLU-48           [-1, 32, 16, 16]               0
+       BasicBlock-49           [-1, 32, 16, 16]               0
+           Conv2d-50           [-1, 32, 16, 16]           9,216
+      BatchNorm2d-51           [-1, 32, 16, 16]              64
+             ReLU-52           [-1, 32, 16, 16]               0
+           Conv2d-53           [-1, 32, 16, 16]           9,216
+      BatchNorm2d-54           [-1, 32, 16, 16]              64
+AdaptiveAvgPool2d-55             [-1, 32, 1, 1]               0
+           Conv1d-56                [-1, 1, 32]               3
+          Sigmoid-57             [-1, 32, 1, 1]               0
+         ECABlock-58           [-1, 32, 16, 16]               0
+             ReLU-59           [-1, 32, 16, 16]               0
+       BasicBlock-60           [-1, 32, 16, 16]               0
+           Conv2d-61           [-1, 32, 16, 16]           9,216
+      BatchNorm2d-62           [-1, 32, 16, 16]              64
+             ReLU-63           [-1, 32, 16, 16]               0
+           Conv2d-64           [-1, 32, 16, 16]           9,216
+      BatchNorm2d-65           [-1, 32, 16, 16]              64
+AdaptiveAvgPool2d-66             [-1, 32, 1, 1]               0
+           Conv1d-67                [-1, 1, 32]               3
+          Sigmoid-68             [-1, 32, 1, 1]               0
+         ECABlock-69           [-1, 32, 16, 16]               0
+             ReLU-70           [-1, 32, 16, 16]               0
+       BasicBlock-71           [-1, 32, 16, 16]               0
+           Conv2d-72             [-1, 64, 8, 8]          18,432
+      BatchNorm2d-73             [-1, 64, 8, 8]             128
+             ReLU-74             [-1, 64, 8, 8]               0
+           Conv2d-75             [-1, 64, 8, 8]          36,864
+      BatchNorm2d-76             [-1, 64, 8, 8]             128
+AdaptiveAvgPool2d-77             [-1, 64, 1, 1]               0
+           Conv1d-78                [-1, 1, 64]               3
+          Sigmoid-79             [-1, 64, 1, 1]               0
+         ECABlock-80             [-1, 64, 8, 8]               0
+           Conv2d-81             [-1, 64, 8, 8]           2,048
+      BatchNorm2d-82             [-1, 64, 8, 8]             128
+             ReLU-83             [-1, 64, 8, 8]               0
+       BasicBlock-84             [-1, 64, 8, 8]               0
+           Conv2d-85             [-1, 64, 8, 8]          36,864
+      BatchNorm2d-86             [-1, 64, 8, 8]             128
+             ReLU-87             [-1, 64, 8, 8]               0
+           Conv2d-88             [-1, 64, 8, 8]          36,864
+      BatchNorm2d-89             [-1, 64, 8, 8]             128
+AdaptiveAvgPool2d-90             [-1, 64, 1, 1]               0
+           Conv1d-91                [-1, 1, 64]               3
+          Sigmoid-92             [-1, 64, 1, 1]               0
+         ECABlock-93             [-1, 64, 8, 8]               0
+             ReLU-94             [-1, 64, 8, 8]               0
+       BasicBlock-95             [-1, 64, 8, 8]               0
+           Conv2d-96             [-1, 64, 8, 8]          36,864
+      BatchNorm2d-97             [-1, 64, 8, 8]             128
+             ReLU-98             [-1, 64, 8, 8]               0
+           Conv2d-99             [-1, 64, 8, 8]          36,864
+     BatchNorm2d-100             [-1, 64, 8, 8]             128
+AdaptiveAvgPool2d-101             [-1, 64, 1, 1]               0
+          Conv1d-102                [-1, 1, 64]               3
+         Sigmoid-103             [-1, 64, 1, 1]               0
+        ECABlock-104             [-1, 64, 8, 8]               0
+            ReLU-105             [-1, 64, 8, 8]               0
+      BasicBlock-106             [-1, 64, 8, 8]               0
+AdaptiveAvgPool2d-107             [-1, 64, 1, 1]               0
+          Linear-108                  [-1, 100]           6,500
+================================================================
+Total params: 278,351
+Trainable params: 278,351
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.01
+Forward/backward pass size (MB): 5.82
+Params size (MB): 1.06
+Estimated Total Size (MB): 6.89
+----------------------------------------------------------------
+Model: None
+Start training eca_net ...
+Epoch 1: Train Loss=3.8772  Acc=9.58%
+Epoch 2: Train Loss=3.2426  Acc=20.23%
+Epoch 3: Train Loss=2.8246  Acc=28.38%
+Epoch 4: Train Loss=2.5349  Acc=33.95%
+Epoch 5: Train Loss=2.3573  Acc=37.98%
+Epoch 6: Train Loss=2.2224  Acc=40.45%
+Epoch 7: Train Loss=2.0981  Acc=43.24%
+Epoch 8: Train Loss=2.0101  Acc=45.14%
+Epoch 9: Train Loss=1.9356  Acc=47.08%
+Epoch 10: Train Loss=1.8812  Acc=48.11%
+eca_net Final Test Accuracy: 47.82%
+eca_net Training Time: 62.77 minutes
