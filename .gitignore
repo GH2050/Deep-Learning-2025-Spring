@@ -23,7 +23,7 @@ ENV/
 *.njsproj
 *.sln
 *.swp
-.cursorrules
+.cursorrules*
 test.md
 
 # 数据库文件
