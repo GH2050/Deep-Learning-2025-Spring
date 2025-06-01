@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import logging
 from datetime import datetime
+import argparse
 
 from src.model import get_model, count_parameters
 from src.dataset import get_dataloaders
@@ -19,7 +20,7 @@ def setup_logging(log_dir):
     os.makedirs(log_dir, exist_ok=True)
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"ghostnet_100_training_{timestamp}.log")
+    log_file = os.path.join(log_dir, f"ghostnet_100_resume_{timestamp}.log")
     
     logging.basicConfig(
         level=logging.INFO,
@@ -31,13 +32,39 @@ def setup_logging(log_dir):
     )
     return logging.getLogger(__name__)
 
+def load_checkpoint(checkpoint_path, model, optimizer, scheduler, accelerator, logger):
+    """加载checkpoint并恢复训练状态"""
+    if not os.path.exists(checkpoint_path):
+        logger.info(f"Checkpoint {checkpoint_path} 不存在，从头开始训练")
+        return 0, 0.0, {}
+    
+    logger.info(f"从 {checkpoint_path} 加载checkpoint...")
+    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+    
+    # 加载模型状态
+    model.load_state_dict(checkpoint['model_state_dict'])
+    
+    # 加载优化器状态
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    
+    # 加载调度器状态
+    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    
+    start_epoch = checkpoint['epoch']
+    best_acc = checkpoint.get('best_acc', 0.0)
+    config = checkpoint.get('config', {})
+    
+    logger.info(f"成功加载checkpoint - Epoch: {start_epoch}, 最佳准确率: {best_acc:.2f}%")
+    
+    return start_epoch, best_acc, config
+
 def train_one_epoch(model, train_loader, optimizer, criterion, accelerator, epoch, total_epochs, logger):
     model.train()
     total_loss = 0.0
     correct = 0
     total_samples = 0
     
-    progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{total_epochs} [Train]", 
+    progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{total_epochs} [训练]", 
                         disable=not accelerator.is_local_main_process, leave=False)
     
     for batch_idx, (inputs, targets) in enumerate(progress_bar):
@@ -71,7 +98,7 @@ def train_one_epoch(model, train_loader, optimizer, criterion, accelerator, epoc
     avg_acc = (correct / total_samples) * 100
     
     if accelerator.is_local_main_process:
-        logger.info(f"Epoch {epoch+1} Train - Loss: {avg_loss:.4f}, Acc: {avg_acc:.2f}%")
+        logger.info(f"Epoch {epoch+1} 训练 - Loss: {avg_loss:.4f}, Acc: {avg_acc:.2f}%")
     
     return avg_loss, avg_acc
 
@@ -82,7 +109,7 @@ def evaluate(model, test_loader, criterion, accelerator, epoch, total_epochs, lo
     correct_top5 = 0
     total_samples = 0
     
-    progress_bar = tqdm(test_loader, desc=f"Epoch {epoch+1}/{total_epochs} [Test]", 
+    progress_bar = tqdm(test_loader, desc=f"Epoch {epoch+1}/{total_epochs} [测试]", 
                         disable=not accelerator.is_local_main_process, leave=False)
     
     with torch.no_grad():
@@ -114,44 +141,55 @@ def evaluate(model, test_loader, criterion, accelerator, epoch, total_epochs, lo
     avg_acc_top5 = (correct_top5 / total_samples) * 100
     
     if accelerator.is_local_main_process:
-        logger.info(f"Epoch {epoch+1} Test - Loss: {avg_loss:.4f}, Top1: {avg_acc_top1:.2f}%, Top5: {avg_acc_top5:.2f}%")
+        logger.info(f"Epoch {epoch+1} 测试 - Loss: {avg_loss:.4f}, Top1: {avg_acc_top1:.2f}%, Top5: {avg_acc_top5:.2f}%")
     
     return avg_loss, avg_acc_top1, avg_acc_top5
 
 def main():
+    parser = argparse.ArgumentParser(description='GhostNet-100 断点续训')
+    parser.add_argument('--checkpoint', type=str, default='logs/ghostnet_100_optimized/best_model.pth',
+                       help='checkpoint文件路径')
+    parser.add_argument('--force_restart', action='store_true', help='强制从头开始训练')
+    args = parser.parse_args()
+    
     accelerator = Accelerator()
-    log_dir = "logs/ghostnet_100"
+    log_dir = "logs/ghostnet_100_resume"
     logger = setup_logging(log_dir)
     
     if accelerator.is_local_main_process:
         logger.info("="*80)
-        logger.info("开始训练 GhostNet-100 模型")
+        logger.info("GhostNet-100 断点续训 (优化版)")
         logger.info("="*80)
         logger.info(f"设备: {accelerator.device}")
         logger.info(f"GPU数量: {accelerator.num_processes}")
+        logger.info(f"Checkpoint路径: {args.checkpoint}")
+        logger.info(f"强制重新开始: {args.force_restart}")
     
     config = {
         'model_name': 'ghostnet_100',
         'epochs': 200,
         'batch_size_per_gpu': 128,
-        'learning_rate': 0.8,
+        'learning_rate': 0.1,
         'weight_decay': 4e-5,
         'optimizer': 'SGD',
         'scheduler': 'CosineAnnealingLR',
         'momentum': 0.9,
         'use_imagenet_norm': True,
-        'num_classes': 100
+        'num_classes': 100,
+        'eta_min': 1e-6,
+        'target_accuracy': 75.71,
+        'expected_params_M': 4.03
     }
     
     if accelerator.is_local_main_process:
-        logger.info("训练配置:")
+        logger.info("训练配置 (断点续训版):")
         for key, value in config.items():
             logger.info(f"  {key}: {value}")
     
     train_loader, test_loader = get_dataloaders(
         batch_size=config['batch_size_per_gpu'],
         use_imagenet_norm=config['use_imagenet_norm'],
-        num_workers=8
+        num_workers=min(8, os.cpu_count())
     )
     
     if accelerator.is_local_main_process:
@@ -169,8 +207,7 @@ def main():
     param_count = count_parameters(model)
     if accelerator.is_local_main_process:
         logger.info(f"模型创建完成: {config['model_name']}")
-        logger.info(f"参数量: {param_count:.2f}M")
-        logger.info(f"使用预训练权重: False")
+        logger.info(f"实际参数量: {param_count:.2f}M (预期: {config['expected_params_M']}M)")
     
     optimizer = optim.SGD(
         model.parameters(), 
@@ -180,14 +217,31 @@ def main():
     )
     
     criterion = nn.CrossEntropyLoss()
-    scheduler = CosineAnnealingLR(optimizer, T_max=config['epochs'], eta_min=1e-6)
     
+    scheduler = CosineAnnealingLR(
+        optimizer, 
+        T_max=config['epochs'], 
+        eta_min=config['eta_min']
+    )
+    
+    # 准备accelerator
     model, optimizer, train_loader, test_loader, scheduler = accelerator.prepare(
         model, optimizer, train_loader, test_loader, scheduler
     )
     
+    # 加载checkpoint
+    start_epoch = 0
+    best_test_acc = 0.0
+    if not args.force_restart and os.path.exists(args.checkpoint):
+        start_epoch, best_test_acc, saved_config = load_checkpoint(
+            args.checkpoint, accelerator.unwrap_model(model), optimizer, scheduler, accelerator, logger
+        )
+        if saved_config:
+            config.update(saved_config)
+    
     if accelerator.is_local_main_process:
-        logger.info("Accelerator准备完成")
+        logger.info(f"从Epoch {start_epoch + 1}开始训练")
+        logger.info(f"当前最佳准确率: {best_test_acc:.2f}%")
     
     metrics_history = {
         'train_losses': [], 
@@ -198,14 +252,10 @@ def main():
         'learning_rates': []
     }
     
-    best_test_acc = 0.0
-    best_epoch = 0
+    best_epoch = start_epoch
     start_time = time.time()
     
-    if accelerator.is_local_main_process:
-        logger.info(f"开始训练，共{config['epochs']}轮")
-    
-    for epoch in range(config['epochs']):
+    for epoch in range(start_epoch, config['epochs']):
         epoch_start = time.time()
         
         current_lr = optimizer.param_groups[0]['lr']
@@ -236,7 +286,7 @@ def main():
             if test_acc_top1 > best_test_acc:
                 best_test_acc = test_acc_top1
                 best_epoch = epoch + 1
-                logger.info(f"新的最佳准确率: {best_test_acc:.2f}% (Epoch {best_epoch})")
+                logger.info(f"🎉 新的最佳准确率: {best_test_acc:.2f}% (Epoch {best_epoch})")
                 
                 checkpoint = {
                     'epoch': epoch + 1,
@@ -247,8 +297,11 @@ def main():
                     'config': config
                 }
                 torch.save(checkpoint, os.path.join(log_dir, 'best_model.pth'))
+                
+                if best_test_acc >= config['target_accuracy']:
+                    logger.info(f"🎉 达到目标准确率 {config['target_accuracy']}%! 当前最佳: {best_test_acc:.2f}%")
             
-            if (epoch + 1) % 20 == 0:
+            if (epoch + 1) % 25 == 0:
                 checkpoint = {
                     'epoch': epoch + 1,
                     'model_state_dict': accelerator.unwrap_model(model).state_dict(),
@@ -258,6 +311,7 @@ def main():
                     'config': config
                 }
                 torch.save(checkpoint, os.path.join(log_dir, f'checkpoint_epoch_{epoch+1}.pth'))
+                logger.info(f"💾 保存检查点: checkpoint_epoch_{epoch+1}.pth")
         
         accelerator.wait_for_everyone()
     
@@ -270,6 +324,14 @@ def main():
         logger.info(f"最佳测试准确率: {best_test_acc:.2f}% (Epoch {best_epoch})")
         logger.info(f"最终测试准确率: {test_acc_top1:.2f}%")
         logger.info(f"最终Top-5准确率: {test_acc_top5:.2f}%")
+        logger.info(f"目标准确率: {config['target_accuracy']}%")
+        
+        if best_test_acc >= config['target_accuracy']:
+            logger.info("✅ 成功达到目标准确率!")
+        else:
+            gap = config['target_accuracy'] - best_test_acc
+            logger.info(f"❌ 距离目标准确率还差: {gap:.2f}%")
+        
         logger.info("="*80)
         
         results_data = {
@@ -281,23 +343,26 @@ def main():
             'total_epochs': config['epochs'],
             'total_training_time_hours': total_time / 3600,
             'parameters_M': param_count,
+            'target_accuracy': config['target_accuracy'],
+            'achieved_target': best_test_acc >= config['target_accuracy'],
+            'resumed_from_epoch': start_epoch,
             'config': config
         }
         
         save_experiment_results(
             results_data=results_data,
-            model_name=config['model_name'],
+            model_name=config['model_name'] + "_resume",
             hparams=config,
             output_dir=log_dir,
             metrics_history=metrics_history,
-            run_label=f"ghostnet_100_final"
+            run_label=f"ghostnet_100_resume"
         )
         
         plot_training_curves(
             metrics_history, 
-            config['model_name'], 
+            config['model_name'] + "_resume", 
             save_dir=log_dir,
-            base_filename='ghostnet_100_training'
+            base_filename='ghostnet_100_resume_training'
         )
         
         logger.info(f"结果已保存到: {log_dir}")

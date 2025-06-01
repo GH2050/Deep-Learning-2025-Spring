@@ -509,25 +509,19 @@ TIMM_NAME_MAP = {
 }
 
 def get_model(model_name: str, num_classes: int = 100, pretrained_timm: bool = False, **kwargs: Any) -> nn.Module:
-    if pretrained_timm and model_name in TIMM_NAME_MAP:
-        # For timm models, pretrained=True implies ImageNet pretraining.
-        # kwargs might include specific timm features if necessary
+    if model_name in TIMM_NAME_MAP:
         model = timm.create_model(
             TIMM_NAME_MAP[model_name],
-            pretrained=True,
+            pretrained=pretrained_timm,
             num_classes=num_classes,
-            **kwargs.get('timm_extra_args', {}) # Pass any extra args for timm
+            **kwargs.get('timm_extra_args', {})
         )
-        # If 'drop_path_rate' is in kwargs, ensure it's applied if the model supports it
         if 'drop_path_rate' in kwargs and hasattr(model, 'drop_path_rate'):
             model.drop_path_rate = kwargs['drop_path_rate']
         return model
     
     builder = MODEL_REGISTRY.get(model_name)
     if builder:
-        # Pass only relevant kwargs to the builder
-        # This requires builders to be robust to extra kwargs or for us to filter them
-        # For simplicity here, we pass all, assuming builders handle them or use **kwargs
         return builder(num_classes=num_classes, **kwargs)
     
     raise ValueError(f"Model {model_name} not found in MODEL_REGISTRY or TIMM_NAME_MAP for the given configuration.")
