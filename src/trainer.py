@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import time
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import sys
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -133,12 +134,18 @@ class Trainer:
         
         print(status_line, flush=True)
     
-    def fit(self, train_loader, test_loader, epochs=200, lr=0.1, weight_decay=5e-4):
+    def fit(self, train_loader, test_loader, epochs=200, lr=0.1, weight_decay=5e-4, optimizer_type="sgd"):
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=weight_decay)
-        scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
         
-        print(f"Optimizer: SGD(lr={lr}, momentum=0.9, weight_decay={weight_decay})")
+        if optimizer_type.lower() == "adamw":
+            optimizer = optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
+            print(f"Optimizer: AdamW(lr={lr}, weight_decay={weight_decay})")
+        else:  # 默认使用 SGD
+            optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=weight_decay)
+            print(f"Optimizer: SGD(lr={lr}, momentum=0.9, weight_decay={weight_decay})")
+        
+        scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
+
         print(f"Scheduler: CosineAnnealingLR(T_max={epochs})")
         print(f"Loss function: CrossEntropyLoss")
         print()

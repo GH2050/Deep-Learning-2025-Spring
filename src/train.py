@@ -11,6 +11,10 @@ from models import (
     resnet56,
     resnet20_slim,
     resnet32_slim,
+    convnext_tiny,
+    convnext_small,
+    convnext_base,
+    convnext_large,
     count_parameters,
 )
 from dataset import get_dataloaders
@@ -33,26 +37,49 @@ def print_model_summary(model, model_name):
     # 打印模型结构概览
     print(f"\nModel Structure:")
     print(f"├── Input: 3 channels (RGB)")
-    print(f"├── Conv1: 3×3, stride=1, padding=1")
-
-    # 根据模型类型显示层结构
-    if "resnet20" in model_name:
-        layers = [3, 3, 3]
-    elif "resnet32" in model_name:
-        layers = [5, 5, 5]
-    elif "resnet56" in model_name:
-        layers = [9, 9, 9]
+    
+    if "convnext" in model_name:
+        # ConvNeXt 架构信息
+        if "tiny" in model_name:
+            depths, dims = [2, 2, 6, 2], [48, 96, 192, 384]
+        elif "small" in model_name:
+            depths, dims = [2, 2, 18, 2], [48, 96, 192, 384]
+        elif "base" in model_name:
+            depths, dims = [2, 2, 18, 2], [64, 128, 256, 512]
+        elif "large" in model_name:
+            depths, dims = [2, 2, 18, 2], [96, 192, 384, 768]
+        else:
+            depths, dims = [2, 2, 6, 2], [48, 96, 192, 384]
+        
+        print(f"├── Stem: 4×4 conv, stride=4 → {dims[0]} channels")
+        print(f"├── Stage1: {depths[0]} blocks, {dims[0]} channels")
+        print(f"├── Stage2: {depths[1]} blocks, {dims[1]} channels") 
+        print(f"├── Stage3: {depths[2]} blocks, {dims[2]} channels")
+        print(f"├── Stage4: {depths[3]} blocks, {dims[3]} channels")
+        print(f"├── Features: 7×7 DWConv + LayerNorm + InvertedBottleneck")
+        print(f"├── GlobalAvgPool: → {dims[3]} features")
+        print(f"└── FC: {dims[3]} → 100 classes")
     else:
-        layers = [3, 3, 3]
+        # ResNet 架构信息
+        print(f"├── Conv1: 3×3, stride=1, padding=1")
+        
+        if "resnet20" in model_name:
+            layers = [3, 3, 3]
+        elif "resnet32" in model_name:
+            layers = [5, 5, 5]
+        elif "resnet56" in model_name:
+            layers = [9, 9, 9]
+        else:
+            layers = [3, 3, 3]
 
-    width_mult = 0.5 if "slim" in model_name else 1.0
-    channels = [int(16 * width_mult), int(32 * width_mult), int(64 * width_mult)]
+        width_mult = 0.5 if "slim" in model_name else 1.0
+        channels = [int(16 * width_mult), int(32 * width_mult), int(64 * width_mult)]
 
-    print(f"├── Layer1: {layers[0]} blocks, {channels[0]} channels")
-    print(f"├── Layer2: {layers[1]} blocks, {channels[1]} channels")
-    print(f"├── Layer3: {layers[2]} blocks, {channels[2]} channels")
-    print(f"├── AvgPool: Adaptive (1×1)")
-    print(f"└── FC: {channels[2]} → 100 classes")
+        print(f"├── Layer1: {layers[0]} blocks, {channels[0]} channels")
+        print(f"├── Layer2: {layers[1]} blocks, {channels[1]} channels")
+        print(f"├── Layer3: {layers[2]} blocks, {channels[2]} channels")
+        print(f"├── AvgPool: Adaptive (1×1)")
+        print(f"└── FC: {channels[2]} → 100 classes")
 
     print(f"{'='*60}\n")
 
@@ -134,13 +161,26 @@ def test_model_forward(model, device, batch_size=2):
         return False
 
 
+def get_default_lr_and_optimizer(model_name):
+    """根据模型类型返回默认学习率和优化器设置"""
+    if "convnext" in model_name:
+        # ConvNeXt 论文建议使用 AdamW 和较小的学习率
+        return 0.004, "adamw"
+    else:
+        # ResNet 使用 SGD 和较大的学习率
+        return 0.1, "sgd"
+
+
 def main():
-    parser = argparse.ArgumentParser(description="ResNet Training on CIFAR-100")
+    parser = argparse.ArgumentParser(description="Deep Learning Training Framework for CIFAR-100")
     parser.add_argument(
         "--model",
         type=str,
         default="resnet20",
-        choices=["resnet20", "resnet32", "resnet56", "resnet20_slim", "resnet32_slim"],
+        choices=[
+            "resnet20", "resnet32", "resnet56", "resnet20_slim", "resnet32_slim",
+            "convnext_tiny", "convnext_small", "convnext_base", "convnext_large"
+        ],
         help="Model architecture to train",
     )
     parser.add_argument(
@@ -149,7 +189,12 @@ def main():
     parser.add_argument(
         "--batch_size", type=int, default=128, help="Batch size for training"
     )
-    parser.add_argument("--lr", type=float, default=0.1, help="Initial learning rate")
+    parser.add_argument("--lr", type=float, default=None, help="Initial learning rate (auto-selected if not specified)")
+    parser.add_argument(
+        "--optimizer", type=str, default=None, 
+        choices=["sgd", "adamw"],
+        help="Optimizer type (auto-selected if not specified)"
+    )
     parser.add_argument(
         "--weight_decay", type=float, default=5e-4, help="Weight decay coefficient"
     )
@@ -169,9 +214,18 @@ def main():
 
     args = parser.parse_args()
 
+    # 自动选择学习率和优化器
+    if args.lr is None or args.optimizer is None:
+        default_lr, default_optimizer = get_default_lr_and_optimizer(args.model)
+        if args.lr is None:
+            args.lr = default_lr
+        if args.optimizer is None:
+            args.optimizer = default_optimizer
+        print(f"Auto-selected: LR={args.lr}, Optimizer={args.optimizer}")
+
     # 打印启动横幅
     print(f"\n{'='*80}")
-    print(f"{'ResNet Training Framework':^80}")
+    print(f"{'Deep Learning Training Framework':^80}")
     print(f"{'='*80}")
 
     # 系统信息
@@ -187,6 +241,10 @@ def main():
         "resnet56": resnet56,
         "resnet20_slim": resnet20_slim,
         "resnet32_slim": resnet32_slim,
+        "convnext_tiny": convnext_tiny,
+        "convnext_small": convnext_small,
+        "convnext_base": convnext_base,
+        "convnext_large": convnext_large,
     }
 
     print(f"Creating model: {args.model}")
@@ -235,6 +293,7 @@ def main():
         test_loader,
         epochs=args.epochs,
         lr=args.lr,
+        optimizer_type=args.optimizer,
         weight_decay=args.weight_decay,
     )
 
