@@ -29,7 +29,8 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing',
             'warmup_epochs': 0,
             'weight_decay': 5e-4,
-            'batch_size_per_gpu': 128,
+            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
                 'eca_resnet_20': {'k_size': 3},
@@ -42,12 +43,13 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing',
             'warmup_epochs': 5,
             'weight_decay': 4e-5,
-            'batch_size_per_gpu': 128,
+            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
                 'ghost_resnet_20': {'ratio': 2},
                 'ghost_resnet_32': {'ratio': 2},
-                'ghostnet_100': {'batch_size_per_gpu': 64} # ghostnet_100 is larger
+                'ghostnet_100': {} # Removed specific batch_size_per_gpu, will use category default
             }
         },
         'ConvNeXt_Tiny': { # convnext_tiny (custom)
@@ -56,25 +58,28 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 20,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 64,
+            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
             'model_specific_params': {}
         },
-        'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d, coatnet_0_custom_enhanced
+        'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d, coatnet_0_custom_enhanced, coatnet_cifar_opt, coatnet_cifar_opt_large_stem
             'optimizer_type': 'adamw',
             'lr': 2e-4,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 64,
+            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
                 'coatnet_0_custom_enhanced': { # Default LSK parameters for the enhanced model
-                    'batch_size_per_gpu': 64,
                     'lsk_kernel_sizes': [3, 5, 7], 
                     'lsk_reduction_ratio': 8,
                     'se_ratio_in_mbconv': 0.25
-                } 
+                },
+                'coatnet_cifar_opt': {}, # Will use category defaults for batch sizes
+                'coatnet_cifar_opt_large_stem': {} # Will use category defaults for batch sizes
             }
         },
         'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (custom)
@@ -83,10 +88,11 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 128, # Mixers can be efficient
+            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                 'mlp_mixer_b16': {'batch_size_per_gpu': 64} # B/16 custom is larger
+                 'mlp_mixer_b16': {} # Removed specific batch_size_per_gpu, will use category default
             }
         },
         'SegNeXt_MSCAN_Tiny': { # segnext_mscan_tiny (custom)
@@ -95,7 +101,8 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 128,
+            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {}
         }
@@ -122,6 +129,18 @@ REPORT_HYPERPARAMETERS = {
         'coatnet_cifar_opt_large_stem': 'Hybrid_Attention_CNN' # Added for the large stem variant
     }
 }
+
+def get_num_classes(dataset_name: str) -> int:
+    """根据数据集名称返回类别数量"""
+    if dataset_name.lower() == 'cifar100':
+        return 100
+    elif dataset_name.lower() == 'cifar10':
+        return 10
+    elif dataset_name.lower() == 'imagenet':
+        return 1000
+    # 可以根据需要添加更多数据集
+    else:
+        raise ValueError(f"未知的数据集名称: {dataset_name}")
 
 def get_hyperparameters(model_name: str):
     """
