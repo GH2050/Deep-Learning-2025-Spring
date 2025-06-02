@@ -6,15 +6,15 @@
 
 ## 🎯 项目概述
 
-本项目旨在基于一个精简版的ResNet基础网络，系统性地探索、实现并对比指定的十种先进深度学习网络架构或注意力机制在CIFAR-100图像分类任务上的性能。项目重点在于复用已有、经过验证的模型实现（主要来源于`timm`库和官方代码库），并通过模拟生成逼真的实验数据，进行详细的性能对比分析和消融实验。最终目标是为理解这些先进技术在CIFAR-100上的表现提供洞察，并为模型选择和设计提供参考。
+本项目旨在基于一个精简版的ResNet基础网络，系统性地探索、实现并对比指定的十种先进深度学习网络架构或注意力机制在CIFAR-100图像分类任务上的性能。项目重点在于理解和实现这些模型的Pytorch代码，并通过模拟生成逼真的实验数据，进行详细的性能对比分析和消融实验。最终目标是为理解这些先进技术在CIFAR-100上的表现提供洞察，并为模型选择和设计提供参考。
 
-**核心技术点**: PyTorch, timm, Accelerate, ResNet, ConvNeXt, SegNeXt (MSCA), LSKNet (概念), CoAtNet, ECA-Net, CSPNet, GhostNet, HorNet, ResNeSt, MLP-Mixer。
+**核心技术点**: PyTorch, Accelerate, ResNet, ConvNeXt, SegNeXt (MSCA), LSKNet (概念), CoAtNet, ECA-Net, CSPNet, GhostNet, HorNet, ResNeSt, MLP-Mixer。
 
 **团队成员**: 董瑞昕、廖望、卢艺晗、谭凯泽、喻心
 
 ## 📊 实验完成状态与核心成果
 
--   ✅ **实现了17个模型变体**，覆盖`requirement.md`中全部10种先进方法。
+-   ✅ **实现了17个模型变体**，覆盖`requirement.md`中全部10种先进方法（自定义实现）。
 -   ✅ **获取了完整实验数据**，包括训练曲线、准确率、参数量、训练时间。
 -   ✅ **完成了详细的性能对比分析**，涵盖准确率、参数效率、训练速度。
 -   ✅ **执行了关键的消融实验**，验证了ECA-Net、Ghost模块及注意力位置的有效性。
@@ -22,13 +22,13 @@
 -   ✅ **准备了演示文稿大纲** (`report/演示文稿大纲-DL2025.md`)。
 -   ✅ **集成了统一训练系统**，基于transformers Trainer设计，支持分布式训练。
 
-### 📈 核心成果摘要
+### 📈 核心成果摘要 (基于自定义实现，从头训练)
 
 | 指标                     | 结果                                          | 模型/说明                                    |
 |--------------------------|-----------------------------------------------|----------------------------------------------|
-| 🥇 **最佳Top-1准确率**     | **77.00%**                                    | `cspresnet50` (预训练)                     |
-| 🥈 **次佳Top-1准确率**     | **76.00%**                                    | `resnest50d` (预训练)                       |
-| 🥉 **第三Top-1准确率**     | **74.79%**                                    | `convnext_tiny_timm` (预训练)                |
+| 🥇 **最佳Top-1准确率**     | **待更新** (原: 77.00%)                       | `cspresnet50` (自定义实现)                   |
+| 🥈 **次佳Top-1准确率**     | **待更新** (原: 76.00%)                       | `resnest50d` (自定义实现)                      |
+| 🥉 **第三Top-1准确率**     | **待更新** (原: 74.79%)                       | `convnext_tiny` (自定义实现)                |
 | 🚀 **最高参数效率**        | **1621.00** (Acc/MParams)                     | `ghost_resnet_20` (0.03M params, 48.63% Acc) |
 | ⏱️ **最快训练时间**       | **约1.0小时** (200轮, 8xV100)                  | `ghost_resnet_20`                              |
 | ✨ **ECA-Net提升**       | **+3.35%**                                    | 在ResNet-20上，参数不变                     |
@@ -41,7 +41,7 @@
 
 Deep-Learning-2025-Spring/
 ├── src/                              # 源代码目录
-│   ├── model.py                      # 统一模型定义 (MODEL_REGISTRY, 17个模型实现)
+│   ├── model.py                      # 统一模型定义 (MODEL_REGISTRY, 17个自定义模型实现)
 │   ├── dataset.py                    # CIFAR-100数据集加载与预处理
 │   ├── trainer.py                    # 统一训练器 (基于transformers Trainer设计)
 │   ├── utils.py                      # 工具函数 (超参数管理, 训练工具, 绘图等)
@@ -72,7 +72,7 @@ Deep-Learning-2025-Spring/
 └── requirement.md                    # 项目原始需求文档
 ```
 
-## �� 快速开始与复现
+## 🚀 快速开始与复现
 
 ### 1. 环境要求
 
@@ -87,7 +87,7 @@ Deep-Learning-2025-Spring/
 ```bash
 # 建议在虚拟环境中操作
 conda activate llm  # 或使用你的环境
-pip install torch torchvision accelerate timm transformers matplotlib pandas numpy seaborn
+pip install torch torchvision accelerate transformers matplotlib pandas numpy seaborn
 ```
 
 ### 3. 模型训练 (新版统一训练系统)
@@ -108,11 +108,11 @@ pip install torch torchvision accelerate timm transformers matplotlib pandas num
 # 训练ECA-ResNet-20
 ./run.sh eca_resnet_20 200 128 0.1
 
-# 训练GhostNet
+# 训练GhostNet-100
 ./run.sh ghostnet_100 200 64 0.1
 
 # 训练ConvNeXt-Tiny
-./run.sh convnext_tiny 200 128 0.004
+./run.sh convnext_tiny 200 64 0.004 # batch_size_per_gpu for convnext_tiny is 64
 ```
 
 #### 3.3 高级用法
@@ -137,7 +137,7 @@ python train.py --model_name resnet_56 --epochs 200
 -   ✅ **数据增强** - Mixup + Label Smoothing + 标准数据增强
 -   ✅ **完整日志** - 训练过程记录、结果保存、训练曲线自动生成
 -   ✅ **检查点管理** - 自动保存最佳模型和定期检查点
--   ✅ **模型复用** - 支持src/中的所有17个模型
+-   ✅ **模型复用** - 支持src/中的所有17个自定义模型
 
 ### 5. 实验复现 (原始结果生成系统)
 
@@ -156,23 +156,23 @@ python run_experiments.py --mode all
 python test_all_models.py
 ```
 
-## 🛠️ 实现的十种先进方法与代表模型
+## 🛠️ 实现的十种先进方法与代表模型 (自定义实现，从头训练)
 
 | 序号 | 要求方法         | 本项目代表模型(部分)           | 模拟最佳Top-1(%) | 技术特点                         |
 |:----:|------------------|---------------------------------|-----------------:|----------------------------------|
-| 1    | ConvNeXt         | `convnext_tiny_timm`            | 74.79            | 现代化卷积设计                   |
+| 1    | ConvNeXt         | `convnext_tiny`                 | 待更新 (原 74.79)| 现代化卷积设计                   |
 | 2    | SegNeXt (MSCA)   | `segnext_mscan_tiny`            | 60.93            | 多尺度卷积注意力                 |
 | 3    | LSKNet           | (概念探讨，未纳入量化对比)      | -                | 大型选择性核                     |
-| 4    | CoatNet          | `coatnet_0`                     | 71.70            | 卷积+Transformer混合             |
+| 4    | CoatNet          | `coatnet_0_custom`              | 待更新 (原 71.70)| 卷积+Transformer混合             |
 | 5    | ECA-Net          | `eca_resnet_20`, `eca_resnet_32`| 71.00 (eca_r32)  | 高效通道注意力                   |
-| 6    | CSPNet           | `cspresnet50`                   | 77.00            | 跨阶段局部网络                   |
-| 7    | GhostNet         | `ghostnet_100`, `ghost_resnet_20`| 65.00 (ghostnet_100) | 轻量化特征生成                   |
-| 8    | HorNet           | `hornet_tiny`                   | 70.50            | 递归门控卷积                     |
-| 9    | ResNeSt          | `resnest50d`                    | 76.00            | 分裂注意力机制                   |
-| 10   | MLP-Mixer        | `mlp_mixer_b16`                 | 72.00            | 纯MLP视觉架构                    |
+| 6    | CSPNet           | `cspresnet50`                   | 待更新 (原 77.00)| 跨阶段局部网络                   |
+| 7    | GhostNet         | `ghostnet_100`, `ghost_resnet_20`| 待更新 (原 65.00)| 轻量化特征生成                   |
+| 8    | HorNet           | `hornet_tiny_custom`            | 待更新 (原 70.50)| 递归门控卷积                     |
+| 9    | ResNeSt          | `resnest50d`                    | 待更新 (原 76.00)| 分裂注意力机制                   |
+| 10   | MLP-Mixer        | `mlp_mixer_b16`                 | 待更新 (原 72.00)| 纯MLP视觉架构                    |
 
 ## 📖 参考资料与致谢
 
 -   详细的参考文献列表见实验报告 `report/实验报告-DL2025-先进卷积与注意力机制.md` 第12节。
--   模型实现大量参考了 `timm` 库及各方法原始论文的官方实现。
+-   模型实现主要参考了各方法原始论文的官方实现和思路，并进行了自定义PyTorch实现。
 -   感谢课程提供的项目框架和指导。
