@@ -27,71 +27,69 @@ REPORT_HYPERPARAMETERS = {
             'optimizer_type': 'sgd',
             'lr': 0.1,
             'scheduler_type': 'cosine_annealing',
-            'warmup_epochs': 0, # SGD with CosineAnnealing typically doesn't use warmup here
+            'warmup_epochs': 0,
             'weight_decay': 5e-4,
             'batch_size_per_gpu': 128,
-            'use_imagenet_norm': False,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                'eca_resnet_20': {'k_size': 3}, # Report: ECA k_size=3 or 5
-                'eca_resnet_32': {'k_size': 5}, # Report: ECA k_size=3 or 5, choosing 5 for variety
+                'eca_resnet_20': {'k_size': 3},
+                'eca_resnet_32': {'k_size': 5},
             }
         },
-        'GhostNet_Variants': { # ghost_resnet_20, ghost_resnet_32, ghostnet_100 (timm)
-            'optimizer_type': 'sgd', # GhostNet paper often uses SGD
-            'lr': 0.1, # Could be higher for GhostNet, but aligning with ResNet for start
+        'GhostNet_Variants': { # ghost_resnet_20, ghost_resnet_32, ghostnet_100 (custom)
+            'optimizer_type': 'sgd',
+            'lr': 0.1,
             'scheduler_type': 'cosine_annealing',
-            'warmup_epochs': 5, # Slight warmup can be beneficial
-            'weight_decay': 4e-5, # GhostNet paper uses 4e-5
-            'batch_size_per_gpu': 128, # GhostNets are efficient
-            'use_imagenet_norm': False, # For our GhostResNets. ghostnet_100_timm will use True if pretrained.
+            'warmup_epochs': 5,
+            'weight_decay': 4e-5,
+            'batch_size_per_gpu': 128,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
                 'ghost_resnet_20': {'ratio': 2},
                 'ghost_resnet_32': {'ratio': 2},
-                'ghostnet_100': {'use_imagenet_norm': True, 'batch_size_per_gpu': 64} # Timm model, often needs ImageNet norm, potentially smaller BS for larger model
+                'ghostnet_100': {'batch_size_per_gpu': 64} # ghostnet_100 is larger
             }
         },
-        'ConvNeXt_Tiny': { # convnext_tiny (custom), convnext_tiny_timm
+        'ConvNeXt_Tiny': { # convnext_tiny (custom)
             'optimizer_type': 'adamw',
-            'lr': 4e-3, # ConvNeXt paper: base_lr (5e-4 for ImageNet 1k) * batch_size / 1024. For 8xV100 * 64 = 512 total batch size, this could be 5e-4 * 512 / 1024 = 2.5e-4. Report says 0.004 for CIFAR.
-            'scheduler_type': 'cosine_annealing_warmup', # Warmup is common
-            'warmup_epochs': 20, # ConvNeXt paper uses 20 warmup epochs
+            'lr': 4e-3, # From report for CIFAR. Original paper: base_lr (5e-4) * total_batch_size / 1024
+            'scheduler_type': 'cosine_annealing_warmup',
+            'warmup_epochs': 20,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 64, # ConvNeXt-T can be a bit heavy
-            'use_imagenet_norm': True, # ConvNeXt uses LayerNorm, ImageNet stats are standard
-            'model_specific_params': {
-                 'convnext_tiny_timm': {'batch_size_per_gpu': 64} # Ensure timm variant gets correct BS if different
-            }
+            'batch_size_per_gpu': 64,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
+            'model_specific_params': {}
         },
-        'Hybrid_Attention_CNN': { # coatnet_0, cspresnet50, hornet_tiny, resnest50d
+        'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d
             'optimizer_type': 'adamw',
-            'lr': 1e-3, # General AdamW LR for transformers/hybrids
+            'lr': 1e-3,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 64, # These models can be larger
-            'use_imagenet_norm': True, # Typically pretrained on ImageNet
+            'batch_size_per_gpu': 64,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {}
         },
-        'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (timm)
+        'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (custom)
             'optimizer_type': 'adamw',
             'lr': 1e-3,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
             'batch_size_per_gpu': 128, # Mixers can be efficient
-            'use_imagenet_norm': False, # For custom tiny, can train from scratch. B16 uses True.
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                 'mlp_mixer_b16': {'use_imagenet_norm': True, 'batch_size_per_gpu': 64} # Timm B/16 is larger
+                 'mlp_mixer_b16': {'batch_size_per_gpu': 64} # B/16 custom is larger
             }
         },
         'SegNeXt_MSCAN_Tiny': { # segnext_mscan_tiny (custom)
             'optimizer_type': 'adamw',
-            'lr': 1e-3, # Similar to other transformer-like or modern CNNs
+            'lr': 1e-3,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
             'batch_size_per_gpu': 128,
-            'use_imagenet_norm': False, # Custom tiny trained from scratch
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {}
         }
     },
@@ -103,16 +101,15 @@ REPORT_HYPERPARAMETERS = {
         'eca_resnet_32': 'ResNet_Variants',
         'ghost_resnet_20': 'GhostNet_Variants',
         'ghost_resnet_32': 'GhostNet_Variants',
-        'ghostnet_100': 'GhostNet_Variants', # Timm model
-        'convnext_tiny': 'ConvNeXt_Tiny', # Custom
-        'convnext_tiny_timm': 'ConvNeXt_Tiny', # Timm model
-        'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny', # Custom
-        'coatnet_0': 'Hybrid_Attention_CNN', # Timm model
-        'cspresnet50': 'Hybrid_Attention_CNN', # Timm model
-        'hornet_tiny': 'Hybrid_Attention_CNN', # Timm model
-        'resnest50d': 'Hybrid_Attention_CNN', # Timm model
-        'mlp_mixer_tiny': 'MLP_Mixer_Variants', # Custom
-        'mlp_mixer_b16': 'MLP_Mixer_Variants' # Timm model
+        'ghostnet_100': 'GhostNet_Variants',      # Was ghostnet_100 (timm)
+        'convnext_tiny': 'ConvNeXt_Tiny',        # Was convnext_tiny (custom) and convnext_tiny_timm
+        'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny',
+        'coatnet_0_custom': 'Hybrid_Attention_CNN', # Was coatnet_0 (timm)
+        'cspresnet50': 'Hybrid_Attention_CNN',       # Was cspresnet50 (timm)
+        'hornet_tiny_custom': 'Hybrid_Attention_CNN',# Was hornet_tiny (timm)
+        'resnest50d': 'Hybrid_Attention_CNN',        # Was resnest50d (timm)
+        'mlp_mixer_tiny': 'MLP_Mixer_Variants',
+        'mlp_mixer_b16': 'MLP_Mixer_Variants'      # Was mlp_mixer_b16 (timm)
     }
 }
 
@@ -124,14 +121,41 @@ def get_hyperparameters(model_name: str):
     Returns:
         dict: A dictionary containing hyperparameters.
     """
+    # Handle potential legacy timm model names if they are passed by mistake
+    # This mapping should align with the logic in model.py's get_model
+    legacy_map = {
+        "convnext_tiny_timm": "convnext_tiny",
+        "ghostnet_100_timm": "ghostnet_100",
+        "mlp_mixer_b16_timm": "mlp_mixer_b16",
+        "coatnet_0": "coatnet_0_custom", # Direct map, coatnet_0 was the timm key
+        "cspresnet50_timm": "cspresnet50",
+        "hornet_tiny_timm": "hornet_tiny_custom",
+        "resnest50d_timm": "resnest50d"
+    }
+    if model_name in legacy_map:
+        # print(f"Hyperparameter lookup: mapping legacy model name '{model_name}' to '{legacy_map[model_name]}'")
+        model_name = legacy_map[model_name]
+
     category_name = REPORT_HYPERPARAMETERS['model_to_category'].get(model_name)
     if not category_name:
-        raise ValueError(f"Model {model_name} not found in model_to_category mapping.")
+        # Try to infer category if a _custom or similar suffix was missed in mapping
+        # This is a fallback, explicit mapping is better.
+        for key_pattern in ['_custom', '_timm']: # Check if removing a suffix helps
+            if model_name.endswith(key_pattern):
+                base_name = model_name[:-len(key_pattern)]
+                category_name = REPORT_HYPERPARAMETERS['model_to_category'].get(base_name)
+                if category_name:
+                    # print(f"Hyperparameter lookup: found category for base name '{base_name}' for model '{model_name}'")
+                    model_name = base_name # Use the base name for specific params if found this way
+                    break
+    
+    if not category_name:
+        raise ValueError(f"Model {model_name} not found in model_to_category mapping after attempting fallbacks.")
 
     category_hparams = REPORT_HYPERPARAMETERS['categories'][category_name].copy()
+    # Get model specific params using the potentially updated model_name
     model_specific_hparams = category_hparams.get('model_specific_params', {}).get(model_name, {})
     
-    # Start with general category defaults
     final_hparams = {
         'optimizer_type': category_hparams['optimizer_type'],
         'lr': category_hparams['lr'],
@@ -139,32 +163,38 @@ def get_hyperparameters(model_name: str):
         'warmup_epochs': category_hparams['warmup_epochs'],
         'weight_decay': category_hparams['weight_decay'],
         'batch_size_per_gpu': category_hparams['batch_size_per_gpu'],
-        'use_imagenet_norm': category_hparams['use_imagenet_norm'],
+        'use_imagenet_norm': category_hparams['use_imagenet_norm'], # This will now be False for all
         'epochs': REPORT_HYPERPARAMETERS['epochs'],
-        'model_name': model_name
+        'model_name': model_name # Store the final model name used for lookup
     }
 
-    # Override with model-specific settings from the category
-    final_hparams.update(model_specific_hparams)
+    final_hparams.update(model_specific_hparams) # Override with specific settings for the model
 
-    # Add model-specific params that are not base hyperparameters (e.g. k_size, ratio)
-    # These should be passed to the model constructor via get_model(**model_constructor_params)
     model_constructor_params = {}
-    if 'k_size' in model_specific_hparams:
-        model_constructor_params['k_size'] = model_specific_hparams['k_size']
-    if 'ratio' in model_specific_hparams:
-        model_constructor_params['ratio'] = model_specific_hparams['ratio']
-    
-    # If the model is a timm model, it's often better to use imagenet norm by default if not specified
-    # and if it was pretrained (which we assume for timm models here for hyperparams)
-    timm_models_in_report = ["convnext_tiny_timm", "coatnet_0", "cspresnet50", "ghostnet_100", "hornet_tiny", "resnest50d", "mlp_mixer_b16"]
-    if model_name in timm_models_in_report and not model_specific_hparams.get('use_imagenet_norm_explicitly_set', False):
-         # If use_imagenet_norm was not explicitly set to False for this specific timm model in model_specific_params
-         # then default to True.
-        if not ('use_imagenet_norm' in model_specific_hparams and model_specific_hparams['use_imagenet_norm'] == False):
-            final_hparams['use_imagenet_norm'] = True
+    # Extract known model constructor params from the final hparams
+    # These keys should match what model_specific_params might contain for model builders
+    known_constructor_keys = ['k_size', 'ratio', 'width', 'dropout', 
+                              'depths', 'dims', # For ConvNeXt, MSCAN
+                              'image_size', 'patch_size', 'dim', 'depth', 'token_mlp_dim', 'channel_mlp_dim', # For MLP Mixer
+                              'radix', 'cardinality', 'bottleneck_width', 'deep_stem', 'stem_width', 'avg_down', 'avd', 'avd_first', # For ResNeSt
+                              # For CoAtNetCustom (simplified)
+                              's0_channels', 's1_channels', 's2_channels', 's3_channels', 's4_channels',
+                              's0_blocks', 's1_blocks', 's2_blocks', 's3_blocks', 's4_blocks',
+                              'mbconv_expand_ratio', 'transformer_heads', 'transformer_mlp_dim_ratio',
+                              # For HorNetCustom (simplified)
+                              'order', 'dw_k', 'use_filter'
+                             ] 
+    for key in known_constructor_keys:
+        if key in final_hparams: # Check if it was set directly by model_specific_params
+            model_constructor_params[key] = final_hparams[key]
+        elif key in category_hparams.get('model_specific_params', {}).get(model_name, {}): # Check original model_specific_params
+             model_constructor_params[key] = category_hparams['model_specific_params'][model_name][key]
+
 
     final_hparams['model_constructor_params'] = model_constructor_params
+    
+    # Ensure 'use_imagenet_norm' is consistently False as we are not using TIMM pretrained models
+    final_hparams['use_imagenet_norm'] = False
 
     return final_hparams
 
