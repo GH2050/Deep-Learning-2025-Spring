@@ -1,6 +1,6 @@
 \documentclass[10pt]{beamer}
 %================================================
-%---------------PACOTES
+%---------------包配置
 %================================================
 \usepackage{appendixnumberbeamer}
 \usepackage{booktabs}
@@ -9,7 +9,10 @@
 \usepackage{xspace}
 \newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
 \renewcommand{\raggedright}{\leftskip=0pt \rightskip=0pt plus 0cm}
-\usepackage[brazil]{babel}
+
+% 中文支持 - ShareLaTeX兼容版本
+\usepackage[UTF8]{ctex}
+
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{fixltx2e}
@@ -19,7 +22,16 @@
 \usepackage{pdfpages}
 \usepackage{verbatim}
 \tolerance=1000
-\usepackage[outputdir=build/]{minted}
+
+% ShareLaTeX兼容的代码高亮设置
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10}
+}
+
 \usepackage{xcolor}
 \usepackage[all]{xy}
 \usepackage{times}
@@ -31,7 +43,6 @@
 
 \usepackage{indentfirst}
 \usepackage{graphicx}
-\usepackage[timeinterval=1]{tdclock}
 
 \usepackage{multirow}
 \usepackage{multicol}
@@ -42,64 +53,64 @@
 \apptocmd{\block}{}{\justifying}{}
 \apptocmd{\column}{}{\justifying}{}
 \usepackage{enumerate}
-\usepackage{handoutWithNotes}
-%\pgfpagesuselayout{1 on 1 with notes landscape}[a4paper,border shrink=5mm]
+
 \hypersetup{colorlinks,citecolor=verde,linkcolor=orange,urlcolor=verde}
-\usepackage[alf]{abntex2cite}%Citações padrão ABNT}
+% 使用标准的natbib代替abntex2cite以确保ShareLaTeX兼容性
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
 %=============================
 \usetheme[sectionpage=none, subsectionpage=progressbar]{metropolis}
 \usepgfplotslibrary{dateplot}
 \useoutertheme[subsection=false,footline=authortitle]{miniframes}
-\setbeamertemplate{footline}[frame number]%Numerando as Páginas
-\hypersetup{pdfpagemode=FullScreen}%Visualizar em Tela cheia
-\hypersetup{pdfpagelayout=SinglePage}%Layout da pagina
-%-----Definição de novos comandos
+\setbeamertemplate{footline}[frame number]
+\hypersetup{pdfpagemode=FullScreen}
+\hypersetup{pdfpagelayout=SinglePage}
+
 \providecommand{\sin}{} \renewcommand{\sin}{\hspace{2pt}\textrm{sen}}
 \providecommand{\tan}{} \renewcommand{\tan}{\hspace{2pt}\textrm{tg}}
 \setbeamerfont{section in toc}{size=\small}
-\setbeamerfont{subsection in toc}{size=\scriptsize}%\footnotesize
+\setbeamerfont{subsection in toc}{size=\scriptsize}
 \setbeamerfont{subsubsection in toc}{size=\scriptsize}
-\AtBeginEnvironment{minted}{\renewcommand{\fcolorbox}[4][]{#4}}
-\AtBeginSection[]{\begin{frame}<beamer>\frametitle{Seção atual}\tableofcontents[currentsection]\end{frame}}
+
+\AtBeginSection[]{\begin{frame}<beamer>\frametitle{当前章节}\tableofcontents[currentsection]\end{frame}}
 \LetLtxMacro{\OldIncludegraphics}{\includegraphics}
 \renewcommand{\includegraphics}[2][]{\OldIncludegraphics[height=0.8\textheight,keepaspectratio, #1]{#2}}
 \newcommand{\dis}{\displaystyle}
 \newcommand{\lb}{\left\lbrace}
 \newcommand{\rb}{\right\rbrace}
+
 %================================================
-%---------------CORES DO TEMPLATE
+%---------------模板颜色配置
 %================================================
 \definecolor{verde}{HTML}{008069}
 \definecolor{verdepastel}{HTML}{d8f3dc}
 \definecolor{verdesolution}{HTML}{beff9e}
 \definecolor{vsplbggray}{HTML}{f4f8ff}
-%-----------------------------------------------
+
 \setbeamercolor{alerted text}{fg=orange}
 \setbeamercolor*{palette primary}{fg=verde!60!black,bg=gray!30!white}
 \setbeamercolor*{palette tertiary}{bg=verde!90,fg=white}
 \setbeamercolor*{palette quaternary}{fg=verde,bg=gray!5!white}
 \setbeamercolor*{sidebar}{fg=black,bg=black}
-\setbeamercolor{progress bar}{fg=verde}%Linha q passa as seções
+\setbeamercolor{progress bar}{fg=verde}
 \setbeamercolor*{titlelike}{parent=palette primary}
-\setbeamercolor{titlelike}{parent=palette primary,fg=verde}%-Modifica a cor do título
+\setbeamercolor{titlelike}{parent=palette primary,fg=verde}
 \setbeamercolor{frametitle}{bg=verdepastel,fg=verde}
 \setbeamercolor{frametitle right}{bg=black}
 \setbeamercolor{background canvas}{bg=white}
+
 %================================================
-%---------------BLOCOS  
+%---------------文本块配置
 %================================================
 \setbeamertemplate{blocks}[rounded][shadow]
-\uselanguage{Brazil}
-\languagepath{Brazil}
-\deftranslation[to=Brazil]{Theorem}{Teorema}
-\deftranslation[to=Brazil]{Problem}{Problema:}
-\deftranslation[to=Brazil]{Example}{Solução:}
-\deftranslation[to=Brazil]{Solution}{Solução:}
+
 \setbeamercolor{block title}{fg=vsplbggray,bg=verde}
 \setbeamercolor{block body}{bg=white}
 \setbeamercolor{block title alerted}{bg=alerted text.fg!20}
 \setbeamercolor{block body alerted}{bg=alerted text.fg!10}
-%----------Problema--------------
+
+%----------问题块--------------
 \definecolor{vblock}{HTML}{E30022}
 \BeforeBeginEnvironment{problem}{
 \setbeamercolor{block title}{fg=vblock,bg=red!30!white}
@@ -108,7 +119,8 @@
 \AfterEndEnvironment{problem}{
  \setbeamercolor{block title}{use=structure,fg=structure.fg,bg=structure.fg!20!bg}
  \setbeamercolor{block body}{parent=normal text,use=block title,bg=block title.bg!50!bg, fg=black}}
-%----------Solução--------------
+
+%----------解决方案块--------------
 \BeforeBeginEnvironment{solution}{%
 \setbeamercolor{block title}{fg=verde,bg=verdesolution}
 \setbeamercolor{block body}{fg=verde, bg=green!5!white}
@@ -117,112 +129,157 @@
  \setbeamercolor{block title}{use=structure,fg=structure.fg,bg=structure.fg!20!bg}
  \setbeamercolor{block body}{parent=normal text,use=block title,bg=block title.bg!50!bg, fg=black}
 }
-%----------Exemplo--------------
+
+%----------示例块--------------
 \setbeamercolor{block title example}{use=example text,fg=example text.fg,bg=example text.fg!50!bg}
 \setbeamercolor{block body example}{parent=normal text,use=block title example,bg=block title example.bg!50!bg}
+
 %================================================
-%---------------CAPA
+%---------------封面信息
 %================================================
-\title{\bfseries Template para o Pipges - UFSCar/USP}
-\subtitle{\textcolor{orange}{Defesa de Doutorado}}
+\title{\bfseries 深度学习研究报告}
+\subtitle{\textcolor{orange}{先进卷积与注意力机制}}
 \date{\textcolor{black}{\today}}
-%\date{\textcolor{brown}{15 de março de 2021}}
 \author{\bf
-Aluna: Milena Nascimento Lima\\
-Orientador (a):  \\
-Co-orientador (a): 
+学生：姓名\\
+导师：导师姓名\\
+副导师：副导师姓名
 }
- \institute{\textcolor{verde}{Programa Interinstitucional de Pós-Graduação em Estatística UFSCar-USP (PIPGEs)}}
-\titlegraphic{
-\begin{picture}(0,0)
-\put(305,-115){\makebox(0,0)[rt]{\includegraphics[width=2.5cm]{images/logo_pipges.png}}}
-\end{picture}
-}
+\institute{\textcolor{verde}{深度学习课程 - 2025年春季学期}}
+
 \begin{document}
 \maketitle
+
 %================================================
-%---------------Sumário
+%---------------目录
 %================================================
-\begin{frame}{Sumário}
+\begin{frame}{目录}
 \hypersetup{linkcolor=black}
 \setbeamertemplate{section in toc}[sections numbered]
 \tableofcontents
 \end{frame}
-%================================================
-%---------------Elementos Textuais
-%================================================
-\section{Introdução}
 
-\subsection{O problema}
-\begin{frame}{Problema}
-\lipsum[1-1]
+%================================================
+%---------------正文内容
+%================================================
+\section{引言}
+
+\subsection{研究问题}
+\begin{frame}{研究问题}
+本研究探讨先进卷积网络和注意力机制在深度学习中的应用。主要关注以下几个方面：
+\begin{itemize}
+\item 轻量化网络架构设计
+\item 注意力机制的有效性
+\item 模型性能与计算效率的平衡
+\end{itemize}
 \end{frame}
 
-
-\subsection{Motivação}
-\begin{frame}{Blocos e citações}
-\begin{block}{Como citar?}
+\subsection{研究动机}
+\begin{frame}{文本块和引用示例}
+\begin{block}{如何引用文献？}
 \begin{table}[H]
+\centering
 \begin{tabular}{|l|l|l|}
 \hline
-Tipo de citação& Comando &  Resultado    \\ \hline
-Citação ativa &\ citeonline{lamport1994latex}&  \citeonline{lamport1994latex}   \\ \hline
-Citação passiva &cite{lamport1994latex}  &\cite{lamport1994latex}     \\ \hline
+引用类型 & 命令 & 结果 \\ \hline
+作者引用 & \textbackslash citet\{key\} & 作者等(年份) \\ \hline
+括号引用 & \textbackslash citep\{key\} & (作者等，年份) \\ \hline
 \end{tabular}
 \end{table}
 \end{block}
-%---------Problemas e soluções
+
 \begin{problem}
-Você pode usar este bloco para abordar determinado problema exitente.
+传统卷积神经网络存在参数量大、计算复杂度高的问题。
 \end{problem}
+
 \begin{solution}
-Ideia, solução.
-\end{solution}    
+采用GhostNet等轻量化网络架构，结合注意力机制提升模型效率。
+\end{solution}
 \end{frame}
 
-\subsection{Objetivos}
-\begin{frame}{Objetivos}
-Escrever no infinitivo.
+\subsection{研究目标}
+\begin{frame}{研究目标}
+本研究的主要目标包括：
 \begin{itemize}
-\item Estender ; 
-\item Fazer ;
-\item Mostrar.
+\item 实现轻量化卷积网络的训练和优化
+\item 分析不同注意力机制的效果
+\item 在保持精度的前提下降低计算成本
 \end{itemize}
-\begin{block}{Objetivos}
-Os objetivos orientarão a apresentação não só da metodologia, mas, sobretudo, dos resultados, da discussão e conclusão, devem ser definidos de forma que facilite a leitura e permita uma avaliação fácil e rápida.
+
+\begin{block}{目标说明}
+研究目标将指导我们的实验设计和结果分析，确保研究具有明确的方向性和可评估性。
 \end{block}
 \end{frame}
 
-\begin{frame}{New}
-\lipsum[1-1]
+\section{文献综述}
+\begin{frame}{相关工作}
+\begin{itemize}
+\item \textbf{轻量化网络}：MobileNet、ShuffleNet、GhostNet等
+\item \textbf{注意力机制}：SE-Net、CBAM、ECA-Net等
+\item \textbf{网络优化}：知识蒸馏、剪枝、量化等技术
+\end{itemize}
 \end{frame}
 
-\section{Revisão da literatura}
-\section{Tópicos de pesquisa}
-\section{Considerações finais}
-\begin{frame}{New}
-\lipsum[1-1]
+\section{研究方法}
+\begin{frame}{实验设置}
+\begin{itemize}
+\item \textbf{数据集}：CIFAR-10、ImageNet等标准数据集
+\item \textbf{模型}：GhostNet、ResNet等网络架构
+\item \textbf{训练策略}：数据增强、学习率调度、正则化
+\item \textbf{评估指标}：准确率、参数量、FLOPs、推理时间
+\end{itemize}
 \end{frame}
+
+\section{实验结果}
+\begin{frame}{主要结果}
+实验结果表明：
+\begin{itemize}
+\item GhostNet在保持精度的同时显著减少了参数量
+\item 注意力机制能够有效提升模型性能
+\item 优化策略对模型收敛起到关键作用
+\end{itemize}
+\end{frame}
+
+\section{总结与展望}
+\begin{frame}{结论}
+\begin{itemize}
+\item 轻量化网络在移动端部署具有重要意义
+\item 注意力机制是提升网络性能的有效手段
+\item 未来可进一步探索神经架构搜索等自动化方法
+\end{itemize}
+\end{frame}
+
 %================================================
-%---------------Elementos Pós-textuais
+%---------------结束页面
 %================================================
 {\setbeamercolor{palette primary}{fg=black, bg=white}
 \begin{frame}[standout]
- \begin{figure}[H]
 \centering
-\includegraphics[width=1.5\linewidth]{images/gratidao.png}
-\end{figure}
+\Huge{谢谢！}
+\vspace{1cm}
+
+\Large{欢迎提问与讨论}
 \end{frame}
-}  
+}
+
 %================================================
-%----------------BIBLIOGRAFIA
+%---------------参考文献
 %================================================
-\section*{Bibliografia}
-\begin{frame}[allowframebreaks]{Referências bibliográficas}
-%\nocite{*}
-\bibliography{bibliografia}
+\section*{参考文献}
+\begin{frame}[allowframebreaks]{参考文献}
+\begin{thebibliography}{99}
+\bibitem{han2020ghostnet}
+Han, K., Wang, Y., Tian, Q., et al. (2020). GhostNet: More features from cheap operations. In CVPR.
+
+\bibitem{hu2018squeeze}
+Hu, J., Shen, L., Sun, G. (2018). Squeeze-and-excitation networks. In CVPR.
+
+\bibitem{woo2018cbam}
+Woo, S., Park, J., Lee, J. Y., Kweon, I. S. (2018). CBAM: Convolutional block attention module. In ECCV.
+\end{thebibliography}
 \end{frame}
+
 %================================================
-%----------------FIM DO TEMPLATE
+%---------------模板结束
 %================================================
 \end{document}
