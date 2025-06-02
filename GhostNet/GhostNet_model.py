@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-from ResNet import ResNet
+from ResNet_model import ResNet
 
 # 模型定义
 class GhostModule(nn.Module):
