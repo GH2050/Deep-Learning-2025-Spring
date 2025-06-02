@@ -1,0 +1,20 @@
+{
+  "model": "convnext_tiny_cifar",
+  "best_accuracy": 45.13,
+  "final_train_accuracy": 51.898,
+  "final_test_accuracy": 44.98,
+  "total_epochs": 50,
+  "actual_lr": 0.002,
+  "actual_optimizer": "adamw",
+  "actual_weight_decay": 0.02,
+  "recommended_config": {
+    "lr": 0.002,
+    "weight_decay": 0.02,
+    "optimizer": "adamw",
+    "epochs": 400,
+    "warmup_epochs": 15,
+    "label_smoothing": 0.08
+  },
+  "parameters": 3.790804,
+  "training_time": 1974.4275951385498
+}

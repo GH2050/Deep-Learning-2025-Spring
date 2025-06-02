@@ -1,0 +1,11 @@
+{
+  "model": "convnext_nano",
+  "epochs": 50,
+  "batch_size": 128,
+  "lr": null,
+  "optimizer": null,
+  "weight_decay": 0.0005,
+  "data_augmentation": true,
+  "model_parameters": 2.65598,
+  "timestamp": "2025-06-02T19:55:34.510929"
+}

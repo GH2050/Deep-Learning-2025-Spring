@@ -1,0 +1,8 @@
+{
+  "lr": 0.003,
+  "weight_decay": 0.01,
+  "optimizer": "adamw",
+  "epochs": 350,
+  "warmup_epochs": 15,
+  "label_smoothing": 0.05
+}

@@ -118,63 +118,36 @@ class DropPath(nn.Module):
         return output
 
 
-# ====== 改进版本 1: ResNet + 大卷积核 ======
-class ImprovedBlock_v1(nn.Module):
-    """ResNet + 7x7 kernel"""
-    expansion = 1
-
-    def __init__(self, in_planes, planes, stride=1, **kwargs):
-        super().__init__()
-        
-        self.conv1 = nn.Conv2d(
-            in_planes, planes, kernel_size=7, stride=stride, padding=3, bias=False
-        )
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(
-            planes, planes, kernel_size=3, stride=1, padding=1, bias=False
-        )
-        self.bn2 = nn.BatchNorm2d(planes)
-
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes),
-            )
-
-    def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
-        out += self.shortcut(x)
-        out = F.relu(out)
-        return out
-
-
-# ====== 改进版本 2: ResNet + 深度卷积 + 倒置瓶颈 ======
+# ====== 改进版本: ResNet + 深度卷积 + 倒置瓶颈 ======
 class ImprovedBlock_v2(nn.Module):
     """ResNet + Depthwise Conv + Inverted Bottleneck"""
+
     expansion = 1
 
     def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
         super().__init__()
-        
+
         expand_ratio = 4
         expanded_planes = in_planes * expand_ratio
 
         # Inverted bottleneck: expand -> depthwise -> shrink
         self.conv1 = nn.Conv2d(in_planes, expanded_planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(expanded_planes)
-        
+
         self.dwconv = nn.Conv2d(
-            expanded_planes, expanded_planes, kernel_size=7, 
-            stride=stride, padding=3, groups=expanded_planes, bias=False
+            expanded_planes,
+            expanded_planes,
+            kernel_size=7,
+            stride=stride,
+            padding=3,
+            groups=expanded_planes,
+            bias=False,
         )
         self.bn2 = nn.BatchNorm2d(expanded_planes)
-        
+
         self.conv2 = nn.Conv2d(expanded_planes, planes, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes)
-        
-        # Drop Path (虽然这个版本主要用BatchNorm+ReLU，但也支持drop_path)
+
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
         self.shortcut = nn.Sequential()
@@ -186,237 +159,121 @@ class ImprovedBlock_v2(nn.Module):
 
     def forward(self, x):
         input_x = x
-        
-        out = F.relu(self.bn1(self.conv1(x)))      # expand
+
+        out = F.relu(self.bn1(self.conv1(x)))  # expand
         out = F.relu(self.bn2(self.dwconv(out)))  # depthwise
-        out = self.bn3(self.conv2(out))           # shrink
-        
-        # Apply drop path and residual connection
+        out = self.bn3(self.conv2(out))  # shrink
+
         out = self.shortcut(input_x) + self.drop_path(out)
         out = F.relu(out)
         return out
 
 
-# ====== 改进版本 3: ResNet + ConvNeXt 特性 ======
-class ImprovedBlock_v3(nn.Module):
-    """ResNet + LayerNorm + GELU + Layer Scale + Drop Path"""
-    expansion = 1
-
-    def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
-        super().__init__()
-        
-        expand_ratio = 4
-        expanded_planes = in_planes * expand_ratio
-        layer_scale_init_value = 1e-6
-
-        # ConvNeXt-style: depthwise -> norm -> expand -> gelu -> shrink
-        self.dwconv = nn.Conv2d(
-            in_planes, in_planes, kernel_size=7, 
-            stride=stride, padding=3, groups=in_planes, bias=False
-        )
-        self.norm1 = LayerNorm2d(in_planes)
-        
-        self.conv1 = nn.Conv2d(in_planes, expanded_planes, kernel_size=1, bias=False)
-        self.act = nn.GELU()  # GELU instead of ReLU
-        self.conv2 = nn.Conv2d(expanded_planes, planes, kernel_size=1, bias=False)
-        
-        # Layer Scale
-        self.gamma = nn.Parameter(
-            layer_scale_init_value * torch.ones(planes), requires_grad=True
-        )
-        
-        # Drop Path
-        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
-
-        # Shortcut
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
-                LayerNorm2d(planes),
-            )
-
-    def forward(self, x):
-        input_x = x
-        
-        out = self.dwconv(x)      # depthwise conv
-        out = self.norm1(out)     # LayerNorm
-        out = self.conv1(out)     # expand
-        out = self.act(out)       # GELU (only one activation!)
-        out = self.conv2(out)     # shrink
-        
-        # Layer scale
-        out = self.gamma.view(1, -1, 1, 1) * out
-        
-        # Residual connection with drop path
-        out = self.shortcut(input_x) + self.drop_path(out)
-        
-        return out
-
-
-# ====== 改进版本 4: 最接近 ConvNeXt 的 ResNet ======
-class ImprovedBlock_v4(nn.Module):
-    """Most ConvNeXt-like ResNet Block"""
-    expansion = 1
-
-    def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
-        super().__init__()
-        
-        expand_ratio = 4
-        layer_scale_init_value = 1e-6
-
-        # 处理步长下采样: 当stride>1时，使用普通卷积；否则使用深度卷积
-        if stride > 1:
-            # 使用普通卷积处理下采样，然后调整通道数
-            self.dwconv = nn.Conv2d(
-                in_planes, planes, kernel_size=7, 
-                stride=stride, padding=3, bias=False
-            )
-            self.norm = LayerNorm2d(planes)
-            self.conv1 = nn.Conv2d(planes, expand_ratio * planes, kernel_size=1)
-            self.conv2 = nn.Conv2d(expand_ratio * planes, planes, kernel_size=1)
-        else:
-            # 使用深度卷积
-            self.dwconv = nn.Conv2d(
-                in_planes, in_planes, kernel_size=7, 
-                stride=1, padding=3, groups=in_planes, bias=False
-            )
-            self.norm = LayerNorm2d(in_planes)
-            self.conv1 = nn.Conv2d(in_planes, expand_ratio * in_planes, kernel_size=1)
-            self.conv2 = nn.Conv2d(expand_ratio * in_planes, planes, kernel_size=1)
-            
-        self.act = nn.GELU()
-        
-        # Layer Scale
-        self.gamma = nn.Parameter(
-            layer_scale_init_value * torch.ones(planes), requires_grad=True
-        )
-        
-        # Drop Path
-        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
-
-        # Shortcut
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
-                LayerNorm2d(planes),
-            )
-
-    def forward(self, x):
-        input_x = x
-        
-        # ConvNeXt-style forward
-        out = self.dwconv(x)      # depthwise or regular conv
-        out = self.norm(out)      # LayerNorm
-        out = self.conv1(out)     # expand
-        out = self.act(out)       # GELU
-        out = self.conv2(out)     # shrink
-        
-        # Layer scale
-        out = self.gamma.view(1, -1, 1, 1) * out
-        
-        # Residual connection
-        out = self.shortcut(input_x) + self.drop_path(out)
-        
-        return out
-
-
-# ====== 通用的改进 ResNet 架构 ======
 class ImprovedResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=100, width_multiplier=1.0, 
-                 drop_path_rate=0.1, use_stem_v3=False):
+    def __init__(
+        self,
+        block,
+        num_blocks,
+        num_classes=100,
+        width_multiplier=1.0,
+        drop_path_rate=0.05,
+    ):
         super().__init__()
         self.in_planes = int(16 * width_multiplier)
-        
-        # Stem 层
-        if use_stem_v3:
-            # ConvNeXt-style patchify stem
-            self.stem = nn.Sequential(
-                nn.Conv2d(3, self.in_planes, kernel_size=4, stride=4, bias=False),
-                LayerNorm2d(self.in_planes)
-            )
-        else:
-            # Traditional ResNet stem
-            self.conv1 = nn.Conv2d(3, self.in_planes, kernel_size=3, stride=1, padding=1, bias=False)
-            self.bn1 = nn.BatchNorm2d(self.in_planes)
-        
+
+        # Traditional ResNet stem
+        self.conv1 = nn.Conv2d(
+            3, self.in_planes, kernel_size=3, stride=1, padding=1, bias=False
+        )
+        self.bn1 = nn.BatchNorm2d(self.in_planes)
+
         # 计算每个block的drop path rate
         total_blocks = sum(num_blocks)
         dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, total_blocks)]
-        
+
         # 构建层
         cur_idx = 0
         self.layer1 = self._make_layer(
-            block, int(16 * width_multiplier), num_blocks[0], 1,
-            dp_rates[cur_idx:cur_idx + num_blocks[0]]
+            block,
+            int(16 * width_multiplier),
+            num_blocks[0],
+            1,
+            dp_rates[cur_idx : cur_idx + num_blocks[0]],
         )
         cur_idx += num_blocks[0]
-        
+
         self.layer2 = self._make_layer(
-            block, int(32 * width_multiplier), num_blocks[1], 2,
-            dp_rates[cur_idx:cur_idx + num_blocks[1]]
+            block,
+            int(32 * width_multiplier),
+            num_blocks[1],
+            2,
+            dp_rates[cur_idx : cur_idx + num_blocks[1]],
         )
         cur_idx += num_blocks[1]
-        
+
         self.layer3 = self._make_layer(
-            block, int(64 * width_multiplier), num_blocks[2], 2,
-            dp_rates[cur_idx:cur_idx + num_blocks[2]]
+            block,
+            int(64 * width_multiplier),
+            num_blocks[2],
+            2,
+            dp_rates[cur_idx : cur_idx + num_blocks[2]],
         )
-        
-        # 最终层
-        final_dim = int(64 * width_multiplier)
-        if use_stem_v3:
-            self.norm = LayerNorm2d(final_dim)
-        self.linear = nn.Linear(final_dim, num_classes)
+
+        self.linear = nn.Linear(int(64 * width_multiplier), num_classes)
 
     def _make_layer(self, block, planes, num_blocks, stride, dp_rates):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for i, (stride, dp_rate) in enumerate(zip(strides, dp_rates)):
-            # 统一传递 drop_path 参数，所有block都支持了
             layers.append(block(self.in_planes, planes, stride, drop_path=dp_rate))
             self.in_planes = planes
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        if hasattr(self, 'stem'):
-            out = self.stem(x)
-        else:
-            out = F.relu(self.bn1(self.conv1(x)))
-        
+        out = F.relu(self.bn1(self.conv1(x)))
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)
-        
-        if hasattr(self, 'norm'):
-            out = self.norm(out)
-            
         out = F.adaptive_avg_pool2d(out, (1, 1))
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
 
 
-# ====== ConvNeXt 实现 ======
-class ConvNeXtBlock(nn.Module):
-    """ConvNeXt Block"""
+# ====== CIFAR-100优化的ConvNeXt实现 ======
+class ConvNeXtBlock_CIFAR(nn.Module):
+    """针对CIFAR-100优化的ConvNeXt Block"""
 
-    def __init__(self, dim, drop_path=0.0, layer_scale_init_value=1e-6):
+    def __init__(
+        self,
+        dim,
+        drop_path=0.0,
+        layer_scale_init_value=1e-6,
+        expand_ratio=3,
+        dropout_rate=0.1,
+    ):
         super().__init__()
-        
+
+        expanded_dim = int(dim * expand_ratio)
+
         self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)
         self.norm = LayerNorm2d(dim, eps=1e-6)
-        self.pwconv1 = nn.Conv2d(dim, 4 * dim, kernel_size=1)
+
+        # MLP with dropout for regularization
+        self.pwconv1 = nn.Conv2d(dim, expanded_dim, kernel_size=1)
         self.act = nn.GELU()
-        self.pwconv2 = nn.Conv2d(4 * dim, dim, kernel_size=1)
-        
+        self.dropout1 = nn.Dropout(dropout_rate)
+        self.pwconv2 = nn.Conv2d(expanded_dim, dim, kernel_size=1)
+        self.dropout2 = nn.Dropout(dropout_rate)
+
+        # Layer Scale
         self.gamma = (
             nn.Parameter(layer_scale_init_value * torch.ones((dim)), requires_grad=True)
             if layer_scale_init_value > 0
             else None
         )
-        
+
+        # Drop Path
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
     def forward(self, x):
@@ -425,7 +282,9 @@ class ConvNeXtBlock(nn.Module):
         x = self.norm(x)
         x = self.pwconv1(x)
         x = self.act(x)
+        x = self.dropout1(x)
         x = self.pwconv2(x)
+        x = self.dropout2(x)
 
         if self.gamma is not None:
             x = self.gamma.view(1, -1, 1, 1) * x
@@ -434,8 +293,8 @@ class ConvNeXtBlock(nn.Module):
         return x
 
 
-class ConvNeXt(nn.Module):
-    """ConvNeXt adapted for CIFAR-100"""
+class ConvNeXt_CIFAR(nn.Module):
+    """针对CIFAR-100优化的ConvNeXt"""
 
     def __init__(
         self,
@@ -443,44 +302,57 @@ class ConvNeXt(nn.Module):
         num_classes=100,
         depths=[2, 2, 6, 2],
         dims=[48, 96, 192, 384],
-        drop_path_rate=0.0,
+        drop_path_rate=0.2,
         layer_scale_init_value=1e-6,
+        expand_ratio=3,
+        dropout_rate=0.15,
+        final_dropout=0.2,
     ):
         super().__init__()
 
+        # Stem optimized for 32x32 images
         self.stem = nn.Sequential(
-            nn.Conv2d(in_chans, dims[0], kernel_size=4, stride=4),
+            nn.Conv2d(in_chans, dims[0], kernel_size=4, stride=4),  # 32->8
             LayerNorm2d(dims[0]),
+            nn.Dropout2d(0.05),
         )
 
+        # Build stages
         self.stages = nn.ModuleList()
         dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
         cur = 0
 
         for i in range(4):
+            # Stage blocks
             stage_blocks = []
             for j in range(depths[i]):
                 stage_blocks.append(
-                    ConvNeXtBlock(
+                    ConvNeXtBlock_CIFAR(
                         dim=dims[i],
                         drop_path=dp_rates[cur + j],
                         layer_scale_init_value=layer_scale_init_value,
+                        expand_ratio=expand_ratio,
+                        dropout_rate=dropout_rate,
                     )
                 )
             self.stages.append(nn.Sequential(*stage_blocks))
 
+            # Downsampling (except last stage)
             if i < 3:
-                self.stages.append(
-                    nn.Sequential(
-                        LayerNorm2d(dims[i]),
-                        nn.Conv2d(dims[i], dims[i + 1], kernel_size=2, stride=2),
-                    )
+                downsample = nn.Sequential(
+                    LayerNorm2d(dims[i]),
+                    nn.Conv2d(dims[i], dims[i + 1], kernel_size=2, stride=2),
+                    nn.Dropout2d(0.1),
                 )
+                self.stages.append(downsample)
 
             cur += depths[i]
 
+        # Final layers
         self.norm = LayerNorm2d(dims[-1])
+        self.dropout = nn.Dropout(final_dropout)
         self.head = nn.Linear(dims[-1], num_classes)
+
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -494,103 +366,361 @@ class ConvNeXt(nn.Module):
         for stage in self.stages:
             x = stage(x)
         x = self.norm(x)
-        x = x.mean([-2, -1])
+        x = x.mean([-2, -1])  # Global average pooling
+        x = self.dropout(x)
         x = self.head(x)
         return x
 
 
 # ====== 模型工厂函数 ======
 
+
 # Original ResNet
 def resnet20(num_classes=100, width_multiplier=1.0):
     return ResNet(BasicBlock, [3, 3, 3], num_classes, width_multiplier)
 
+
 def resnet32(num_classes=100, width_multiplier=1.0):
     return ResNet(BasicBlock, [5, 5, 5], num_classes, width_multiplier)
+
 
 def resnet56(num_classes=100, width_multiplier=1.0):
     return ResNet(BasicBlock, [9, 9, 9], num_classes, width_multiplier)
 
+
 def resnet20_slim(num_classes=100):
     return resnet20(num_classes, width_multiplier=0.5)
+
 
 def resnet32_slim(num_classes=100):
     return resnet32(num_classes, width_multiplier=0.5)
 
-# Improved ResNet versions
-def improved_resnet20_v1(num_classes=100, width_multiplier=1.0):
-    """ResNet20 + 7x7 kernel"""
-    return ImprovedResNet(ImprovedBlock_v1, [3, 3, 3], num_classes, width_multiplier, 
-                         drop_path_rate=0.0, use_stem_v3=False)
 
+# Improved ResNet
 def improved_resnet20_v2(num_classes=100, width_multiplier=1.0):
     """ResNet20 + Depthwise Conv + Inverted Bottleneck"""
-    return ImprovedResNet(ImprovedBlock_v2, [3, 3, 3], num_classes, width_multiplier, 
-                         drop_path_rate=0.05, use_stem_v3=False)
+    return ImprovedResNet(
+        ImprovedBlock_v2, [3, 3, 3], num_classes, width_multiplier, drop_path_rate=0.05
+    )
 
-def improved_resnet20_v3(num_classes=100, width_multiplier=1.0, drop_path_rate=0.1):
-    """ResNet20 + ConvNeXt features"""
-    return ImprovedResNet(ImprovedBlock_v3, [3, 3, 3], num_classes, width_multiplier, 
-                         drop_path_rate=drop_path_rate, use_stem_v3=True)
 
-def improved_resnet20_v4(num_classes=100, width_multiplier=1.0, drop_path_rate=0.1):
-    """ResNet20 most ConvNeXt-like"""
-    return ImprovedResNet(ImprovedBlock_v4, [3, 3, 3], num_classes, width_multiplier, 
-                         drop_path_rate=drop_path_rate, use_stem_v3=True)
+# CIFAR-100 Optimized ConvNeXt
+def convnext_micro(num_classes=100, **kwargs):
+    """超小版本 - 最适合CIFAR-100"""
+    return ConvNeXt_CIFAR(
+        depths=[2, 2, 6, 2],
+        dims=[36, 72, 144, 288],
+        drop_path_rate=0.08,
+        expand_ratio=3.5,
+        dropout_rate=0.05,
+        final_dropout=0.1,
+        num_classes=num_classes,
+        **kwargs,
+    )
 
-# ConvNeXt models
+
+def convnext_nano(num_classes=100, **kwargs):
+    """纳米版本 - 平衡性能和过拟合"""
+    return ConvNeXt_CIFAR(
+        depths=[2, 2, 6, 2],
+        dims=[40, 80, 160, 320],
+        drop_path_rate=0.2,
+        expand_ratio=3,
+        dropout_rate=0.15,
+        final_dropout=0.2,
+        num_classes=num_classes,
+        **kwargs,
+    )
+
+
+def convnext_tiny_cifar(num_classes=100, **kwargs):
+    """Tiny版本 - CIFAR优化"""
+    return ConvNeXt_CIFAR(
+        depths=[2, 2, 6, 2],
+        dims=[48, 96, 192, 384],
+        drop_path_rate=0.25,
+        expand_ratio=3,
+        dropout_rate=0.15,
+        final_dropout=0.25,
+        num_classes=num_classes,
+        **kwargs,
+    )
+
+
+def convnext_small_cifar(num_classes=100, **kwargs):
+    """Small版本 - 需要更强正则化"""
+    return ConvNeXt_CIFAR(
+        depths=[2, 2, 18, 2],
+        dims=[48, 96, 192, 384],
+        drop_path_rate=0.3,
+        expand_ratio=2.5,
+        dropout_rate=0.2,
+        final_dropout=0.3,
+        num_classes=num_classes,
+        **kwargs,
+    )
+
+
+# Legacy ConvNeXt (容易过拟合，不推荐用于CIFAR-100)
 def convnext_tiny(num_classes=100, **kwargs):
-    return ConvNeXt(depths=[2, 2, 6, 2], dims=[48, 96, 192, 384], num_classes=num_classes, **kwargs)
+    """原始ConvNeXt-Tiny (不推荐用于CIFAR-100)"""
+    from warnings import warn
 
-def convnext_small(num_classes=100, **kwargs):
-    return ConvNeXt(depths=[2, 2, 18, 2], dims=[48, 96, 192, 384], num_classes=num_classes, **kwargs)
+    warn(
+        "convnext_tiny容易在CIFAR-100上过拟合，建议使用convnext_micro或convnext_nano",
+        UserWarning,
+    )
 
-def convnext_base(num_classes=100, **kwargs):
-    return ConvNeXt(depths=[2, 2, 18, 2], dims=[64, 128, 256, 512], num_classes=num_classes, **kwargs)
+    class ConvNeXtBlock_Original(nn.Module):
+        def __init__(self, dim, drop_path=0.0, layer_scale_init_value=1e-6):
+            super().__init__()
+            self.dwconv = nn.Conv2d(dim, dim, kernel_size=7, padding=3, groups=dim)
+            self.norm = LayerNorm2d(dim, eps=1e-6)
+            self.pwconv1 = nn.Conv2d(dim, 4 * dim, kernel_size=1)
+            self.act = nn.GELU()
+            self.pwconv2 = nn.Conv2d(4 * dim, dim, kernel_size=1)
 
-def convnext_large(num_classes=100, **kwargs):
-    return ConvNeXt(depths=[2, 2, 18, 2], dims=[96, 192, 384, 768], num_classes=num_classes, **kwargs)
+            self.gamma = (
+                nn.Parameter(
+                    layer_scale_init_value * torch.ones((dim)), requires_grad=True
+                )
+                if layer_scale_init_value > 0
+                else None
+            )
+
+            self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+
+        def forward(self, x):
+            input_x = x
+            x = self.dwconv(x)
+            x = self.norm(x)
+            x = self.pwconv1(x)
+            x = self.act(x)
+            x = self.pwconv2(x)
+
+            if self.gamma is not None:
+                x = self.gamma.view(1, -1, 1, 1) * x
+
+            x = input_x + self.drop_path(x)
+            return x
+
+    class ConvNeXt_Original(nn.Module):
+        def __init__(
+            self,
+            depths=[2, 2, 6, 2],
+            dims=[48, 96, 192, 384],
+            drop_path_rate=0.0,
+            num_classes=100,
+            **kwargs,
+        ):
+            super().__init__()
+
+            self.stem = nn.Sequential(
+                nn.Conv2d(3, dims[0], kernel_size=4, stride=4),
+                LayerNorm2d(dims[0]),
+            )
+
+            self.stages = nn.ModuleList()
+            dp_rates = [
+                x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))
+            ]
+            cur = 0
+
+            for i in range(4):
+                stage_blocks = []
+                for j in range(depths[i]):
+                    stage_blocks.append(
+                        ConvNeXtBlock_Original(
+                            dim=dims[i],
+                            drop_path=dp_rates[cur + j],
+                        )
+                    )
+                self.stages.append(nn.Sequential(*stage_blocks))
+
+                if i < 3:
+                    self.stages.append(
+                        nn.Sequential(
+                            LayerNorm2d(dims[i]),
+                            nn.Conv2d(dims[i], dims[i + 1], kernel_size=2, stride=2),
+                        )
+                    )
+
+                cur += depths[i]
+
+            self.norm = LayerNorm2d(dims[-1])
+            self.head = nn.Linear(dims[-1], num_classes)
+            self.apply(self._init_weights)
+
+        def _init_weights(self, m):
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
+                nn.init.trunc_normal_(m.weight, std=0.02)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+
+        def forward(self, x):
+            x = self.stem(x)
+            for stage in self.stages:
+                x = stage(x)
+            x = self.norm(x)
+            x = x.mean([-2, -1])
+            x = self.head(x)
+            return x
+
+    return ConvNeXt_Original(num_classes=num_classes, **kwargs)
+
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
 
 
-# ====== 测试代码 ======
-if __name__ == '__main__':
-    models_to_test = [
-        ('resnet20', resnet20()),
-        ('improved_resnet20_v1', improved_resnet20_v1()),
-        ('improved_resnet20_v2', improved_resnet20_v2()),
-        ('improved_resnet20_v3', improved_resnet20_v3()),
-        ('improved_resnet20_v4', improved_resnet20_v4()),
-        ('convnext_tiny', convnext_tiny()),
-    ]
-    
-    print("Model Comparison for CIFAR-100:")
-    print("-" * 90)
-    print(f"{'Model':<20} {'Parameters':<12} {'Output Shape':<15} {'Key Features':<30} {'Status'}")
-    print("-" * 90)
-    
-    x = torch.randn(2, 3, 32, 32)
-    
-    features_map = {
-        'resnet20': 'Baseline ResNet',
-        'improved_resnet20_v1': '7x7 kernel',
-        'improved_resnet20_v2': 'DWConv + Inverted Bottleneck',
-        'improved_resnet20_v3': 'LayerNorm + GELU + DropPath',
-        'improved_resnet20_v4': 'Most ConvNeXt-like',
-        'convnext_tiny': 'Full ConvNeXt'
+def get_training_config(model_name):
+    """为不同模型返回推荐的训练配置"""
+    configs = {
+        # ConvNeXt系列 - 改进配置
+        "convnext_micro": {
+            "lr": 0.004,
+            "weight_decay": 0.005,
+            "optimizer": "adamw",
+            "epochs": 300,  # 延长训练
+            "warmup_epochs": 10,
+            "label_smoothing": 0.03,
+        },
+        "convnext_nano": {
+            "lr": 0.003,
+            "weight_decay": 0.01,
+            "optimizer": "adamw",
+            "epochs": 350,
+            "warmup_epochs": 15,
+            "label_smoothing": 0.05,
+        },
+        "convnext_tiny_cifar": {
+            "lr": 0.002,
+            "weight_decay": 0.02,
+            "optimizer": "adamw",
+            "epochs": 400,
+            "warmup_epochs": 15,
+            "label_smoothing": 0.08,
+        },
+        "convnext_small_cifar": {
+            "lr": 0.001,
+            "weight_decay": 0.03,
+            "optimizer": "adamw",
+            "epochs": 400,
+            "warmup_epochs": 20,
+            "label_smoothing": 0.1,
+        },
+        # ResNet系列
+        "resnet20": {
+            "lr": 0.1,
+            "weight_decay": 5e-4,
+            "optimizer": "sgd",
+            "epochs": 200,
+            "warmup_epochs": 0,
+            "label_smoothing": 0.0,
+        },
+        "resnet32": {
+            "lr": 0.1,
+            "weight_decay": 5e-4,
+            "optimizer": "sgd",
+            "epochs": 200,
+            "warmup_epochs": 0,
+            "label_smoothing": 0.0,
+        },
+        "resnet56": {
+            "lr": 0.1,
+            "weight_decay": 5e-4,
+            "optimizer": "sgd",
+            "epochs": 250,
+            "warmup_epochs": 5,
+            "label_smoothing": 0.0,
+        },
+        "resnet20_slim": {
+            "lr": 0.1,
+            "weight_decay": 1e-3,
+            "optimizer": "sgd",
+            "epochs": 200,
+            "warmup_epochs": 0,
+            "label_smoothing": 0.0,
+        },
+        "resnet32_slim": {
+            "lr": 0.1,
+            "weight_decay": 1e-3,
+            "optimizer": "sgd",
+            "epochs": 200,
+            "warmup_epochs": 0,
+            "label_smoothing": 0.0,
+        },
+        "improved_resnet20_v2": {
+            "lr": 0.05,
+            "weight_decay": 1e-3,
+            "optimizer": "sgd",
+            "epochs": 250,
+            "warmup_epochs": 5,
+            "label_smoothing": 0.05,
+        },
+        # 原版ConvNeXt (不推荐)
+        "convnext_tiny": {
+            "lr": 0.0005,
+            "weight_decay": 0.05,
+            "optimizer": "adamw",
+            "epochs": 400,
+            "warmup_epochs": 20,
+            "label_smoothing": 0.2,
+        },
     }
-    
+
+    return configs.get(model_name, configs["resnet20"])  # 默认使用ResNet配置
+
+
+# ====== 测试代码 ======
+if __name__ == "__main__":
+    print("CIFAR-100 Optimized Models:")
+    print("=" * 80)
+
+    models_to_test = [
+        ("resnet20", resnet20()),
+        ("resnet20_slim", resnet20_slim()),
+        ("improved_resnet20_v2", improved_resnet20_v2()),
+        ("convnext_micro", convnext_micro()),
+        ("convnext_nano", convnext_nano()),
+        ("convnext_tiny_cifar", convnext_tiny_cifar()),
+        ("convnext_tiny_original", convnext_tiny()),
+    ]
+
+    print(
+        f"{'Model':<25} {'Parameters':<12} {'Output Shape':<15} {'Recommended':<12} {'Status'}"
+    )
+    print("-" * 80)
+
+    x = torch.randn(2, 3, 32, 32)
+
+    recommendations = {
+        "resnet20": "Baseline",
+        "resnet20_slim": "Fast",
+        "improved_resnet20_v2": "Good",
+        "convnext_micro": "Best",
+        "convnext_nano": "Excellent",
+        "convnext_tiny_cifar": "Good",
+        "convnext_tiny_original": "Avoid",
+    }
+
     for name, model in models_to_test:
         try:
             model.eval()
             with torch.no_grad():
                 output = model(x)
             params = count_parameters(model)
-            features = features_map.get(name, 'Unknown')
-            print(f"{name:<20} {params:<12.2f}M {str(output.shape):<15} {features:<30} {'✓'}")
+            rec = recommendations.get(name, "Unknown")
+            print(
+                f"{name:<25} {params:<12.2f}M {str(output.shape):<15} {rec:<12} {'✓'}"
+            )
         except Exception as e:
-            print(f"{name:<20} {'ERROR':<12} {'':<15} {'':<30} {'✗'} {str(e)[:30]}...")
-    
-    print("-" * 90)
+            print(f"{name:<25} {'ERROR':<12} {'':<15} {'':<12} {'✗'}")
+
+    print("-" * 80)
+    print("\nTraining Recommendations:")
+    print("- convnext_micro: 最佳选择，参数少，不易过拟合")
+    print("- convnext_nano: 性能优秀，平衡过拟合风险")
+    print("- improved_resnet20_v2: ResNet改进版，效率高")
+    print("- 避免使用 convnext_tiny_original: 容易过拟合")
+    print("\n使用 get_training_config(model_name) 获取推荐的训练参数")

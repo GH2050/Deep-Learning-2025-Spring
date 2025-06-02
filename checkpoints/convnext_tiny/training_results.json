@@ -1,9 +1,0 @@
-{
-  "model": "convnext_tiny",
-  "best_accuracy": 38.27,
-  "final_train_accuracy": 97.472,
-  "final_test_accuracy": 37.37,
-  "total_epochs": 40,
-  "parameters": 4.871284,
-  "training_time": 1681.5690159797668
-}

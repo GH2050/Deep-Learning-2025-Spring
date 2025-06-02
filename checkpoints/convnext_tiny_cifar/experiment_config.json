@@ -1,0 +1,11 @@
+{
+  "model": "convnext_tiny_cifar",
+  "epochs": 50,
+  "batch_size": 128,
+  "lr": null,
+  "optimizer": null,
+  "weight_decay": 0.0005,
+  "data_augmentation": true,
+  "model_parameters": 3.790804,
+  "timestamp": "2025-06-02T20:26:00.770858"
+}

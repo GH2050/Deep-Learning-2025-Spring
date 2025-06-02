@@ -30,15 +30,14 @@ from models import (
     resnet56,
     resnet20_slim,
     resnet32_slim,
-    improved_resnet20_v1,
     improved_resnet20_v2,
-    improved_resnet20_v3,
-    improved_resnet20_v4,
-    convnext_tiny,
-    convnext_small,
-    convnext_base,
-    convnext_large,
+    convnext_micro,
+    convnext_nano,
+    convnext_tiny_cifar,
+    convnext_small_cifar,
+    convnext_tiny,  # 原版(不推荐)
     count_parameters,
+    get_training_config,
 )
 from dataset import get_dataloaders
 from trainer import Trainer
@@ -266,27 +265,22 @@ def get_simple_model_info(model, model_name):
             desc += " (0.5x channels)"
     
     elif "improved" in model_name:
-        base_desc = "Enhanced ResNet-20"
-        if "v1" in model_name:
-            desc = f"{base_desc} v1: 7x7 kernels for larger receptive field"
-        elif "v2" in model_name:
-            desc = f"{base_desc} v2: Depthwise conv + Inverted bottleneck"
-        elif "v3" in model_name:
-            desc = f"{base_desc} v3: LayerNorm + GELU + Layer Scale + Drop Path"
-        elif "v4" in model_name:
-            desc = f"{base_desc} v4: ConvNeXt-inspired design"
+        if "v2" in model_name:
+            desc = "Enhanced ResNet-20 v2: Depthwise conv + Inverted bottleneck"
         else:
-            desc = f"{base_desc}: Advanced improvements"
+            desc = "Enhanced ResNet-20: Advanced improvements"
     
     elif "convnext" in model_name:
-        if "tiny" in model_name:
-            desc = "ConvNeXt-Tiny: [2,2,6,2] blocks, [48,96,192,384] dims"
-        elif "small" in model_name:
-            desc = "ConvNeXt-Small: [2,2,18,2] blocks, [48,96,192,384] dims"
-        elif "base" in model_name:
-            desc = "ConvNeXt-Base: [2,2,18,2] blocks, [64,128,256,512] dims"
-        elif "large" in model_name:
-            desc = "ConvNeXt-Large: [2,2,18,2] blocks, [96,192,384,768] dims"
+        if "micro" in model_name:
+            desc = "ConvNeXt-Micro: [2,2,4,2] blocks, [32,64,128,256] dims (CIFAR optimized)"
+        elif "nano" in model_name:
+            desc = "ConvNeXt-Nano: [2,2,6,2] blocks, [40,80,160,320] dims (CIFAR optimized)"
+        elif "tiny_cifar" in model_name:
+            desc = "ConvNeXt-Tiny: [2,2,6,2] blocks, [48,96,192,384] dims (CIFAR optimized)"
+        elif "small_cifar" in model_name:
+            desc = "ConvNeXt-Small: [2,2,18,2] blocks, [48,96,192,384] dims (CIFAR optimized)"
+        elif "tiny" in model_name:
+            desc = "ConvNeXt-Tiny: [2,2,6,2] blocks, [48,96,192,384] dims (Original - may overfit)"
         else:
             desc = "ConvNeXt variant: Modern CNN architecture"
     else:
@@ -343,16 +337,6 @@ def print_layer_summary(model, model_name):
     ])
     
     return summary_lines
-
-
-def get_default_lr_and_optimizer(model_name):
-    """根据模型类型返回默认学习率和优化器设置"""
-    if "convnext" in model_name:
-        return 0.004, "adamw"
-    elif "improved" in model_name and ("v3" in model_name or "v4" in model_name):
-        return 0.001, "adamw"
-    else:
-        return 0.1, "sgd"
 
 
 def save_experiment_config(save_dir, args, model_params, model_name):
@@ -416,27 +400,42 @@ def train_single_model(model_name, args):
     logger.info(f"Starting training for model: {model_name}")
     logger.info("="*80)
     
-    # 模型创建
+    # 更新的模型字典
     model_dict = {
+        # 基础 ResNet
         "resnet20": resnet20,
         "resnet32": resnet32,
         "resnet56": resnet56,
         "resnet20_slim": resnet20_slim,
         "resnet32_slim": resnet32_slim,
-        "improved_resnet20_v1": improved_resnet20_v1,
+        
+        # 改进 ResNet
         "improved_resnet20_v2": improved_resnet20_v2,
-        "improved_resnet20_v3": improved_resnet20_v3,
-        "improved_resnet20_v4": improved_resnet20_v4,
+        
+        # CIFAR-100 优化的 ConvNeXt
+        "convnext_micro": convnext_micro,
+        "convnext_nano": convnext_nano,
+        "convnext_tiny_cifar": convnext_tiny_cifar,
+        "convnext_small_cifar": convnext_small_cifar,
+        
+        # 原版 ConvNeXt (不推荐)
         "convnext_tiny": convnext_tiny,
-        "convnext_small": convnext_small,
-        "convnext_base": convnext_base,
-        "convnext_large": convnext_large,
     }
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
+    if model_name not in model_dict:
+        logger.error(f"Unknown model: {model_name}")
+        logger.error(f"Available models: {list(model_dict.keys())}")
+        return None
+    
     logger.info(f"Creating model: {model_name}")
     model = model_dict[model_name]()
+    
+    # 检查是否使用了不推荐的模型
+    if model_name == "convnext_tiny":
+        logger.info("WARNING: convnext_tiny may overfit on CIFAR-100")
+        logger.info("Consider using convnext_micro or convnext_nano instead")
     
     # 首先显示简要信息
     simple_info = get_simple_model_info(model, model_name)
@@ -459,22 +458,24 @@ def train_single_model(model_name, args):
             logger.error(f"Failed to get detailed architecture: {e}")
             logger.info("Continuing with basic model info...")
     
-    # 获取优化器设置
-    if args.lr is None or args.optimizer is None:
-        default_lr, default_optimizer = get_default_lr_and_optimizer(model_name)
-        lr = args.lr if args.lr is not None else default_lr
-        optimizer_type = args.optimizer if args.optimizer is not None else default_optimizer
-    else:
-        lr = args.lr
-        optimizer_type = args.optimizer
+    # 获取推荐的训练配置
+    training_config = get_training_config(model_name)
+    
+    # 使用命令行参数或推荐配置
+    lr = args.lr if args.lr is not None else training_config['lr']
+    optimizer_type = args.optimizer if args.optimizer is not None else training_config['optimizer']
+    weight_decay = args.weight_decay if args.weight_decay != 5e-4 else training_config['weight_decay']
+    epochs = args.epochs if args.epochs != 200 else training_config['epochs']
     
     logger.info("")
     logger.info(f"Training Configuration:")
-    logger.info(f"|- Learning Rate: {lr}")
-    logger.info(f"|- Optimizer: {optimizer_type}")
-    logger.info(f"|- Weight Decay: {args.weight_decay}")
+    logger.info(f"|- Learning Rate: {lr} (recommended: {training_config['lr']})")
+    logger.info(f"|- Optimizer: {optimizer_type} (recommended: {training_config['optimizer']})")
+    logger.info(f"|- Weight Decay: {weight_decay} (recommended: {training_config['weight_decay']})")
     logger.info(f"|- Batch Size: {args.batch_size}")
-    logger.info(f"|- Epochs: {args.epochs}")
+    logger.info(f"|- Epochs: {epochs} (recommended: {training_config['epochs']})")
+    logger.info(f"|- Warmup Epochs: {training_config.get('warmup_epochs', 0)}")
+    logger.info(f"|- Label Smoothing: {training_config.get('label_smoothing', 0.0)}")
 
     # 测试模型前向传播
     if not test_model_forward(model, device, args.batch_size, logger):
@@ -487,25 +488,32 @@ def train_single_model(model_name, args):
         data_dir=args.data_dir, batch_size=args.batch_size, augment=not args.no_augment
     )
 
-    # 保存实验配置
+    # 保存实验配置（包含推荐配置）
     config_file = save_experiment_config(save_dir, args, count_parameters(model), model_name)
+    
+    # 同时保存推荐配置
+    recommended_config_file = save_dir / "recommended_config.json"
+    with open(recommended_config_file, 'w', encoding='utf-8') as f:
+        json.dump(training_config, f, indent=2, ensure_ascii=False)
+    
     logger.info(f"Experiment config saved to: {config_file}")
+    logger.info(f"Recommended config saved to: {recommended_config_file}")
 
     # 刷新控制台显示
     logger.flush_console()
 
     # 开始训练
-    logger.info(f"Starting training for {args.epochs} epochs...")
+    logger.info(f"Starting training for {epochs} epochs...")
     trainer = Trainer(model, device, save_dir, verbose=args.verbose)
     
     try:
         history = trainer.fit(
             train_loader,
             test_loader,
-            epochs=args.epochs,
+            epochs=epochs,
             lr=lr,
             optimizer_type=optimizer_type,
-            weight_decay=args.weight_decay,
+            weight_decay=weight_decay,
         )
         
         # 训练完成后的处理
@@ -526,7 +534,11 @@ def train_single_model(model_name, args):
             "best_accuracy": trainer.best_acc,
             "final_train_accuracy": history['train_acc'][-1],
             "final_test_accuracy": history['test_acc'][-1],
-            "total_epochs": args.epochs,
+            "total_epochs": epochs,
+            "actual_lr": lr,
+            "actual_optimizer": optimizer_type,
+            "actual_weight_decay": weight_decay,
+            "recommended_config": training_config,
             "parameters": count_parameters(model),
             "training_time": time.time() - trainer.start_time if hasattr(trainer, 'start_time') else None
         }
@@ -608,32 +620,42 @@ def main():
         print("  pip install torchsummary")
         print()
 
-    # 确定要训练的模型列表
+    # 更新的模型列表
     all_models = [
-        "resnet20",
-        "improved_resnet20_v1", "improved_resnet20_v2", "improved_resnet20_v3", "improved_resnet20_v4",
+        # 基础模型
+        "resnet20", "resnet32", "resnet56", "resnet20_slim", "resnet32_slim",
+        # 改进模型
+        "improved_resnet20_v2",
+        # CIFAR优化ConvNeXt
+        "convnext_micro", "convnext_nano", "convnext_tiny_cifar", "convnext_small_cifar",
+        # 原版ConvNeXt
         "convnext_tiny",
     ]
     
+    # 预定义的模型组合
+    model_groups = {
+        "all": ["resnet20", "improved_resnet20_v2", "convnext_micro", "convnext_nano"],
+        "resnet_all": ["resnet20", "resnet32", "resnet56", "resnet20_slim", "resnet32_slim"],
+        "improved_all": ["improved_resnet20_v2"],
+        "convnext_all": ["convnext_micro", "convnext_nano", "convnext_tiny_cifar", "convnext_small_cifar"],
+        "convnext_recommended": ["convnext_micro", "convnext_nano"],
+        "best_models": ["resnet20", "improved_resnet20_v2", "convnext_micro", "convnext_nano"],
+    }
+    
     if args.models:
         models_to_train = args.models
-    elif args.model == "all":
-        models_to_train = ["resnet20", "convnext_tiny", "improved_resnet20_v1", "improved_resnet20_v2", "improved_resnet20_v3", "improved_resnet20_v4"]
-    elif args.model == "resnet_all":
-        models_to_train = ["resnet20", "resnet32", "resnet56", "resnet20_slim", "resnet32_slim"]
-    elif args.model == "improved_all":
-        models_to_train = ["improved_resnet20_v1", "improved_resnet20_v2", "improved_resnet20_v3", "improved_resnet20_v4"]
-    elif args.model == "convnext_all":
-        models_to_train = ["convnext_tiny", "convnext_small", "convnext_base", "convnext_large"]
+    elif args.model in model_groups:
+        models_to_train = model_groups[args.model]
     else:
         models_to_train = [args.model]
 
     # 验证模型名称
-    available_models = list(set(all_models + ["all", "resnet_all", "improved_all", "convnext_all"]))
+    available_options = list(set(all_models + list(model_groups.keys())))
     invalid_models = [m for m in models_to_train if m not in all_models]
     if invalid_models:
         print(f"Error: Invalid model names: {invalid_models}")
-        print(f"Available models: {available_models}")
+        print(f"Available models: {all_models}")
+        print(f"Available groups: {list(model_groups.keys())}")
         return
 
     # 创建主日志目录
@@ -641,11 +663,25 @@ def main():
     main_save_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"{'='*80}")
-    print(f"{'Batch Training Started':^80}")
+    print(f"{'CIFAR-100 Training Framework':^80}")
     print(f"{'='*80}")
     print(f"Models to train: {models_to_train}")
     print(f"Total models: {len(models_to_train)}")
     print(f"Architecture tool: {'torchinfo' if HAS_TORCHINFO else 'torchsummary' if HAS_TORCHSUMMARY else 'basic'}")
+    
+    # 显示模型推荐信息
+    print(f"\nModel Recommendations:")
+    recommendations = {
+        'convnext_micro': 'Best choice - balanced performance and stability',
+        'convnext_nano': 'Excellent performance with moderate complexity',
+        'improved_resnet20_v2': 'Good ResNet improvement',
+        'resnet20': 'Baseline for comparison',
+        'convnext_tiny': 'WARNING: May overfit on CIFAR-100',
+    }
+    
+    for model_name in models_to_train:
+        rec = recommendations.get(model_name, 'Standard model')
+        print(f"  - {model_name}: {rec}")
     
     # 批量训练
     all_results = []
@@ -672,7 +708,8 @@ def main():
         "failed_trains": len(models_to_train) - successful_trains,
         "models_trained": models_to_train,
         "results": all_results,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "framework_version": "CIFAR-100 Optimized v1.0"
     }
     
     summary_file = main_save_dir / "batch_training_summary.json"
@@ -682,21 +719,33 @@ def main():
     # 清屏并显示最终总结
     os.system('cls' if os.name == 'nt' else 'clear')
     print(f"{'='*80}")
-    print(f"{'Batch Training Summary':^80}")
+    print(f"{'Training Summary':^80}")
     print(f"{'='*80}")
     print(f"Total models: {len(models_to_train)}")
     print(f"Successful: {successful_trains}")
     print(f"Failed: {len(models_to_train) - successful_trains}")
     
     if all_results:
-        print(f"\nResults Summary:")
-        for result in sorted(all_results, key=lambda x: x['best_accuracy'], reverse=True):
-            print(f"|- {result['model']}: {result['best_accuracy']:.2f}%")
+        print(f"\nResults Summary (sorted by accuracy):")
+        sorted_results = sorted(all_results, key=lambda x: x['best_accuracy'], reverse=True)
+        for i, result in enumerate(sorted_results, 1):
+            params = result['parameters']
+            acc = result['best_accuracy']
+            print(f"{i:2d}. {result['model']:<25} {acc:6.2f}% ({params:5.2f}M params)")
     
-    print(f"\nSummary saved to: {summary_file}")
-    print(f"Individual logs saved in: {main_save_dir / 'logs'}")
+    print(f"\nFiles saved:")
+    print(f"|- Summary: {summary_file}")
+    print(f"|- Individual logs: {main_save_dir / 'logs'}")
+    print(f"|- Model checkpoints: {main_save_dir / '[model_name]'}")
+    
     if not HAS_TORCHINFO:
-        print(f"Tip: Install torchinfo for better model display: pip install torchinfo")
+        print(f"\nTip: Install torchinfo for better model display:")
+        print(f"  pip install torchinfo")
+    
+    print(f"\nModel Groups Available:")
+    for group, models in model_groups.items():
+        print(f"  --model {group}: {models}")
+    
     print(f"{'='*80}")
 
 

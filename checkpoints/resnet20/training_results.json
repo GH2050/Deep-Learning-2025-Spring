@@ -1,9 +1,9 @@
 {
   "model": "resnet20",
-  "best_accuracy": 66.05,
-  "final_train_accuracy": 77.11,
-  "final_test_accuracy": 65.94,
-  "total_epochs": 40,
+  "best_accuracy": 66.86,
+  "final_train_accuracy": 79.404,
+  "final_test_accuracy": 66.65,
+  "total_epochs": 50,
   "parameters": 0.278324,
-  "training_time": 1378.5376334190369
+  "training_time": 1692.8898122310638
 }

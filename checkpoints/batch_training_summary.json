@@ -1,0 +1,32 @@
+{
+  "total_models": 1,
+  "successful_trains": 1,
+  "failed_trains": 0,
+  "models_trained": [
+    "convnext_micro"
+  ],
+  "results": [
+    {
+      "model": "convnext_micro",
+      "best_accuracy": 41.98,
+      "final_train_accuracy": 44.796,
+      "final_test_accuracy": 41.98,
+      "total_epochs": 50,
+      "actual_lr": 0.002,
+      "actual_optimizer": "adamw",
+      "actual_weight_decay": 0.01,
+      "recommended_config": {
+        "lr": 0.002,
+        "weight_decay": 0.01,
+        "optimizer": "adamw",
+        "epochs": 300,
+        "warmup_epochs": 5,
+        "label_smoothing": 0.05
+      },
+      "parameters": 1.303716,
+      "training_time": 1848.6710269451141
+    }
+  ],
+  "timestamp": "2025-06-02T19:15:39.167871",
+  "framework_version": "CIFAR-100 Optimized v1.0"
+}

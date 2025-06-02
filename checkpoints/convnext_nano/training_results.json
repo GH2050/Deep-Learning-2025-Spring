@@ -1,0 +1,20 @@
+{
+  "model": "convnext_nano",
+  "best_accuracy": 45.3,
+  "final_train_accuracy": 50.246,
+  "final_test_accuracy": 45.18,
+  "total_epochs": 50,
+  "actual_lr": 0.003,
+  "actual_optimizer": "adamw",
+  "actual_weight_decay": 0.01,
+  "recommended_config": {
+    "lr": 0.003,
+    "weight_decay": 0.01,
+    "optimizer": "adamw",
+    "epochs": 350,
+    "warmup_epochs": 15,
+    "label_smoothing": 0.05
+  },
+  "parameters": 2.65598,
+  "training_time": 1825.0394604206085
+}
