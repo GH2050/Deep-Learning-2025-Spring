@@ -4,6 +4,7 @@ source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 
 apt-get update && apt-get install -y fonts-wqy-zenhei
+rm -rf /root/.cache/matplotlib # 清除matplotlib字体缓存
 
 # 自动检测GPU数量
 GPU_COUNT=$(nvidia-smi --list-gpus | wc -l)
