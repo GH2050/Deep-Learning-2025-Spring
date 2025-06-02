@@ -1742,3 +1742,227 @@ def coatnet_cifar_opt_large_stem_builder(num_classes=100, **kwargs):
         eca_k_size=3, stem_kernel_size=5, dropout=0.1,
         **kwargs
     )
+
+
+#### ECA-Net 20 Comparison model ####
+class AdaptiveECALayer(nn.Module):
+    """自适应ECA层，根据通道数自动计算核大小"""
+    def __init__(self, channels, gamma=2, b=1):
+        super(AdaptiveECALayer, self).__init__()
+        # 根据通道数自适应计算核大小
+        t = int(abs((math.log(channels, 2) + b) / gamma))
+        k_size = t if t % 2 else t + 1
+        
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        y = self.avg_pool(x)
+        y = self.conv(y.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
+        y = self.sigmoid(y)
+        return x * y.expand_as(x)
+
+class ECAAdaptiveBasicBlock(nn.Module):
+    """ECA + 自适应核大小的基础块"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
+        super(ECAAdaptiveBasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca = AdaptiveECALayer(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = self.eca(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ECAFixedBasicBlock(nn.Module):
+    """ECA + 固定k=3的基础块"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
+        super(ECAFixedBasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca = ECALayer(planes, k_size=3)  # 固定k=3
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = self.eca(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class NoECABasicBlock(nn.Module):
+    """无ECA的基础块（与原始BasicBlock相同）"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
+        super(NoECABasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ECAFixedK5BasicBlock(nn.Module):
+    """ECA + 固定k=5的基础块"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
+        super(ECAFixedK5BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca = ECALayer(planes, k_size=5)  # 固定k=5
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = self.eca(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ECAFixedK7BasicBlock(nn.Module):
+    """ECA + 固定k=7的基础块"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
+        super(ECAFixedK7BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca = ECALayer(planes, k_size=7)  # 固定k=7
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = self.eca(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ECAFixedK9BasicBlock(nn.Module):
+    """ECA + 固定k=9的基础块"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, **kwargs):
+        super(ECAFixedK9BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca = ECALayer(planes, k_size=9)  # 固定k=9
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = self.eca(out)
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+@register_model("ecanet20_fixed_k5")
+def ecanet20_fixed_k5_builder(num_classes=100, **kwargs):
+    """ECA + 固定k=5的ECANet20"""
+    # 过滤掉 k_size 参数，因为 ECAFixedK5BasicBlock 内部已经硬编码了 k_size=5
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
+    return ResNet(ECAFixedK5BasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+@register_model("ecanet20_fixed_k7")
+def ecanet20_fixed_k7_builder(num_classes=100, **kwargs):
+    """ECA + 固定k=7的ECANet20"""
+    # 过滤掉 k_size 参数，因为 ECAFixedK7BasicBlock 内部已经硬编码了 k_size=7
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
+    return ResNet(ECAFixedK7BasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+@register_model("ecanet20_fixed_k9")
+def ecanet20_fixed_k9_builder(num_classes=100, **kwargs):
+    """ECA + 固定k=9的ECANet20"""
+    # 过滤掉 k_size 参数，因为 ECAFixedK9BasicBlock 内部已经硬编码了 k_size=9
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
+    return ResNet(ECAFixedK9BasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+# 同样修正其他已有的构建函数
+@register_model("ecanet20_adaptive")
+def ecanet20_adaptive_builder(num_classes=100, **kwargs):
+    """ECA + 自适应核大小的ECANet20"""
+    # 过滤掉 k_size 参数，因为 ECAAdaptiveBasicBlock 内部使用自适应计算
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
+    return ResNet(ECAAdaptiveBasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+@register_model("ecanet20_fixed_k3")
+def ecanet20_fixed_k3_builder(num_classes=100, **kwargs):
+    """ECA + 固定k=3的ECANet20"""
+    # 过滤掉 k_size 参数，因为 ECAFixedBasicBlock 内部已经硬编码了 k_size=3
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
+    return ResNet(ECAFixedBasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+@register_model("resnet20_no_eca")
+def resnet20_no_eca_builder(num_classes=100, **kwargs):
+    """无ECA的ResNet20（参考模型）"""
+    # 过滤掉 k_size 参数，因为 NoECABasicBlock 不使用 ECA
+    filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
+    return ResNet(NoECABasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+#### ECA-Net 20 Comparison model ####

@@ -34,6 +34,14 @@ REPORT_HYPERPARAMETERS = {
             'model_specific_params': {
                 'eca_resnet_20': {'k_size': 3},
                 'eca_resnet_32': {'k_size': 5},
+                #### ECA-NET 20 variants
+                'ecanet20_adaptive': {},  # 自适应模型不需要特定的 k_size
+                'ecanet20_fixed_k3': {'k_size': 3},  # 固定 k=3
+                'resnet20_no_eca': {},  # 无 ECA 模型不需要特定参数
+                'ecanet20_fixed_k5': {'k_size': 5},  # 固定 k=5
+                'ecanet20_fixed_k7': {'k_size': 7},  # 固定 k=7
+                'ecanet20_fixed_k9': {'k_size': 9},  # 固定 k=9
+                #### ResNet 20 variants
             }
         },
         'GhostNet_Variants': { # ghost_resnet_20, ghost_resnet_32, ghostnet_100 (custom)
@@ -119,7 +127,14 @@ REPORT_HYPERPARAMETERS = {
         'mlp_mixer_b16': 'MLP_Mixer_Variants',      # Was mlp_mixer_b16 (timm)
         'coatnet_0_custom_enhanced': 'Hybrid_Attention_CNN', # Added new model to category
         'coatnet_cifar_opt': 'Hybrid_Attention_CNN',         # Added for the new CIFAR-optimized CoAtNet
-        'coatnet_cifar_opt_large_stem': 'Hybrid_Attention_CNN' # Added for the large stem variant
+        'coatnet_cifar_opt_large_stem': 'Hybrid_Attention_CNN', # Added for the large stem variant
+        'ecanet20_adaptive': 'ResNet_Variants', #### ECA-NET 20 adaptive
+        'ecanet20_fixed_k3': 'ResNet_Variants', #### ECA-NET 20 fixed k=3
+        'resnet20_no_eca': 'ResNet_Variants', #### ResNet 20 without ECA
+        'ecanet20_fixed_k5': 'ResNet_Variants', #### ECA-NET 20 fixed k=5
+        'ecanet20_fixed_k7': 'ResNet_Variants', #### ECA-NET 20 fixed k=7
+        'ecanet20_fixed_k9': 'ResNet_Variants', #### ECA-NET 20 fixed k=9
+
     }
 }
 
