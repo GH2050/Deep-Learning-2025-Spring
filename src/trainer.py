@@ -54,6 +54,12 @@ class TrainingArguments:
     model_constructor_params: dict = field(default_factory=dict)
     
     resume_from_checkpoint: Optional[str] = None
+
+    # New fields for custom filenames and model name logging
+    evaluation_filename: Optional[str] = "evaluation_summary.json"
+    loss_plot_filename: Optional[str] = "training_loss.png"
+    accuracy_plot_filename: Optional[str] = "training_accuracy.png"
+    model_name_for_log: Optional[str] = None 
     
     def __post_init__(self):
         if self.output_dir and not os.path.exists(self.output_dir):
@@ -67,6 +73,9 @@ class TrainingArguments:
         # kwargs might include 'epochs', 'batch_size_per_device', 'learning_rate' (if --lr was passed),
         # 'output_dir', 'run_name', etc.
         current_config.update(kwargs)
+
+        # Store the original model_name for logging purposes
+        current_config['model_name_for_log'] = model_name
 
         # Rename keys from hparams/utils format to TrainingArguments field names
         # BEFORE filtering for valid fields. Allow direct field names in kwargs to take precedence.
@@ -483,18 +492,22 @@ class Trainer:
             'parameters': sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         }
         
+        # Use model_name_for_log from args for model_name parameter
+        # Use specific filenames from args
         save_experiment_results(
             results_data=results_data,
-            model_name="resnet_56",
+            model_name=self.args.model_name_for_log if self.args.model_name_for_log else "unknown_model", # Fallback
             hparams=self.args.__dict__,
             output_dir=self.args.output_dir,
             metrics_history=metrics_history,
-            run_label='trainer_improved'
+            run_label=f'{self.args.model_name_for_log}_trainer_run' if self.args.model_name_for_log else 'trainer_run', # More specific run_label
+            filename=self.args.evaluation_filename # Pass the filename here
         )
         
         plot_training_curves(
             metrics_history, 
-            "ResNet-56", 
-            self.args.output_dir, 
-            'resnet56_trainer'
+            title_prefix=self.args.model_name_for_log if self.args.model_name_for_log else "Unknown Model", # Use for title
+            output_dir=self.args.output_dir, 
+            loss_filename=self.args.loss_plot_filename,
+            accuracy_filename=self.args.accuracy_plot_filename
         ) 

@@ -216,15 +216,15 @@ def print_model_info(model, model_name="Model"):
     print(f'{model_name} 总参数量: {total_params:,} ({total_params/1e6:.2f}M)')
     # Dummy input test removed, should be done in model testing or training script
 
-def plot_training_curves(history, model_name, save_dir='assets', base_filename=None):
-    if base_filename is None:
-        base_filename = model_name
-    save_path = os.path.join(save_dir, f'{base_filename}_training_curves.png')
+def plot_training_curves(history, title_prefix, output_dir='assets', loss_filename="training_loss.png", accuracy_filename="training_accuracy.png"):
+    # The function will still save one combined image, we'll use accuracy_filename for the output file.
+    # If separate files are strictly needed, this function requires more significant refactoring.
+    save_path = os.path.join(output_dir, accuracy_filename)
     
-    os.makedirs(save_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 10))
-    fig.suptitle(f'{model_name} 训练曲线', fontsize=16)
+    fig.suptitle(f'{title_prefix} 训练曲线', fontsize=16)
     
     epochs_range = range(1, len(history['train_losses']) + 1)
     
@@ -272,36 +272,22 @@ def create_markdown_table(df: pd.DataFrame) -> str:
 
 def save_experiment_results(
     results_data: dict,
-    model_name: str, # This is the base model name
+    model_name: str, # This is the base model_name from args
     hparams: dict,
     output_dir: str = 'logs/results',
     metrics_history: dict = None, # e.g., train_losses, test_losses, train_accs, test_accs
-    run_label: str = None # New parameter for specific run identification (e.g., from ablation)
+    run_label: str = None, # New parameter for specific run identification (e.g., from ablation)
+    filename: str = "experiment_results.json" # New parameter for the output filename
     ):
     """
-    Saves experiment results, metrics history, and hyperparameters to a JSON file.
-    Args:
-        results_data (dict): Core results (e.g., best_acc, final_acc, params_M, train_time_total_seconds).
-        model_name (str): Base name of the model.
-        hparams (dict): Hyperparameters used for the experiment.
-        output_dir (str): Directory to save the JSON file.
-        metrics_history (dict, optional): Per-epoch metrics history.
-        run_label (str, optional): A specific label for this run, used for unique filename if provided.
-                                   If None, filename is based on model_name only.
+    Saves experiment results, hyperparameters, and metrics history to a JSON file.
     """
     os.makedirs(output_dir, exist_ok=True)
     
-    base_safe_model_name = model_name.replace('/', '_').replace(':', '_')
+    # Use the provided filename directly
+    save_path = os.path.join(output_dir, filename)
     
-    # If a unique run_label is provided (especially for ablations on the same model_name),
-    # use it to make the filename unique.
-    if run_label:
-        safe_run_label = run_label.replace(' ', '_').replace('=', '-').replace('(', '').replace(')', '').replace('/', '_').replace(':', '_')
-        filename = os.path.join(output_dir, f'{base_safe_model_name}_{safe_run_label}_results.json')
-    else:
-        filename = os.path.join(output_dir, f'{base_safe_model_name}_results.json')
-
-    full_log = {
+    data_to_save = {
         'model_name': model_name, # Base model name
         'run_label': run_label if run_label else model_name, # Effective unique identifier for this run
         'results': results_data, 
@@ -311,11 +297,11 @@ def save_experiment_results(
     }
     
     try:
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(full_log, f, indent=4, ensure_ascii=False)
-        print(f'详细实验结果已保存到: {filename}')
+        with open(save_path, 'w', encoding='utf-8') as f:
+            json.dump(data_to_save, f, indent=4, ensure_ascii=False)
+        print(f'详细实验结果已保存到: {save_path}')
     except IOError as e:
-        print(f'保存结果到 {filename} 失败: {e}')
+        print(f'保存结果到 {save_path} 失败: {e}')
     except Exception as e:
         print(f'序列化结果到JSON时发生错误: {e}')
 

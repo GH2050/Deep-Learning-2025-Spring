@@ -1512,3 +1512,209 @@ if __name__ == '__main__':
         print("coatnet_0_custom_enhanced with specific LSK kwargs test passed.\n")
     except Exception as e:
         print(f"Error testing coatnet_0_custom_enhanced with specific LSK kwargs: {e}\n")
+
+# --- CoAtNet-CIFAROpt Implementation ---
+class ECAMBConvBlock(nn.Module):
+    def __init__(self, inp, oup, stride, expand_ratio, k_size=3):
+        super().__init__()
+        self.stride = stride
+        hidden_dim = inp * expand_ratio
+        self.use_res_connect = self.stride == 1 and inp == oup
+
+        # Pointwise expansion
+        if expand_ratio != 1:
+            self.pw_expand = nn.Sequential(
+                nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                nn.ReLU6(inplace=True)
+            )
+        else:
+            self.pw_expand = nn.Identity()
+
+        # Depthwise convolution
+        self.dw_conv = nn.Sequential(
+            nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
+            nn.BatchNorm2d(hidden_dim),
+            nn.ReLU6(inplace=True)
+        )
+
+        # ECA Module (replacing SE)
+        self.eca = ECALayer(hidden_dim, k_size=k_size)
+
+        # Pointwise linear projection
+        self.pw_linear = nn.Sequential(
+            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(oup)
+        )
+
+    def forward(self, x):
+        identity = x
+        x = self.pw_expand(x)
+        x = self.dw_conv(x)
+        x = self.eca(x)
+        x = self.pw_linear(x)
+        
+        if self.use_res_connect:
+            return identity + x
+        else:
+            return x
+
+class ECATransformerBlock(nn.Module):
+    def __init__(self, dim, heads, dim_head, mlp_dim, dropout=0., eca_k_size=3):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(dim)
+        self.attn = Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout)
+        self.norm2 = nn.LayerNorm(dim)
+        
+        # FFN with ECA integration
+        self.ffn = nn.Sequential(
+            nn.Linear(dim, mlp_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(mlp_dim, dim),
+            nn.Dropout(dropout)
+        )
+        
+        # Add ECA to channel dimension after FFN
+        self.channel_eca = ECALayer(dim, k_size=eca_k_size)
+
+    def forward(self, x):
+        # Self-attention
+        x = x + self.attn(self.norm1(x))
+        
+        # FFN with ECA
+        ffn_out = x + self.ffn(self.norm2(x))
+        
+        # Apply ECA to channel dimension
+        # Need to reshape for ECA: (B, N, C) -> (B, C, 1, N) -> (B, C, 1, N) -> (B, N, C)
+        b, n, c = ffn_out.shape
+        ffn_out_2d = ffn_out.transpose(1, 2).unsqueeze(2)  # (B, C, 1, N)
+        eca_out = self.channel_eca(ffn_out_2d)  # (B, C, 1, N)
+        result = eca_out.squeeze(2).transpose(1, 2)  # (B, N, C)
+        
+        return result
+
+class CoAtNetCIFAROpt(nn.Module):
+    def __init__(self, num_classes=100,
+                 s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=512,
+                 s0_blocks=2, s1_blocks=2, s2_blocks=6, s3_blocks=10, s4_blocks=2,
+                 mbconv_expand_ratio=4, transformer_heads=8, transformer_mlp_dim_ratio=4,
+                 eca_k_size=3, stem_kernel_size=3, dropout=0.1):
+        super().__init__()
+
+        # Stem with optional larger kernel size for better 32x32 feature extraction
+        if stem_kernel_size == 5:
+            # Use 5x5 depthwise separable conv for better small image feature extraction
+            self.stem = nn.Sequential(
+                nn.Conv2d(3, s0_channels//2, kernel_size=3, stride=1, padding=1, bias=False),
+                nn.BatchNorm2d(s0_channels//2),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(s0_channels//2, s0_channels//2, kernel_size=5, stride=2, padding=2, 
+                         groups=s0_channels//2, bias=False),
+                nn.Conv2d(s0_channels//2, s0_channels, kernel_size=1, bias=False),
+                nn.BatchNorm2d(s0_channels),
+                nn.ReLU(inplace=True)
+            )
+        else:
+            # Standard 3x3 stem
+            self.stem = nn.Sequential(
+                nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
+                nn.BatchNorm2d(s0_channels),
+                nn.ReLU(inplace=True)
+            )
+        
+        # Stage 0 (ECA-MBConv) - 16x16
+        self.s0 = self._make_eca_mbconv_stage(s0_channels, s0_channels, s0_blocks, 
+                                             stride=1, expand_ratio=mbconv_expand_ratio, 
+                                             eca_k_size=eca_k_size)
+        
+        # Stage 1 (ECA-MBConv) - 8x8
+        self.s1 = self._make_eca_mbconv_stage(s0_channels, s1_channels, s1_blocks, 
+                                             stride=2, expand_ratio=mbconv_expand_ratio,
+                                             eca_k_size=eca_k_size)
+        
+        # Stage 2 (ECA-MBConv) - 4x4, more blocks for better conv feature learning
+        self.s2 = self._make_eca_mbconv_stage(s1_channels, s2_channels, s2_blocks,
+                                             stride=2, expand_ratio=mbconv_expand_ratio,
+                                             eca_k_size=eca_k_size)
+        
+        # Stage 3 (ECA-Transformer) - 2x2, reduced from 14 to 10 blocks
+        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2)
+        self.s3_transformer = self._make_eca_transformer_stage(s3_channels, s3_blocks, 
+                                                              transformer_heads, 
+                                                              s3_channels // transformer_heads,
+                                                              s3_channels * transformer_mlp_dim_ratio,
+                                                              dropout, eca_k_size)
+
+        # Stage 4 (ECA-Transformer) - 1x1, reduced channels from 768 to 512
+        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2)
+        self.s4_transformer = self._make_eca_transformer_stage(s4_channels, s4_blocks,
+                                                              transformer_heads,
+                                                              s4_channels // transformer_heads, 
+                                                              s4_channels * transformer_mlp_dim_ratio,
+                                                              dropout, eca_k_size)
+
+        self.fc = nn.Linear(s4_channels, num_classes)
+
+    def _make_eca_mbconv_stage(self, in_c, out_c, num_blocks, stride, expand_ratio, eca_k_size):
+        layers = []
+        for i in range(num_blocks):
+            block_stride = stride if i == 0 else 1
+            current_in_c = in_c if i == 0 else out_c
+            layers.append(ECAMBConvBlock(current_in_c, out_c, block_stride, expand_ratio, eca_k_size))
+        return nn.Sequential(*layers)
+
+    def _make_eca_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim, dropout, eca_k_size):
+        layers = [ECATransformerBlock(dim, heads, dim_head, mlp_dim, dropout, eca_k_size) 
+                 for _ in range(num_blocks)]
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        # Input: 32x32
+        x = self.stem(x)  # 16x16
+        x = self.s0(x)    # 16x16
+        x = self.s1(x)    # 8x8
+        x = self.s2(x)    # 4x4
+        
+        # S3 Transformer stage
+        x = self.s3_pre_conv(x)  # 2x2
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)  # (B, 4, C)
+        x = self.s3_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        # S4 Transformer stage  
+        x = self.s4_pre_conv(x)  # 1x1
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)  # (B, 1, C)
+        x = self.s4_transformer(x)
+        
+        # Global average pooling and classification
+        x = torch.mean(x, dim=1)  # (B, C)
+        x = self.fc(x)
+        return x
+
+@register_model("coatnet_cifar_opt")
+def coatnet_cifar_opt_builder(num_classes=100, **kwargs):
+    # CoAtNet-CIFAROpt configuration optimized for CIFAR-100
+    # Reduced complexity compared to standard CoAtNet-1 to prevent overfitting
+    return CoAtNetCIFAROpt(
+        num_classes=num_classes,
+        s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=512,
+        s0_blocks=2, s1_blocks=2, s2_blocks=6, s3_blocks=10, s4_blocks=2,
+        mbconv_expand_ratio=4, transformer_heads=8, transformer_mlp_dim_ratio=4,
+        eca_k_size=3, stem_kernel_size=3, dropout=0.1,
+        **kwargs
+    )
+
+@register_model("coatnet_cifar_opt_large_stem")
+def coatnet_cifar_opt_large_stem_builder(num_classes=100, **kwargs):
+    # CoAtNet-CIFAROpt with larger stem kernel for better 32x32 feature extraction
+    return CoAtNetCIFAROpt(
+        num_classes=num_classes,
+        s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=512,
+        s0_blocks=2, s1_blocks=2, s2_blocks=6, s3_blocks=10, s4_blocks=2,
+        mbconv_expand_ratio=4, transformer_heads=8, transformer_mlp_dim_ratio=4,
+        eca_k_size=3, stem_kernel_size=5, dropout=0.1,
+        **kwargs
+    )

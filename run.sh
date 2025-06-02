@@ -1,9 +1,17 @@
 #!/bin/bash
 
-source /root/miniconda3/etc/profile.d/conda.sh
+source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+apt-get update && apt-get install -y fonts-wqy-zenhei
+
+# 自动检测GPU数量
+GPU_COUNT=$(nvidia-smi --list-gpus | wc -l)
+echo "检测到 $GPU_COUNT 个GPU"
+
+# 生成GPU列表 (0,1,2,...)
+GPU_LIST=$(seq -s, 0 $((GPU_COUNT-1)))
+export CUDA_VISIBLE_DEVICES=$GPU_LIST
 
 MODEL_NAME=${1:-"resnet_56"}
 EPOCHS=${2:-300}
@@ -11,6 +19,7 @@ EPOCHS=${2:-300}
 # LR is now the 4th argument, can be omitted
 
 echo "开始训练 ${MODEL_NAME}..."
+echo "使用GPU: $GPU_LIST"
 
 CMD_ARGS="--model_name $MODEL_NAME --epochs $EPOCHS"
 
@@ -34,9 +43,9 @@ fi
 
 echo "轮数: $EPOCHS"
 
-torchrun --nproc_per_node=8 \
+torchrun --nproc_per_node=$GPU_COUNT \
     --master_port=29502 \
-    train.py \
+    src/train.py \
     $CMD_ARGS
 
 echo "训练完成！" 

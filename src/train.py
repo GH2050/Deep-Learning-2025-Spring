@@ -17,13 +17,23 @@ def main():
     
     args = parser.parse_args()
     
+    # 构建包含模型名称的文件名
+    eval_filename = f"evaluation_summary_{args.model_name}.json"
+    loss_plot_filename = f"training_loss_{args.model_name}.png"
+    accuracy_plot_filename = f"training_accuracy_{args.model_name}.png"
+    
     training_args_params = {
         "model_name": args.model_name,
         "output_dir": f"{args.output_dir}/{args.model_name}",
         "num_train_epochs": args.epochs,
         "per_device_train_batch_size": args.batch_size,
         "use_mixup": True, # Default from previous setup
-        "label_smoothing_factor": 0.1 # Default from previous setup
+        "label_smoothing_factor": 0.1, # Default from previous setup
+        # 传递自定义文件名给 TrainingArguments
+        # 假设 TrainingArguments 接受这些参数来设置最终文件名
+        "evaluation_filename": eval_filename,
+        "loss_plot_filename": loss_plot_filename,
+        "accuracy_plot_filename": accuracy_plot_filename,
     }
 
     if args.lr is not None:
