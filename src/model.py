@@ -107,12 +107,12 @@ class GhostModule(nn.Module):
 
     def forward(self, x):
         x1 = self.primary_conv(x)
-        if hasattr(self.cheap_operation, 'conv'):
+        if len(self.cheap_operation) > 0: # Correctly check if cheap_operation has layers
              x2 = self.cheap_operation(x1)
              out = torch.cat([x1, x2], dim=1)
         else:
              out = x1
-        return out[:, :self.oup, :, :]
+        return out[:, :self.oup, :, :] # Ensure oup channels are returned
 
 class GhostBasicBlock(nn.Module):
     expansion = 1
@@ -398,16 +398,16 @@ class MSCANEncoderCustom(nn.Module):
 class MixerBlock(nn.Module):
     def __init__(self, dim, num_patches, token_mlp_dim, channel_mlp_dim, dropout=0.):
         super().__init__()
-        self.token_mix = nn.Sequential(
-            nn.LayerNorm(dim),
+        self.norm1 = nn.LayerNorm(dim)
+        self.token_mlp = nn.Sequential(
             nn.Linear(num_patches, token_mlp_dim),
             nn.GELU(),
             nn.Dropout(dropout),
             nn.Linear(token_mlp_dim, num_patches),
             nn.Dropout(dropout)
         )
-        self.channel_mix = nn.Sequential(
-            nn.LayerNorm(dim),
+        self.norm2 = nn.LayerNorm(dim)
+        self.channel_mlp = nn.Sequential(
             nn.Linear(dim, channel_mlp_dim),
             nn.GELU(),
             nn.Dropout(dropout),
@@ -415,11 +415,18 @@ class MixerBlock(nn.Module):
             nn.Dropout(dropout)
         )
 
-    def forward(self, x):
-        x_token_mixed = self.token_mix(x.transpose(1, 2)).transpose(1, 2)
-        x = x + x_token_mixed
-        x_channel_mixed = self.channel_mix(x)
-        x = x + x_channel_mixed
+    def forward(self, x): # x shape: (B, num_patches, dim)
+        # Token Mixing
+        y = self.norm1(x)       # Apply norm on (B, num_patches, dim) -> last dim is dim
+        y = y.transpose(1, 2)   # Shape: (B, dim, num_patches)
+        y = self.token_mlp(y)   # MLP acts on num_patches dimension
+        y = y.transpose(1, 2)   # Shape: (B, num_patches, dim)
+        x = x + y
+
+        # Channel Mixing
+        y = self.norm2(x)       # Apply norm on (B, num_patches, dim) -> last dim is dim
+        y = self.channel_mlp(y) # MLP acts on dim dimension
+        x = x + y
         return x
 
 class MLPMixerCustom(nn.Module):
@@ -476,7 +483,7 @@ class GhostBottleneck(nn.Module):
         else:
             self.shortcut = nn.Sequential(
                 nn.Conv2d(in_chs, in_chs, kernel_size=1, stride=stride,
-                          padding=(kernel_size - 1) // 2, groups=in_chs, bias=False),
+                          padding=0, groups=in_chs, bias=False), # Corrected padding for 1x1 conv
                 nn.BatchNorm2d(in_chs),
                 nn.Conv2d(in_chs, out_chs, 1, stride=1, padding=0, bias=False),
                 nn.BatchNorm2d(out_chs),
@@ -581,26 +588,24 @@ class CSPBlock(nn.Module):
     def __init__(self, in_channels, out_channels, num_blocks, block_module, stride=1, use_eca=False, k_size=3):
         super().__init__()
         mid_channels = out_channels // 2
-        self.conv1 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, bias=False)
+        
+        # Path A (shortcut path, potentially strided)
+        self.conv1 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, stride=stride, padding=0, bias=False)
         self.bn1 = nn.BatchNorm2d(mid_channels)
         self.relu1 = nn.ReLU(inplace=True)
 
-        self.blocks = self._make_layer(block_module, mid_channels, mid_channels, num_blocks, stride=1, use_eca=use_eca, k_size=k_size)
+        # Path B (main path with blocks, potentially strided before blocks)
+        self.conv_shortcut = nn.Conv2d(in_channels, mid_channels, kernel_size=1, stride=stride, padding=0, bias=False)
+        self.bn_shortcut = nn.BatchNorm2d(mid_channels)
+        self.relu_shortcut = nn.ReLU(inplace=True) 
+        
+        self.blocks = self._make_layer(block_module, mid_channels, mid_channels, num_blocks, stride=1, use_eca=use_eca, k_size=k_size) # stride for internal blocks is 1
         
         self.conv_transition = nn.Conv2d(mid_channels, mid_channels, kernel_size=1, bias=False)
         self.bn_transition = nn.BatchNorm2d(mid_channels)
+        self.relu_transition = nn.ReLU(inplace=True)
         
-        self.conv_shortcut = nn.Conv2d(in_channels, mid_channels, kernel_size=1, bias=False)
-        self.bn_shortcut = nn.BatchNorm2d(mid_channels)
-        
-        if stride != 1 or in_channels != out_channels: # Downsampling for the entire block if stride > 1
-             self.downsample_all = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False),
-                nn.BatchNorm2d(out_channels)
-             )
-        else:
-            self.downsample_all = None
-
+        # Removed self.downsample_all initialization
 
         self.conv_final = nn.Conv2d(mid_channels * 2, out_channels, kernel_size=1, bias=False)
         self.bn_final = nn.BatchNorm2d(out_channels)
@@ -610,30 +615,24 @@ class CSPBlock(nn.Module):
     def _make_layer(self, block_module, in_planes, planes, num_blocks, stride, use_eca=False, k_size=3):
         strides = [stride] + [1]*(num_blocks-1)
         layers = []
-        for s in strides:
+        current_block_in_planes = in_planes # For BasicBlock, this will be mid_channels
+        for s_val in strides:
             if use_eca:
-                layers.append(block_module(in_planes, planes, stride=s, k_size=k_size))
+                layers.append(block_module(current_block_in_planes, planes, stride=s_val, k_size=k_size))
             else:
-                 layers.append(block_module(in_planes, planes, stride=s))
-            in_planes = planes * block_module.expansion
+                 layers.append(block_module(current_block_in_planes, planes, stride=s_val))
+            current_block_in_planes = planes * block_module.expansion # For BasicBlock, planes*exp = mid_channels*1
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        if self.downsample_all: # Apply downsampling to input if needed for this CSP stage
-            x_shortcut_path = self.downsample_all(x)
-            # Re-calculate x for internal paths based on potentially downsampled x
-            x_main_path = F.relu(self.bn_shortcut(self.conv_shortcut(x_shortcut_path))) # Process downsampled for main
-            x_shortcut_path_internal = F.relu(self.bn1(self.conv1(x_shortcut_path))) # Process downsampled for shortcut
-        else:
-            x_main_path = F.relu(self.bn_shortcut(self.conv_shortcut(x)))
-            x_shortcut_path_internal = F.relu(self.bn1(self.conv1(x)))
+        x_shortcut_path_internal = self.relu1(self.bn1(self.conv1(x)))
 
-
-        x_main_path = self.blocks(x_main_path)
-        x_main_path = F.relu(self.bn_transition(self.conv_transition(x_main_path)))
+        x_main_path_intermediate = self.relu_shortcut(self.bn_shortcut(self.conv_shortcut(x)))
+        x_main_path_blocks = self.blocks(x_main_path_intermediate)
+        x_main_path_final = self.relu_transition(self.bn_transition(self.conv_transition(x_main_path_blocks)))
         
-        out = torch.cat((x_main_path, x_shortcut_path_internal), dim=1)
-        out = F.relu(self.bn_final(self.conv_final(out)))
+        out = torch.cat((x_main_path_final, x_shortcut_path_internal), dim=1)
+        out = self.relu_final(self.bn_final(self.conv_final(out)))
         return out
 
 class CSPResNet(nn.Module):
@@ -654,7 +653,10 @@ class CSPResNet(nn.Module):
         self.layer4 = self._make_csp_layer(block_module, csp_block_module, 512, layers[3], stride=2)
         
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * block_module.expansion, num_classes)
+        # Calculate the correct in_features for the fc layer based on the output of the last CSP layer
+        # The last CSP layer (layer4) uses planes=512. Its out_channels is 512 * expansion * 2.
+        fc_in_features = 512 * block_module.expansion * 2
+        self.fc = nn.Linear(fc_in_features, num_classes)
 
     def _make_csp_layer(self, block_module, csp_block_module, planes, num_blocks, stride):
         out_planes = planes * block_module.expansion * 2 # CSP doubles effective channels before final 1x1
@@ -821,15 +823,17 @@ class ResNeStCustom(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         
-        self.layer1 = self._make_layer(block, 64, layers[0], avg_down=avg_down, is_first=True) # is_first for AVD in ResNeSt-D
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, avg_down=avg_down)
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, avg_down=avg_down)
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, avg_down=avg_down)
+        self.layer1 = self._make_layer(block, 64, layers[0], stride=1, avg_down=avg_down, is_first=True) # Added stride=1 and ensure is_first is correctly propagated
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, avg_down=avg_down, is_first=False)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, avg_down=avg_down, is_first=False)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, avg_down=avg_down, is_first=False)
         
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
+        # Correct in_features for ResNeSt fc layer
+        fc_in_features = 512 * block.expansion # Should not be multiplied by 2 for ResNeSt
+        self.fc = nn.Linear(fc_in_features, num_classes)
 
-    def _make_layer(self, block, planes, blocks, stride=1, avg_down=True, is_first=False):
+    def _make_layer(self, block, planes, blocks, stride, avg_down=True, is_first=False):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             if avg_down: # For ResNeSt-D
@@ -850,9 +854,11 @@ class ResNeStCustom(nn.Module):
                             avd_first=self.avd_first, is_first=is_first))
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, radix=self.radix,
+            layers.append(block(self.inplanes, planes, stride=1, # Explicitly set stride=1 for subsequent blocks
+                                downsample=None, # Subsequent blocks in a stage typically don't downsample
+                                radix=self.radix,
                                 cardinality=self.cardinality, bottleneck_width=self.bottleneck_width,
-                                avd=self.avd, avd_first=self.avd_first))
+                                avd=self.avd, avd_first=self.avd_first, is_first=False))
         return nn.Sequential(*layers)
 
     def forward(self, x):
@@ -874,18 +880,21 @@ class ResNeStCustom(nn.Module):
 # --- CoAtNet specific blocks (Simplified) ---
 class MBConvBlock(nn.Module): # Simplified MBConv
     def __init__(self, inp, oup, stride, expand_ratio, se_ratio=0.25):
-        super(MBConvBlock, self).__init__()
+        super().__init__()
         self.stride = stride
         hidden_dim = inp * expand_ratio
         self.use_res_connect = self.stride == 1 and inp == oup
 
         layers = []
-        if expand_ratio != 1: # Expansion phase
-            layers.append(nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False))
-            layers.append(nn.BatchNorm2d(hidden_dim))
-            layers.append(nn.ReLU6(inplace=True))
+        # pw
+        if expand_ratio != 1:
+            layers.extend([
+                nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                nn.ReLU6(inplace=True)
+            ])
         
-        # Depthwise convolution
+        # dw
         layers.extend([
             nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
             nn.BatchNorm2d(hidden_dim),
@@ -894,12 +903,14 @@ class MBConvBlock(nn.Module): # Simplified MBConv
 
         # Squeeze-and-excitation
         if se_ratio > 0:
-            layers.append(SqueezeExcite(hidden_dim, se_ratio=se_ratio))
-            
-        # Projection phase
-        layers.append(nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False))
-        layers.append(nn.BatchNorm2d(oup))
-        
+            squeeze_channels = max(1, int(inp * se_ratio))
+            layers.append(SqueezeExcite(hidden_dim, reduced_base_chs=squeeze_channels, act_layer=nn.ReLU6)) # Use ReLU6 for SE like MobileNetV3
+
+        # pw-linear
+        layers.extend([
+            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(oup)
+        ])
         self.conv = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -1033,116 +1044,192 @@ class CoAtNetCustom(nn.Module): # Highly Simplified CoAtNet structure
         x = self.fc(x)
         return x
 
-# --- HorNet specific blocks (Simplified) ---
-class GlobalLocalFilter(nn.Module): # Simplified
-    def __init__(self, dim, h=14, w=8): # h, w are example feature map sizes
+# --- LSKNet Inspired Components ---
+class LSKAttention(nn.Module):
+    def __init__(self, channels, kernel_sizes: List[int], reduction_ratio=16):
         super().__init__()
-        self.dw = nn.Conv2d(dim // 2, dim // 2, kernel_size=3, padding=1, bias=False, groups=dim // 2)
-        self.complex_weight = nn.Parameter(torch.randn(dim // 2, h, w, 2, dtype=torch.float32) * 0.02)
-        self.proj = nn.Conv2d(dim, dim, 1) # Combined projection
-        self.bn = nn.BatchNorm2d(dim)
-
-    def forward(self, x):
-        x1, x2 = torch.chunk(x, 2, dim=1)
-        x1 = self.dw(x1)
-        
-        x2_fft = torch.fft.rfft2(x2, norm='ortho')
-        weight_fft = torch.view_as_complex(self.complex_weight)
-        x2_filtered = torch.fft.irfft2(x2_fft * weight_fft, s=(x2.size(-2), x2.size(-1)), norm='ortho')
-        
-        out = torch.cat((x1, x2_filtered), dim=1)
-        out = self.bn(self.proj(out))
-        return out
-
-class gnConv(nn.Module): # Simplified Recursive Gated Convolution
-    def __init__(self, dim, order=5, dw_kernel_size=7, use_filter=True):
-        super().__init__()
-        self.order = order
-        self.dim = dim
-        self.use_filter = use_filter
-
-        self.pwconv1 = nn.Conv2d(dim, dim * 2, 1) # For gates and features
-        self.simplied_gated_conv = nn.Conv2d(dim, dim, dw_kernel_size, padding=dw_kernel_size//2, groups=dim)
-        
-        if use_filter:
-            self.filter = GlobalLocalFilter(dim) # Simplified filter
-
-        self.pwconv2 = nn.Conv2d(dim, dim, 1)
-        self.bn = nn.BatchNorm2d(dim)
-        self.act = nn.GELU()
-
-    def forward(self, x):
-        # Simplified gnConv: using a standard DW conv and optional filter
-        # Original gnConv has recursive gating, which is more complex
-        
-        if self.use_filter:
-            x = self.filter(x) # Apply filter first
-
-        # Simplified gating mechanism: split, process one branch, multiply
-        x_res = x
-        x_gate_feat = self.pwconv1(x)
-        x_feat, x_gate = torch.chunk(x_gate_feat, 2, dim=1)
-        
-        x_conv = self.simplied_gated_conv(x_feat * torch.sigmoid(x_gate)) # Gated DW conv
-        
-        x_out = self.pwconv2(x_conv)
-        x_out = self.bn(x_out)
-        x_out = self.act(x_out + x_res) # Add residual
-        return x_out
-
-class HorNetBlock(nn.Module):
-    def __init__(self, dim, order=5, dw_kernel_size=7, use_filter=True, drop_path=0.):
-        super().__init__()
-        self.norm = LayerNorm2d(dim) # Using LayerNorm like ConvNeXt
-        self.gnconv = gnConv(dim, order, dw_kernel_size, use_filter)
-        # drop_path would be here if used
-        self.gamma = nn.Parameter(1e-6 * torch.ones(dim), requires_grad=True)
-
-    def forward(self, x):
-        input_x = x
-        x = self.norm(x)
-        x = self.gnconv(x)
-        x = self.gamma.view(1, -1, 1, 1) * x
-        x = input_x + x
-        return x
-
-class HorNetCustom(nn.Module): # Simplified HorNet Structure
-    def __init__(self, num_classes=100, dims=[64, 128, 256, 512], depths=[2,2,6,2], order=5, dw_k=7, use_filter=True):
-        super().__init__()
-        self.stem = nn.Sequential(
-            nn.Conv2d(3, dims[0], kernel_size=4, stride=4),
-            LayerNorm2d(dims[0])
+        self.num_kernels = len(kernel_sizes)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Conv2d(channels, channels // reduction_ratio, 1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels // reduction_ratio, channels * self.num_kernels, 1, bias=False)
         )
-        self.stages = nn.ModuleList()
-        current_dim = dims[0]
-        for i in range(len(dims)):
-            stage_blocks = []
-            for _ in range(depths[i]):
-                stage_blocks.append(HorNetBlock(current_dim, order, dw_k, use_filter))
-            
-            self.stages.append(nn.Sequential(*stage_blocks))
-            if i < len(dims) - 1: # Downsampling layer
-                self.stages.append(
-                    nn.Sequential(
-                        LayerNorm2d(current_dim),
-                        nn.Conv2d(current_dim, dims[i+1], kernel_size=2, stride=2)
-                    )
-                )
-                current_dim = dims[i+1]
-        
-        self.norm_head = nn.LayerNorm(dims[-1])
-        self.head = nn.Linear(dims[-1], num_classes)
-
-    def forward_features(self, x):
-        x = self.stem(x)
-        for i, stage_or_downsample in enumerate(self.stages):
-            x = stage_or_downsample(x)
-        return self.norm_head(x.mean([-2, -1])) # global average pooling
+        self.softmax = nn.Softmax(dim=1) 
 
     def forward(self, x):
-        x = self.forward_features(x)
-        x = self.head(x)
+        b, c, _, _ = x.size()
+        attn = self.avg_pool(x)            # (b, c, 1, 1)
+        attn = self.fc(attn)               # (b, c * num_kernels, 1, 1)
+        attn = attn.view(b, self.num_kernels, c, 1, 1) # (b, num_kernels, c, 1, 1)
+        attn = self.softmax(attn)          # Apply softmax over num_kernels dimension
+        return attn # (b, num_kernels, c, 1, 1)
+
+class MBConvBlock_enhanced(nn.Module):
+    def __init__(self, inp, oup, stride, expand_ratio, se_ratio=0.25, 
+                 lsk_kernel_sizes: List[int] = [3, 5], lsk_reduction_ratio=16):
+        super().__init__()
+        self.stride = stride
+        hidden_dim = inp * expand_ratio
+        self.use_res_connect = self.stride == 1 and inp == oup
+        self.lsk_kernel_sizes = lsk_kernel_sizes
+        self.num_kernels = len(lsk_kernel_sizes)
+
+        # Pointwise expansion
+        if expand_ratio != 1:
+            self.pw_expand = nn.Sequential(
+                nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                nn.ReLU6(inplace=True)
+            )
+        else:
+            self.pw_expand = nn.Identity()
+
+        # LSK-based Depthwise Convolution part
+        self.lsk_dw_convs = nn.ModuleList()
+        for k_size in lsk_kernel_sizes:
+            self.lsk_dw_convs.append(
+                nn.Sequential(
+                    nn.Conv2d(hidden_dim, hidden_dim, k_size, stride, k_size//2, groups=hidden_dim, bias=False),
+                    nn.BatchNorm2d(hidden_dim),
+                    nn.ReLU6(inplace=True)
+                )
+            )
+        self.lsk_attention = LSKAttention(hidden_dim, lsk_kernel_sizes, lsk_reduction_ratio)
+
+        # Squeeze-and-excitation (optional)
+        if se_ratio > 0:
+            squeeze_channels = max(1, int(inp * se_ratio)) # SE based on input channels of the block
+            self.se = SqueezeExcite(hidden_dim, reduced_base_chs=squeeze_channels, act_layer=nn.ReLU6)
+        else:
+            self.se = nn.Identity()
+
+        # Pointwise linear projection
+        self.pw_linear = nn.Sequential(
+            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(oup)
+        )
+
+    def forward(self, x):
+        identity = x
+        
+        x = self.pw_expand(x)
+        
+        # LSK DW Conv
+        dw_conv_outputs = []
+        for conv_branch in self.lsk_dw_convs:
+            dw_conv_outputs.append(conv_branch(x)) # (b, hidden_dim, h', w')
+        
+        # Get attention weights (b, num_kernels, hidden_dim, 1, 1)
+        attn_weights = self.lsk_attention(x) 
+        
+        # Corrected weighted sum of DW conv outputs
+        dw_conv_outputs_stacked = torch.stack(dw_conv_outputs, dim=1) # Shape: (b, num_kernels, hidden_dim, h', w')
+        x_lsk = torch.sum(dw_conv_outputs_stacked * attn_weights, dim=1) # Shape: (b, hidden_dim, h', w')
+        
+        x = x_lsk # Output from LSK DW part
+
+        x = self.se(x)
+        x = self.pw_linear(x)
+
+        if self.use_res_connect:
+            return identity + x
+        else:
+            return x
+
+# --- End LSKNet Inspired Components ---
+
+# --- Enhanced CoAtNet with LSK-MBConv ---
+class CoAtNetCustom_enhanced(nn.Module):
+    def __init__(self, num_classes=100,
+                 s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=768,
+                 s0_blocks=2, s1_blocks=2, s2_blocks=2, s3_blocks=2, s4_blocks=2,
+                 mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=4,
+                 lsk_kernel_sizes: List[int] = [3, 5], lsk_reduction_ratio=16, se_ratio_in_mbconv=0.25): # Added LSK params
+        super().__init__()
+
+        self.stem = nn.Sequential(
+            nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(s0_channels),
+            nn.ReLU(inplace=True)
+        )
+        
+        # Stage 0 (MBConv_enhanced)
+        self.s0 = self._make_mbconv_enhanced_stage(
+            s0_channels, s0_channels, s0_blocks, stride=1, 
+            expand_ratio=mbconv_expand_ratio, 
+            lsk_kernel_sizes=lsk_kernel_sizes, 
+            lsk_reduction_ratio=lsk_reduction_ratio,
+            se_ratio=se_ratio_in_mbconv
+        )
+        
+        # Stage 1 (MBConv_enhanced)
+        self.s1 = self._make_mbconv_enhanced_stage(
+            s0_channels, s1_channels, s1_blocks, stride=2, 
+            expand_ratio=mbconv_expand_ratio,
+            lsk_kernel_sizes=lsk_kernel_sizes,
+            lsk_reduction_ratio=lsk_reduction_ratio,
+            se_ratio=se_ratio_in_mbconv
+        )
+        
+        # Stage 2 (Transformer, simplified)
+        self.s2_pre_conv = nn.Conv2d(s1_channels, s2_channels, kernel_size=1) 
+        self.s2_transformer = self._make_transformer_stage(s2_channels, s2_blocks, transformer_heads, s2_channels // transformer_heads, s2_channels * transformer_mlp_dim_ratio)
+        
+        # Stage 3 (Transformer, simplified)
+        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2) 
+        self.s3_transformer = self._make_transformer_stage(s3_channels, s3_blocks, transformer_heads, s3_channels // transformer_heads, s3_channels * transformer_mlp_dim_ratio)
+
+        # Stage 4 (Transformer, simplified)
+        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2) 
+        self.s4_transformer = self._make_transformer_stage(s4_channels, s4_blocks, transformer_heads, s4_channels // transformer_heads, s4_channels * transformer_mlp_dim_ratio)
+
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Linear(s4_channels, num_classes)
+
+    def _make_mbconv_enhanced_stage(self, in_c, out_c, num_blocks, stride, expand_ratio, lsk_kernel_sizes, lsk_reduction_ratio, se_ratio):
+        layers = []
+        for i in range(num_blocks):
+            block_stride = stride if i == 0 else 1
+            current_in_c = in_c if i == 0 else out_c
+            layers.append(MBConvBlock_enhanced(
+                current_in_c, out_c, block_stride, expand_ratio, 
+                se_ratio=se_ratio, # Pass SE ratio for MBConv internal SE
+                lsk_kernel_sizes=lsk_kernel_sizes, 
+                lsk_reduction_ratio=lsk_reduction_ratio
+            ))
+        return nn.Sequential(*layers)
+
+    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim):
+        layers = [TransformerBlock(dim, heads, dim_head, mlp_dim) for _ in range(num_blocks)]
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.stem(x)
+        x = self.s0(x)
+        x = self.s1(x)
+        
+        x = self.s2_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2) 
+        x = self.s2_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        x = self.s3_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)
+        x = self.s3_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        x = self.s4_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)
+        x = self.s4_transformer(x)
+        
+        x = torch.mean(x, dim=1) 
+        x = self.fc(x)
         return x
+# --- End Enhanced CoAtNet ---
 
 
 # --- Model Registry and Getter ---
@@ -1254,21 +1341,51 @@ def resnest50d_builder(num_classes=100, **kwargs):
                          radix=2, cardinality=1, bottleneck_width=64,
                          deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, **kwargs)
 
-@register_model("coatnet_0_custom") # Simplified CoAtNet
-def coatnet_0_custom_builder(num_classes=100, **kwargs):
-    # Example CoAtNet-0 like structure (very simplified)
-    # True CoAtNet-0 has specific channel/block counts per stage from paper
-    # This is a placeholder demonstrating the hybrid structure.
-    return CoAtNetCustom(num_classes=num_classes, 
-                        s0_channels=32, s1_channels=64, s2_channels=128, s3_channels=256, s4_channels=512,
-                        s0_blocks=2, s1_blocks=2, s2_blocks=2, s3_blocks=2, s4_blocks=2, 
-                        mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=2, **kwargs) # Reduced mlp_dim_ratio
+@register_model("coatnet_0") # Builder for the non-enhanced CoAtNetCustom
+def coatnet_0_builder(num_classes=100, **kwargs):
+    # Default CoAtNet-0 parameters
+    config = {
+        's0_channels': 64, 's1_channels': 96, 's2_channels': 192, 
+        's3_channels': 384, 's4_channels': 768,
+        's0_blocks': 2, 's1_blocks': 2, 's2_blocks': 3, 
+        's3_blocks': 5, 's4_blocks': 2, # CoAtNet-0 typical block counts
+        'mbconv_expand_ratio': 4, 
+        'transformer_heads': 4, # Simplified: same head count for all transformer stages
+        'transformer_mlp_dim_ratio': 4
+    }
+    config.update(kwargs) # Override defaults with any passed kwargs
+    return CoAtNetCustom(num_classes=num_classes, **config)
 
-@register_model("hornet_tiny_custom") # Simplified HorNet
-def hornet_tiny_custom_builder(num_classes=100, **kwargs):
-    # Simplified "Tiny" HorNet
-    return HorNetCustom(num_classes=num_classes, dims=[32,64,128,256], depths=[2,2,4,2], order=3, dw_k=5, **kwargs)
+@register_model("coatnet_0_custom_enhanced")
+def coatnet_0_enhanced_builder(num_classes=100, **kwargs):
+    # Default LSK params, can be overridden by kwargs if needed
+    lsk_kernel_sizes = kwargs.pop('lsk_kernel_sizes', [3,5,7]) # Example, make it configurable
+    lsk_reduction_ratio = kwargs.pop('lsk_reduction_ratio', 8) # Example
+    se_ratio_in_mbconv = kwargs.pop('se_ratio_in_mbconv', 0.25) # Default SE in MBConv
 
+    # Default CoAtNet-0 like structure parameters (can also be overridden)
+    s0_channels = kwargs.pop('s0_channels', 64)
+    s1_channels = kwargs.pop('s1_channels', 96)
+    s2_channels = kwargs.pop('s2_channels', 192)
+    s3_channels = kwargs.pop('s3_channels', 384)
+    s4_channels = kwargs.pop('s4_channels', 768)
+    s0_blocks = kwargs.pop('s0_blocks', 2)
+    s1_blocks = kwargs.pop('s1_blocks', 2)
+    s2_blocks = kwargs.pop('s2_blocks', 3) # Slightly deeper transformer for CoAtNet-0
+    s3_blocks = kwargs.pop('s3_blocks', 5) # Slightly deeper transformer
+    s4_blocks = kwargs.pop('s4_blocks', 2) # 
+    mbconv_expand_ratio = kwargs.pop('mbconv_expand_ratio', 4)
+    
+    return CoAtNetCustom_enhanced(num_classes=num_classes,
+                               s0_channels=s0_channels, s1_channels=s1_channels, 
+                               s2_channels=s2_channels, s3_channels=s3_channels, s4_channels=s4_channels,
+                               s0_blocks=s0_blocks, s1_blocks=s1_blocks, 
+                               s2_blocks=s2_blocks, s3_blocks=s3_blocks, s4_blocks=s4_blocks,
+                               mbconv_expand_ratio=mbconv_expand_ratio,
+                               lsk_kernel_sizes=lsk_kernel_sizes,
+                               lsk_reduction_ratio=lsk_reduction_ratio,
+                               se_ratio_in_mbconv=se_ratio_in_mbconv,
+                               **kwargs) # Pass remaining kwargs like transformer_heads etc.
 
 def get_model(model_name: str, num_classes: int = 100, **kwargs: Any) -> nn.Module:
     """
@@ -1342,7 +1459,7 @@ if __name__ == '__main__':
         "resnet_56", "eca_resnet_20", "ghost_resnet_32", 
         "convnext_tiny", "segnext_mscan_tiny", "mlp_mixer_tiny",
         "ghostnet_100", "cspresnet50", "resnest50d",
-        "mlp_mixer_b16", "coatnet_0_custom", "hornet_tiny_custom"
+        "mlp_mixer_b16", "coatnet_0", "coatnet_0_custom_enhanced" # Added coatnet_0
     ]
     
     for name in test_model_names:
@@ -1376,3 +1493,22 @@ if __name__ == '__main__':
         print("eca_resnet_20 with k_size test passed.\n")
     except Exception as e:
         print(f"Error testing eca_resnet_20 with k_size: {e}\n") 
+
+    # Add a specific test for coatnet_0_custom_enhanced with some LSK kargs
+    print("--- Testing coatnet_0_custom_enhanced with specific LSK kwargs ---")
+    try:
+        model_instance_enhanced = get_model(
+            "coatnet_0_custom_enhanced", 
+            num_classes=10, 
+            lsk_kernel_sizes=[3, 5], 
+            lsk_reduction_ratio=4,
+            s0_blocks=1, s1_blocks=1, s2_blocks=1, s3_blocks=1, s4_blocks=1 # Smaller model for quick test
+        )
+        info = get_model_info(model_instance_enhanced, "coatnet_0_custom_enhanced_specific_lsk")
+        dummy_input = torch.randn(2, 3, 32, 32) # CIFAR-100 like
+        output = model_instance_enhanced(dummy_input)
+        print(f"Output shape for coatnet_0_custom_enhanced_specific_lsk: {output.shape}")
+        assert output.shape == (2, 10)
+        print("coatnet_0_custom_enhanced with specific LSK kwargs test passed.\n")
+    except Exception as e:
+        print(f"Error testing coatnet_0_custom_enhanced with specific LSK kwargs: {e}\n")

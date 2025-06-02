@@ -60,15 +60,22 @@ REPORT_HYPERPARAMETERS = {
             'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
             'model_specific_params': {}
         },
-        'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d
+        'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d, coatnet_0_custom_enhanced
             'optimizer_type': 'adamw',
-            'lr': 1e-3,
+            'lr': 2e-4,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
             'batch_size_per_gpu': 64,
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
-            'model_specific_params': {}
+            'model_specific_params': {
+                'coatnet_0_custom_enhanced': { # Default LSK parameters for the enhanced model
+                    'batch_size_per_gpu': 64,
+                    'lsk_kernel_sizes': [3, 5, 7], 
+                    'lsk_reduction_ratio': 8,
+                    'se_ratio_in_mbconv': 0.25
+                } 
+            }
         },
         'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (custom)
             'optimizer_type': 'adamw',
@@ -109,7 +116,8 @@ REPORT_HYPERPARAMETERS = {
         'hornet_tiny_custom': 'Hybrid_Attention_CNN',# Was hornet_tiny (timm)
         'resnest50d': 'Hybrid_Attention_CNN',        # Was resnest50d (timm)
         'mlp_mixer_tiny': 'MLP_Mixer_Variants',
-        'mlp_mixer_b16': 'MLP_Mixer_Variants'      # Was mlp_mixer_b16 (timm)
+        'mlp_mixer_b16': 'MLP_Mixer_Variants',      # Was mlp_mixer_b16 (timm)
+        'coatnet_0_custom_enhanced': 'Hybrid_Attention_CNN' # Added new model to category
     }
 }
 
@@ -182,7 +190,9 @@ def get_hyperparameters(model_name: str):
                               's0_blocks', 's1_blocks', 's2_blocks', 's3_blocks', 's4_blocks',
                               'mbconv_expand_ratio', 'transformer_heads', 'transformer_mlp_dim_ratio',
                               # For HorNetCustom (simplified)
-                              'order', 'dw_k', 'use_filter'
+                              'order', 'dw_k', 'use_filter',
+                              # For LSKNet components in enhanced models
+                              'lsk_kernel_sizes', 'lsk_reduction_ratio', 'se_ratio_in_mbconv'
                              ] 
     for key in known_constructor_keys:
         if key in final_hparams: # Check if it was set directly by model_specific_params

@@ -8,7 +8,7 @@ import os
 import time
 import logging
 from typing import Dict, Any, Optional, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 import json
 
 from utils import (
@@ -61,24 +61,39 @@ class TrainingArguments:
     
     @classmethod
     def from_model_name(cls, model_name: str, **kwargs):
-        """从模型名称自动获取超参数配置"""
-        hparams = get_hyperparameters(model_name)
+        hparams = get_hyperparameters(model_name) # Contains 'lr', 'batch_size_per_gpu', etc.
         
-        args_dict = {
-            'num_train_epochs': hparams.get('epochs', 200),
-            'per_device_train_batch_size': hparams.get('batch_size_per_gpu', 128),
-            'learning_rate': hparams.get('lr', 0.1),
-            'weight_decay': hparams.get('weight_decay', 5e-4),
-            'warmup_epochs': hparams.get('warmup_epochs', 0),
-            'lr_scheduler_type': hparams.get('scheduler_type', 'cosine_annealing'),
-            'optimizer_type': hparams.get('optimizer_type', 'sgd'),
-            'use_imagenet_norm': hparams.get('use_imagenet_norm', False),
-            'model_constructor_params': hparams.get('model_constructor_params', {}),
-        }
+        current_config = hparams.copy()
+        # kwargs might include 'epochs', 'batch_size_per_device', 'learning_rate' (if --lr was passed),
+        # 'output_dir', 'run_name', etc.
+        current_config.update(kwargs)
+
+        # Rename keys from hparams/utils format to TrainingArguments field names
+        # BEFORE filtering for valid fields. Allow direct field names in kwargs to take precedence.
+
+        # Handle learning_rate mapping:
+        # If 'learning_rate' is already in current_config (e.g., from --lr in train.py),
+        # it takes precedence. We can remove 'lr' if it also exists to avoid confusion.
+        if 'learning_rate' in current_config:
+            current_config.pop('lr', None) # Remove 'lr' if 'learning_rate' is already set
+        elif 'lr' in current_config: # 'learning_rate' not set, but 'lr' from hparams is available
+            current_config['learning_rate'] = current_config.pop('lr')
         
-        args_dict.update(kwargs)
+        # Handle batch_size mapping:
+        # If 'batch_size_per_device' is in current_config (e.g. from --batch_size in train.py),
+        # it takes precedence. Remove 'batch_size_per_gpu' if it also exists.
+        if 'batch_size_per_device' in current_config:
+            current_config.pop('batch_size_per_gpu', None)
+        elif 'batch_size_per_gpu' in current_config: # 'batch_size_per_device' not set, but 'batch_size_per_gpu' from hparams is available
+            current_config['batch_size_per_device'] = current_config.pop('batch_size_per_gpu')
+
+        valid_fields = {f.name for f in fields(cls)}
+        init_args = {k: v for k, v in current_config.items() if k in valid_fields}
         
-        return cls(**args_dict)
+        # For debugging, print what's being used:
+        # print(f"DEBUG: Initializing TrainingArguments with: {init_args}")
+
+        return cls(**init_args)
 
 class Trainer:
     """训练器类，参考transformers.Trainer设计"""
@@ -455,8 +470,8 @@ class Trainer:
         metrics_history = {
             'train_losses': self.train_losses,
             'train_accs': self.train_accs,
-            'eval_losses': self.eval_losses,
-            'eval_accs': self.eval_accs
+            'test_losses': self.eval_losses,
+            'test_accs': self.eval_accs
         }
         
         results_data = {
