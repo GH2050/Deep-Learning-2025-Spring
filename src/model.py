@@ -184,6 +184,73 @@ class ConvNeXtBlock(nn.Module):
         
         x = input_x + x
         return x
+    
+
+class DropPath(nn.Module):
+    """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks)."""
+    
+    def __init__(self, drop_prob=None):
+        super(DropPath, self).__init__()
+        self.drop_prob = drop_prob
+
+    def forward(self, x):
+        if self.drop_prob == 0. or not self.training:
+            return x
+        keep_prob = 1 - self.drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+        random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
+        random_tensor.floor_()  # binarize
+        output = x.div(keep_prob) * random_tensor
+        return output
+
+    def extra_repr(self) -> str:
+        return 'p={}'.format(self.drop_prob)
+
+class ImprovedBlock_ConvNeXt(nn.Module):
+    """ResNet + Depthwise Conv + Inverted Bottleneck"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
+        super().__init__()
+        
+        expand_ratio = 4
+        expanded_planes = in_planes * expand_ratio
+
+        # Inverted bottleneck: expand -> depthwise -> shrink
+        self.conv1 = nn.Conv2d(in_planes, expanded_planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(expanded_planes)
+        
+        self.dwconv = nn.Conv2d(
+            expanded_planes, expanded_planes, kernel_size=7, 
+            stride=stride, padding=3, groups=expanded_planes, bias=False
+        )
+        self.bn2 = nn.BatchNorm2d(expanded_planes)
+        
+        self.conv2 = nn.Conv2d(expanded_planes, planes, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes)
+        
+        # 使用 DropPath 进行正则化
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+
+    def forward(self, x):
+        input_x = x
+        
+        out = F.relu(self.bn1(self.conv1(x)))      # expand
+        out = F.relu(self.bn2(self.dwconv(out)))  # depthwise
+        out = self.bn3(self.conv2(out))           # shrink
+        
+        out = self.shortcut(input_x) + self.drop_path(out)
+        out = F.relu(out)
+        return out
+
+
 
 class MSCA(nn.Module):
     def __init__(self, dim, kernel_sizes=[7, 11], scale_factor=4):
@@ -368,6 +435,65 @@ class ConvNeXtCustom(nn.Module):
         x = x.mean([-2, -1])
         x = self.head(x)
         return x
+    
+
+class ImprovedResNet_ConvNeXt(nn.Module):
+    def __init__(self, block_type, num_blocks_list, num_classes=100, width_multiplier=1.0, 
+                 drop_path_rate=0.05, in_channels=3):
+        super().__init__()
+        self.in_planes = int(16 * width_multiplier)
+        self.cifar_stem = True  # 使用CIFAR风格的stem
+
+        # CIFAR风格的stem
+        self.conv1 = nn.Conv2d(in_channels, self.in_planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(self.in_planes)
+
+        # 计算每个block的drop path rate
+        total_blocks = sum(num_blocks_list)
+        dp_rates = [x.item() for x in torch.linspace(0, drop_path_rate, total_blocks)]
+        
+        # 构建层
+        planes_list = [16, 32, 64]
+        strides = [1, 2, 2]
+        
+        current_planes = self.in_planes
+        self.layers = nn.ModuleList()
+        cur_idx = 0
+        
+        for i, num_blocks in enumerate(num_blocks_list):
+            stage_planes = int(planes_list[i] * width_multiplier)
+            stage_stride = strides[i]
+            
+            stage_dp_rates = dp_rates[cur_idx:cur_idx + num_blocks]
+            self.layers.append(self._make_layer(block_type, stage_planes, num_blocks, 
+                                              stride=stage_stride, dp_rates=stage_dp_rates))
+            current_planes = stage_planes * block_type.expansion
+            self.in_planes = current_planes
+            cur_idx += num_blocks
+
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.linear = nn.Linear(current_planes, num_classes)
+
+    def _make_layer(self, block_type, planes, num_blocks, stride, dp_rates):
+        strides_list = [stride] + [1]*(num_blocks-1)
+        layers = []
+        for i, (s, dp_rate) in enumerate(zip(strides_list, dp_rates)):
+            layers.append(block_type(self.in_planes, planes, s, drop_path=dp_rate))
+            self.in_planes = planes * block_type.expansion
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        
+        for layer_module in self.layers:
+            out = layer_module(out)
+            
+        out = self.avgpool(out)
+        out = torch.flatten(out, 1)
+        out = self.linear(out)
+        return out
+
+
 
 class MSCANEncoderCustom(nn.Module):
     def __init__(self, dims=[32, 64, 128, 256], depths=[2, 2, 4, 2], num_classes=100, mlp_ratios=[4,4,4,4], drop_path_rate=0.0):
@@ -1329,6 +1455,12 @@ def convnext_tiny_custom_builder(num_classes=100, **kwargs):
     # Depths and Dims for ConvNeXt-Tiny like from official implementation
     return ConvNeXtCustom(depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], num_classes=num_classes, **kwargs)
 
+@register_model("improved_resnet20_convnext")
+def improved_resnet20_convnext_builder(num_classes=100, width_multiplier=1.0, **kwargs):
+    """ResNet20 + Depthwise Conv + Inverted Bottleneck"""
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_ConvNeXt, [3, 3, 3], num_classes=num_classes, 
+                         width_multiplier=width_multiplier, drop_path_rate=0.05, **kwargs)
+
 @register_model("segnext_mscan_tiny") # This seems to be MSCANEncoderCustom from before
 def segnext_mscan_tiny_custom_builder(num_classes=100, **kwargs):
     # Dims and depths for a "Tiny" variant, e.g. like SegNeXt-T
@@ -1536,6 +1668,26 @@ if __name__ == '__main__':
         print("coatnet_0_custom_enhanced with specific LSK kwargs test passed.\n")
     except Exception as e:
         print(f"Error testing coatnet_0_custom_enhanced with specific LSK kwargs: {e}\n")
+
+
+    # 测试改进的 improved_resnet20_convnext 模型
+    improved_test_models = [
+        "improved_resnet20_convnext",
+    ]
+    
+    print("\n--- Testing Improved ResNet v2 Models ---")
+    for name in improved_test_models:
+        print(f"--- Testing {name} ---")
+        try:
+            model_instance = get_model(name, num_classes=100)
+            info = get_model_info(model_instance, name)
+            dummy_input = torch.randn(2, 3, 32, 32)
+            output = model_instance(dummy_input)
+            print(f"Output shape for {name}: {output.shape}")
+            assert output.shape == (2, 100)
+            print(f"{name} test passed.\n")
+        except Exception as e:
+            print(f"Error testing model {name}: {e}\n")
 
 # --- CoAtNet-CIFAROpt Implementation ---
 class ECAMBConvBlock(nn.Module):

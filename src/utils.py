@@ -60,6 +60,21 @@ REPORT_HYPERPARAMETERS = {
             'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
             'model_specific_params': {}
         },
+        'ImprovedResNet_ConvNeXt_Variants': { # 新增：改进的ResNet变种
+            'optimizer_type': 'sgd',
+            'lr': 0.05,
+            'scheduler_type': 'cosine_annealing_warmup',
+            'warmup_epochs': 5,
+            'weight_decay': 1e-3,
+            'batch_size_per_gpu': 128,
+            'use_imagenet_norm': False,
+            'model_specific_params': {
+                'improved_resnet20_convnext': {
+                    'drop_path_rate': 0.05,
+                    'width_multiplier': 1.0,
+                },
+            }
+        },
         'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d, coatnet_0_custom_enhanced
             'optimizer_type': 'adamw',
             'lr': 2e-4,
@@ -110,6 +125,7 @@ REPORT_HYPERPARAMETERS = {
         'ghost_resnet_32': 'GhostNet_Variants',
         'ghostnet_100': 'GhostNet_Variants',      # Was ghostnet_100 (timm)
         'convnext_tiny': 'ConvNeXt_Tiny',        # Was convnext_tiny (custom) and convnext_tiny_timm
+        'improved_resnet20_convnext': 'ImprovedResNet_ConvNeXt_Variants',
         'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny',
         'coatnet_0_custom': 'Hybrid_Attention_CNN', # Was coatnet_0 (timm)
         'cspresnet50': 'Hybrid_Attention_CNN',       # Was cspresnet50 (timm)
@@ -194,7 +210,9 @@ def get_hyperparameters(model_name: str):
                               # For HorNetCustom (simplified)
                               'order', 'dw_k', 'use_filter',
                               # For LSKNet components in enhanced models
-                              'lsk_kernel_sizes', 'lsk_reduction_ratio', 'se_ratio_in_mbconv'
+                              'lsk_kernel_sizes', 'lsk_reduction_ratio', 'se_ratio_in_mbconv',
+                              # For ImprovedResNet variants
+                              'drop_path_rate', 'width_multiplier'
                              ] 
     for key in known_constructor_keys:
         if key in final_hparams: # Check if it was set directly by model_specific_params
@@ -629,7 +647,8 @@ if __name__ == '__main__':
     # Test get_hyperparameters
     test_models = [
         'resnet_20', 'eca_resnet_20', 'ghost_resnet_32', 'convnext_tiny', 
-        'convnext_tiny_timm', 'coatnet_0', 'mlp_mixer_b16', 'segnext_mscan_tiny'
+        'convnext_tiny_timm', 'coatnet_0', 'mlp_mixer_b16', 'segnext_mscan_tiny',
+        'improved_resnet20_convnext',
     ]
     print("--- Testing Hyperparameter Retrieval ---")
     for model_name in test_models:
