@@ -57,8 +57,10 @@ class MLPMixerCustom(nn.Module):
     def forward(self, x):
         x = self.patch_embed(x) 
         x = x.flatten(2).transpose(1, 2) # [B, num_patches, dim]
+        skip_connection = x  # 保存初始特征作为跳跃连接
         for mixer_block in self.mixer_blocks:
             x = mixer_block(x)
+        x = x + skip_connection  # 添加跳跃连接
         x = self.norm(x)
         x = x.mean(dim=1) # Global average pooling over patches
         x = self.head(x)
@@ -77,24 +79,24 @@ transform = transforms.Compose([
 ])
 
 # 加载数据集
-train_dataset = datasets.CIFAR10(root='./data', train=True,
-                                 download=True, transform=transform)
-test_dataset = datasets.CIFAR10(root='./data', train=False,
-                                download=True, transform=transform)
+train_dataset = datasets.CIFAR100(root='./data', train=True,
+                                 download=False, transform=transform)
+test_dataset = datasets.CIFAR100(root='./data', train=False,
+                                download=False, transform=transform)
 
 # 创建数据加载器
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
 # 构建模型
-model = mlp_mixer_tiny_custom_builder(num_classes=10)
+model = mlp_mixer_tiny_custom_builder(num_classes=100)
 
 # 定义损失函数和优化器
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.05)
 
 # 训练模型
-num_epochs = 200
+num_epochs = 40
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
