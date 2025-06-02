@@ -1456,11 +1456,11 @@ def convnext_tiny_custom_builder(num_classes=100, **kwargs):
     return ConvNeXtCustom(depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], num_classes=num_classes, **kwargs)
 
 @register_model("improved_resnet20_convnext")
-def improved_resnet20_convnext_builder(num_classes=100, width_multiplier=1.0, **kwargs):
+def improved_resnet20_convnext_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.05, **kwargs):
     """ResNet20 + Depthwise Conv + Inverted Bottleneck"""
     return ImprovedResNet_ConvNeXt(ImprovedBlock_ConvNeXt, [3, 3, 3], num_classes=num_classes, 
-                         width_multiplier=width_multiplier, drop_path_rate=0.05, **kwargs)
-
+                         width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
+                         
 @register_model("segnext_mscan_tiny") # This seems to be MSCANEncoderCustom from before
 def segnext_mscan_tiny_custom_builder(num_classes=100, **kwargs):
     # Dims and depths for a "Tiny" variant, e.g. like SegNeXt-T
