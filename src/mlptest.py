@@ -4,16 +4,66 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
+class MixerBlock(nn.Module):
+    def __init__(self, dim, num_patches, token_mlp_dim, channel_mlp_dim, dropout=0.):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(dim)
+        self.token_mlp = nn.Sequential(
+            nn.Linear(num_patches, token_mlp_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(token_mlp_dim, num_patches),
+            nn.Dropout(dropout)
+        )
+        self.norm2 = nn.LayerNorm(dim)
+        self.channel_mlp = nn.Sequential(
+            nn.Linear(dim, channel_mlp_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(channel_mlp_dim, dim),
+            nn.Dropout(dropout)
+        )
+
+    def forward(self, x): # x shape: (B, num_patches, dim)
+        # Token Mixing
+        y = self.norm1(x)       # Apply norm on (B, num_patches, dim) -> last dim is dim
+        y = y.transpose(1, 2)   # Shape: (B, dim, num_patches)
+        y = self.token_mlp(y)   # MLP acts on num_patches dimension
+        y = y.transpose(1, 2)   # Shape: (B, num_patches, dim)
+        x = x + y
+
+        # Channel Mixing
+        y = self.norm2(x)       # Apply norm on (B, num_patches, dim) -> last dim is dim
+        y = self.channel_mlp(y) # MLP acts on dim dimension
+        x = x + y
+        return x
+
 # 假设 MLPMixerCustom 类已经定义好了
 class MLPMixerCustom(nn.Module):
-    def __init__(self, image_size=32, patch_size=4, dim=128, depth=4, 
-                 token_mlp_dim=128, channel_mlp_dim=256, num_classes=100):
-        super(MLPMixerCustom, self).__init__()
-        # 这里需要实现具体的模型结构
-        pass
+    def __init__(self, image_size, patch_size, dim, depth, num_classes, token_mlp_dim, channel_mlp_dim, dropout=0.):
+        super().__init__()
+        if image_size % patch_size != 0:
+            raise ValueError("Image dimensions must be divisible by the patch size.")
+        num_patches = (image_size // patch_size) ** 2
+        self.patch_embed = nn.Conv2d(3, dim, kernel_size=patch_size, stride=patch_size)
+        
+        self.mixer_blocks = nn.ModuleList([
+            MixerBlock(dim, num_patches, token_mlp_dim, channel_mlp_dim, dropout)
+            for _ in range(depth)
+        ])
+        self.norm = nn.LayerNorm(dim)
+        self.head = nn.Linear(dim, num_classes)
 
     def forward(self, x):
-        # 这里需要实现前向传播逻辑
+        x = self.patch_embed(x) 
+        x = x.flatten(2).transpose(1, 2) # [B, num_patches, dim]
+        skip_connection = x  # 保存初始特征作为跳跃连接
+        for mixer_block in self.mixer_blocks:
+            x = mixer_block(x)
+        x = x + skip_connection  # 添加跳跃连接
+        x = self.norm(x)
+        x = x.mean(dim=1) # Global average pooling over patches
+        x = self.head(x)
         return x
 
 # 注册模型构建函数
@@ -29,24 +79,24 @@ transform = transforms.Compose([
 ])
 
 # 加载数据集
-train_dataset = datasets.CIFAR10(root='./data', train=True,
-                                 download=True, transform=transform)
-test_dataset = datasets.CIFAR10(root='./data', train=False,
-                                download=True, transform=transform)
+train_dataset = datasets.CIFAR100(root='./data', train=True,
+                                 download=False, transform=transform)
+test_dataset = datasets.CIFAR100(root='./data', train=False,
+                                download=False, transform=transform)
 
 # 创建数据加载器
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
 # 构建模型
-model = mlp_mixer_tiny_custom_builder(num_classes=10)
+model = mlp_mixer_tiny_custom_builder(num_classes=100)
 
 # 定义损失函数和优化器
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.05)
 
 # 训练模型
-num_epochs = 200
+num_epochs = 40
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
