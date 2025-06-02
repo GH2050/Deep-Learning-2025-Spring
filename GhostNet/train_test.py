@@ -6,13 +6,20 @@ import os
 
 from GhostNet_model import ghost_resnet20_builder as GhostNet20
 from GhostNet_model import ghost_resnet32_builder as GhostNet32
+from ECANet_model import ecanet20_builder as ECANet20
 from dataloader import trainloader,testloader,classes
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-net = GhostNet20()
+# ECA-Net 模型测试
+net = ECANet20(num_classes=100, use_eca=True, adaptive_kernel=True)
+net = ECANet20(num_classes=100, use_eca=True, adaptive_kernel=False, fixed_kernel_size=3)
+net = ECANet20(num_classes=100, use_eca=False, adaptive_kernel=True)
+net = ECANet20(num_classes=100, use_eca=False, adaptive_kernel=False, fixed_kernel_size=3)
+
+# net = GhostNet20()
 #net = GhostNet32()
 net.to(device)
 

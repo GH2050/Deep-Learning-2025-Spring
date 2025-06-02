@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
-import timm
 from typing import Optional, List, Callable, Dict, Any
 
 class LayerNorm2d(nn.Module):
@@ -108,12 +107,12 @@ class GhostModule(nn.Module):
 
     def forward(self, x):
         x1 = self.primary_conv(x)
-        if hasattr(self.cheap_operation, 'conv'):
+        if len(self.cheap_operation) > 0: # Correctly check if cheap_operation has layers
              x2 = self.cheap_operation(x1)
              out = torch.cat([x1, x2], dim=1)
         else:
              out = x1
-        return out[:, :self.oup, :, :]
+        return out[:, :self.oup, :, :] # Ensure oup channels are returned
 
 class GhostBasicBlock(nn.Module):
     expansion = 1
@@ -399,16 +398,16 @@ class MSCANEncoderCustom(nn.Module):
 class MixerBlock(nn.Module):
     def __init__(self, dim, num_patches, token_mlp_dim, channel_mlp_dim, dropout=0.):
         super().__init__()
-        self.token_mix = nn.Sequential(
-            nn.LayerNorm(dim),
+        self.norm1 = nn.LayerNorm(dim)
+        self.token_mlp = nn.Sequential(
             nn.Linear(num_patches, token_mlp_dim),
             nn.GELU(),
             nn.Dropout(dropout),
             nn.Linear(token_mlp_dim, num_patches),
             nn.Dropout(dropout)
         )
-        self.channel_mix = nn.Sequential(
-            nn.LayerNorm(dim),
+        self.norm2 = nn.LayerNorm(dim)
+        self.channel_mlp = nn.Sequential(
             nn.Linear(dim, channel_mlp_dim),
             nn.GELU(),
             nn.Dropout(dropout),
@@ -416,11 +415,18 @@ class MixerBlock(nn.Module):
             nn.Dropout(dropout)
         )
 
-    def forward(self, x):
-        x_token_mixed = self.token_mix(x.transpose(1, 2)).transpose(1, 2)
-        x = x + x_token_mixed
-        x_channel_mixed = self.channel_mix(x)
-        x = x + x_channel_mixed
+    def forward(self, x): # x shape: (B, num_patches, dim)
+        # Token Mixing
+        y = self.norm1(x)       # Apply norm on (B, num_patches, dim) -> last dim is dim
+        y = y.transpose(1, 2)   # Shape: (B, dim, num_patches)
+        y = self.token_mlp(y)   # MLP acts on num_patches dimension
+        y = y.transpose(1, 2)   # Shape: (B, num_patches, dim)
+        x = x + y
+
+        # Channel Mixing
+        y = self.norm2(x)       # Apply norm on (B, num_patches, dim) -> last dim is dim
+        y = self.channel_mlp(y) # MLP acts on dim dimension
+        x = x + y
         return x
 
 class MLPMixerCustom(nn.Module):
@@ -448,6 +454,785 @@ class MLPMixerCustom(nn.Module):
         x = self.head(x)
         return x
 
+# --- New Model Implementations to replace TIMM dependencies ---
+
+# --- GhostNet specific blocks (for GhostNet-100) ---
+class GhostBottleneck(nn.Module):
+    def __init__(self, in_chs, mid_chs, out_chs, kernel_size, stride, use_se=False, se_ratio=0.25):
+        super(GhostBottleneck, self).__init__()
+        self.stride = stride
+        has_se = use_se
+
+        self.ghost1 = GhostModule(in_chs, mid_chs, kernel_size=3, relu=True)
+
+        if self.stride > 1:
+            self.conv_dw = nn.Conv2d(mid_chs, mid_chs, kernel_size, stride=stride,
+                                     padding=(kernel_size - 1) // 2,
+                                     groups=mid_chs, bias=False)
+            self.bn_dw = nn.BatchNorm2d(mid_chs)
+
+        if has_se:
+            self.se = SqueezeExcite(mid_chs, se_ratio=se_ratio)
+        else:
+            self.se = None
+
+        self.ghost2 = GhostModule(mid_chs, out_chs, kernel_size=1, relu=False)
+
+        if stride == 1 and in_chs == out_chs:
+            self.shortcut = nn.Identity()
+        else:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_chs, in_chs, kernel_size=1, stride=stride,
+                          padding=0, groups=in_chs, bias=False), # Corrected padding for 1x1 conv
+                nn.BatchNorm2d(in_chs),
+                nn.Conv2d(in_chs, out_chs, 1, stride=1, padding=0, bias=False),
+                nn.BatchNorm2d(out_chs),
+            )
+
+    def forward(self, x):
+        residual = x
+        x = self.ghost1(x)
+        if self.stride > 1:
+            x = self.conv_dw(x)
+            x = self.bn_dw(x)
+        if self.se is not None:
+            x = self.se(x)
+        x = self.ghost2(x)
+        x += self.shortcut(residual)
+        return x
+
+class SqueezeExcite(nn.Module):
+    def __init__(self, in_chs, se_ratio=0.25, reduced_base_chs=None,
+                 act_layer=nn.ReLU, gate_fn=torch.sigmoid):
+        super(SqueezeExcite, self).__init__()
+        self.gate_fn = gate_fn
+        reduced_chs = int(in_chs * se_ratio)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.conv_reduce = nn.Conv2d(in_chs, reduced_chs, 1, bias=True)
+        self.act1 = act_layer(inplace=True)
+        self.conv_expand = nn.Conv2d(reduced_chs, in_chs, 1, bias=True)
+
+    def forward(self, x):
+        x_se = self.avg_pool(x)
+        x_se = self.conv_reduce(x_se)
+        x_se = self.act1(x_se)
+        x_se = self.conv_expand(x_se)
+        x_out = x * self.gate_fn(x_se)
+        return x_out
+
+class GhostNetCustom(nn.Module):
+    def __init__(self, cfgs, num_classes=100, width=1.0, dropout=0.2, block=GhostBottleneck, se_module=SqueezeExcite):
+        super(GhostNetCustom, self).__init__()
+        self.cfgs = cfgs
+        self.dropout = dropout
+
+        output_channel = self._make_divisible(16 * width, 4)
+        self.conv_stem = nn.Conv2d(3, output_channel, 3, 2, 1, bias=False)
+        self.bn1 = nn.BatchNorm2d(output_channel)
+        self.act1 = nn.ReLU(inplace=True)
+        input_channel = output_channel
+
+        stages = []
+        for cfg in self.cfgs:
+            layers = []
+            for k, exp_size, c, se, s in cfg:
+                output_channel = self._make_divisible(c * width, 4)
+                hidden_channel = self._make_divisible(exp_size * width, 4)
+                layers.append(block(input_channel, hidden_channel, output_channel, k, s, use_se=se))
+                input_channel = output_channel
+            stages.append(nn.Sequential(*layers))
+
+        output_channel = self._make_divisible(exp_size * width, 4)
+        stages.append(nn.Sequential(nn.Conv2d(input_channel, output_channel, 1, 1, 0, bias=False),
+                                     nn.BatchNorm2d(output_channel),
+                                     nn.ReLU(inplace=True)))
+        input_channel = output_channel
+        
+        self.blocks = nn.Sequential(*stages)
+
+        output_channel = 1280
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.conv_head = nn.Conv2d(input_channel, output_channel, 1, 1, 0, bias=True)
+        self.act2 = nn.ReLU(inplace=True)
+        self.classifier = nn.Linear(output_channel, num_classes)
+        if self.dropout > 0.:
+            self.dropout_layer = nn.Dropout(self.dropout)
+        else:
+            self.dropout_layer = nn.Identity()
+
+
+    def _make_divisible(self, v, divisor, min_value=None):
+        if min_value is None:
+            min_value = divisor
+        new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+        if new_v < 0.9 * v:
+            new_v += divisor
+        return new_v
+
+    def forward(self, x):
+        x = self.conv_stem(x)
+        x = self.bn1(x)
+        x = self.act1(x)
+        x = self.blocks(x)
+        x = self.global_pool(x)
+        x = self.conv_head(x)
+        x = self.act2(x)
+        x = x.view(x.size(0), -1)
+        if self.dropout_layer is not None:
+            x = self.dropout_layer(x)
+        x = self.classifier(x)
+        return x
+
+# --- CSPNet specific blocks (for CSPResNet50) ---
+class CSPBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, num_blocks, block_module, stride=1, use_eca=False, k_size=3):
+        super().__init__()
+        mid_channels = out_channels // 2
+        
+        # Path A (shortcut path, potentially strided)
+        self.conv1 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, stride=stride, padding=0, bias=False)
+        self.bn1 = nn.BatchNorm2d(mid_channels)
+        self.relu1 = nn.ReLU(inplace=True)
+
+        # Path B (main path with blocks, potentially strided before blocks)
+        self.conv_shortcut = nn.Conv2d(in_channels, mid_channels, kernel_size=1, stride=stride, padding=0, bias=False)
+        self.bn_shortcut = nn.BatchNorm2d(mid_channels)
+        self.relu_shortcut = nn.ReLU(inplace=True) 
+        
+        self.blocks = self._make_layer(block_module, mid_channels, mid_channels, num_blocks, stride=1, use_eca=use_eca, k_size=k_size) # stride for internal blocks is 1
+        
+        self.conv_transition = nn.Conv2d(mid_channels, mid_channels, kernel_size=1, bias=False)
+        self.bn_transition = nn.BatchNorm2d(mid_channels)
+        self.relu_transition = nn.ReLU(inplace=True)
+        
+        # Removed self.downsample_all initialization
+
+        self.conv_final = nn.Conv2d(mid_channels * 2, out_channels, kernel_size=1, bias=False)
+        self.bn_final = nn.BatchNorm2d(out_channels)
+        self.relu_final = nn.ReLU(inplace=True)
+
+
+    def _make_layer(self, block_module, in_planes, planes, num_blocks, stride, use_eca=False, k_size=3):
+        strides = [stride] + [1]*(num_blocks-1)
+        layers = []
+        current_block_in_planes = in_planes # For BasicBlock, this will be mid_channels
+        for s_val in strides:
+            if use_eca:
+                layers.append(block_module(current_block_in_planes, planes, stride=s_val, k_size=k_size))
+            else:
+                 layers.append(block_module(current_block_in_planes, planes, stride=s_val))
+            current_block_in_planes = planes * block_module.expansion # For BasicBlock, planes*exp = mid_channels*1
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x_shortcut_path_internal = self.relu1(self.bn1(self.conv1(x)))
+
+        x_main_path_intermediate = self.relu_shortcut(self.bn_shortcut(self.conv_shortcut(x)))
+        x_main_path_blocks = self.blocks(x_main_path_intermediate)
+        x_main_path_final = self.relu_transition(self.bn_transition(self.conv_transition(x_main_path_blocks)))
+        
+        out = torch.cat((x_main_path_final, x_shortcut_path_internal), dim=1)
+        out = self.relu_final(self.bn_final(self.conv_final(out)))
+        return out
+
+class CSPResNet(nn.Module):
+    def __init__(self, block_module, csp_block_module, layers, num_classes=100, use_eca=False, k_size=3):
+        super().__init__()
+        self.in_planes = 64
+        self.use_eca = use_eca
+        self.k_size = k_size
+
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+
+        self.layer1 = self._make_csp_layer(block_module, csp_block_module, 64, layers[0], stride=1)
+        self.layer2 = self._make_csp_layer(block_module, csp_block_module, 128, layers[1], stride=2)
+        self.layer3 = self._make_csp_layer(block_module, csp_block_module, 256, layers[2], stride=2)
+        self.layer4 = self._make_csp_layer(block_module, csp_block_module, 512, layers[3], stride=2)
+        
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        # Calculate the correct in_features for the fc layer based on the output of the last CSP layer
+        # The last CSP layer (layer4) uses planes=512. Its out_channels is 512 * expansion * 2.
+        fc_in_features = 512 * block_module.expansion * 2
+        self.fc = nn.Linear(fc_in_features, num_classes)
+
+    def _make_csp_layer(self, block_module, csp_block_module, planes, num_blocks, stride):
+        out_planes = planes * block_module.expansion * 2 # CSP doubles effective channels before final 1x1
+        layer = csp_block_module(self.in_planes, out_planes, num_blocks, block_module, stride=stride, use_eca=self.use_eca, k_size=self.k_size)
+        self.in_planes = out_planes
+        return layer
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+        return x
+
+# --- ResNeSt specific blocks (for ResNeSt50D) ---
+class RadixSoftmax(nn.Module):
+    def __init__(self, radix, cardinality):
+        super().__init__()
+        self.radix = radix
+        self.cardinality = cardinality
+
+    def forward(self, x):
+        batch = x.size(0)
+        if self.radix > 1:
+            x = x.view(batch, self.cardinality, self.radix, -1).transpose(1, 2)
+            x = F.softmax(x, dim=1)
+            x = x.reshape(batch, -1)
+        else:
+            x = torch.sigmoid(x)
+        return x
+
+class SplitAttnConv(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0,
+                 dilation=1, groups=1, bias=False, radix=2, reduction_factor=4, **kwargs):
+        super(SplitAttnConv, self).__init__()
+        inter_channels = max(in_channels * radix // reduction_factor, 32)
+        self.radix = radix
+        self.cardinality = groups # For ResNeSt, groups is cardinality
+        self.channels = out_channels
+        self.conv = nn.Conv2d(in_channels, out_channels * radix, kernel_size, stride, padding, dilation,
+                              groups=groups * radix, bias=bias, **kwargs)
+        self.bn0 = nn.BatchNorm2d(out_channels * radix)
+        self.relu = nn.ReLU(inplace=True)
+        self.fc1 = nn.Conv2d(out_channels, inter_channels, 1, groups=self.cardinality)
+        self.bn1 = nn.BatchNorm2d(inter_channels)
+        self.fc2 = nn.Conv2d(inter_channels, out_channels * radix, 1, groups=self.cardinality)
+        self.rsoftmax = RadixSoftmax(radix, self.cardinality)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn0(x)
+        x = self.relu(x)
+
+        batch, rchannel = x.shape[:2]
+        if self.radix > 1:
+            splited = torch.split(x, rchannel // self.radix, dim=1)
+            gap = sum(splited) 
+        else:
+            gap = x
+        
+        gap = F.adaptive_avg_pool2d(gap, 1)
+        gap = self.fc1(gap)
+        gap = self.bn1(gap)
+        gap = self.relu(gap)
+
+        atten = self.fc2(gap)
+        atten = self.rsoftmax(atten).view(batch, -1, 1, 1)
+
+        if self.radix > 1:
+            attens = torch.split(atten, rchannel // self.radix, dim=1)
+            out = sum([att*split for (att, split) in zip(attens, splited)])
+        else:
+            out = atten * x
+        return out.contiguous()
+
+class ResNeStBottleneckD(nn.Module): # 'D' variant for ResNeSt-D models
+    expansion = 4
+    def __init__(self, inplanes, planes, stride=1, downsample=None,
+                 radix=2, cardinality=1, bottleneck_width=64,
+                 avd=True, avd_first=False, is_first=False):
+        super(ResNeStBottleneckD, self).__init__()
+        group_width = int(planes * (bottleneck_width / 64.)) * cardinality
+        self.conv1 = nn.Conv2d(inplanes, group_width, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(group_width)
+        self.radix = radix
+        self.avd = avd and (stride > 1 or is_first) # Apply AVD for strides or first block
+        self.avd_first = avd_first
+
+        if self.avd:
+            self.avd_layer = nn.AvgPool2d(3, stride, padding=1)
+            stride = 1 # Stride is handled by AvgPool
+
+        self.conv2 = SplitAttnConv(
+            group_width, group_width, kernel_size=3,
+            stride=stride, padding=1, groups=cardinality, bias=False,
+            radix=radix)
+        
+        self.conv3 = nn.Conv2d(group_width, planes * self.expansion, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * self.expansion)
+        self.relu = nn.ReLU(inplace=True)
+        self.downsample = downsample
+        self.stride = stride # Store original stride
+
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        if self.avd and self.avd_first:
+            out = self.avd_layer(out)
+        
+        out = self.conv2(out)
+        # SplitAttnConv has its own ReLU
+
+        if self.avd and not self.avd_first:
+            out = self.avd_layer(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+        return out
+
+class ResNeStCustom(nn.Module):
+    def __init__(self, block, layers, num_classes=100, radix=2, cardinality=1, bottleneck_width=64,
+                 deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False):
+        self.cardinality = cardinality
+        self.bottleneck_width = bottleneck_width
+        self.radix = radix
+        self.avd = avd
+        self.avd_first = avd_first
+        self.inplanes = stem_width*2 if deep_stem else 64
+        super(ResNeStCustom, self).__init__()
+
+        if deep_stem:
+            self.conv1 = nn.Sequential(
+                nn.Conv2d(3, stem_width, kernel_size=3, stride=2, padding=1, bias=False),
+                nn.BatchNorm2d(stem_width),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(stem_width, stem_width, kernel_size=3, stride=1, padding=1, bias=False),
+                nn.BatchNorm2d(stem_width),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(stem_width, stem_width*2, kernel_size=3, stride=1, padding=1, bias=False),
+            )
+        else:
+            self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        
+        self.bn1 = nn.BatchNorm2d(self.inplanes)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        
+        self.layer1 = self._make_layer(block, 64, layers[0], stride=1, avg_down=avg_down, is_first=True) # Added stride=1 and ensure is_first is correctly propagated
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, avg_down=avg_down, is_first=False)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2, avg_down=avg_down, is_first=False)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2, avg_down=avg_down, is_first=False)
+        
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        # Correct in_features for ResNeSt fc layer
+        fc_in_features = 512 * block.expansion # Should not be multiplied by 2 for ResNeSt
+        self.fc = nn.Linear(fc_in_features, num_classes)
+
+    def _make_layer(self, block, planes, blocks, stride, avg_down=True, is_first=False):
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            if avg_down: # For ResNeSt-D
+                downsample = nn.Sequential(
+                    nn.AvgPool2d(kernel_size=stride, stride=stride, ceil_mode=True, count_include_pad=False),
+                    nn.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1, stride=1, bias=False),
+                    nn.BatchNorm2d(planes * block.expansion),
+                )
+            else:
+                downsample = nn.Sequential(
+                    nn.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1, stride=stride, bias=False),
+                    nn.BatchNorm2d(planes * block.expansion),
+                )
+
+        layers = []
+        layers.append(block(self.inplanes, planes, stride, downsample, self.radix,
+                            self.cardinality, self.bottleneck_width, avd=self.avd,
+                            avd_first=self.avd_first, is_first=is_first))
+        self.inplanes = planes * block.expansion
+        for i in range(1, blocks):
+            layers.append(block(self.inplanes, planes, stride=1, # Explicitly set stride=1 for subsequent blocks
+                                downsample=None, # Subsequent blocks in a stage typically don't downsample
+                                radix=self.radix,
+                                cardinality=self.cardinality, bottleneck_width=self.bottleneck_width,
+                                avd=self.avd, avd_first=self.avd_first, is_first=False))
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+        return x
+
+# --- CoAtNet specific blocks (Simplified) ---
+class MBConvBlock(nn.Module): # Simplified MBConv
+    def __init__(self, inp, oup, stride, expand_ratio, se_ratio=0.25):
+        super().__init__()
+        self.stride = stride
+        hidden_dim = inp * expand_ratio
+        self.use_res_connect = self.stride == 1 and inp == oup
+
+        layers = []
+        # pw
+        if expand_ratio != 1:
+            layers.extend([
+                nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                nn.ReLU6(inplace=True)
+            ])
+        
+        # dw
+        layers.extend([
+            nn.Conv2d(hidden_dim, hidden_dim, 3, stride, 1, groups=hidden_dim, bias=False),
+            nn.BatchNorm2d(hidden_dim),
+            nn.ReLU6(inplace=True)
+        ])
+
+        # Squeeze-and-excitation
+        if se_ratio > 0:
+            squeeze_channels = max(1, int(inp * se_ratio))
+            layers.append(SqueezeExcite(hidden_dim, reduced_base_chs=squeeze_channels, act_layer=nn.ReLU6)) # Use ReLU6 for SE like MobileNetV3
+
+        # pw-linear
+        layers.extend([
+            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(oup)
+        ])
+        self.conv = nn.Sequential(*layers)
+
+    def forward(self, x):
+        if self.use_res_connect:
+            return x + self.conv(x)
+        else:
+            return self.conv(x)
+
+class FeedForward(nn.Module):
+    def __init__(self, dim, hidden_dim, dropout = 0.):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim, hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, dim),
+            nn.Dropout(dropout)
+        )
+    def forward(self, x):
+        return self.net(x)
+
+class Attention(nn.Module): # Simplified Self-Attention
+    def __init__(self, dim, heads = 8, dim_head = 64, dropout = 0.):
+        super().__init__()
+        inner_dim = dim_head *  heads
+        self.heads = heads
+        self.scale = dim_head ** -0.5
+
+        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
+        self.to_out = nn.Sequential(
+            nn.Linear(inner_dim, dim),
+            nn.Dropout(dropout)
+        )
+
+    def forward(self, x):
+        b, n, _, h = *x.shape, self.heads
+        qkv = self.to_qkv(x).chunk(3, dim = -1)
+        q, k, v = map(lambda t: t.reshape(b, n, h, -1).transpose(1, 2), qkv)
+
+        dots = torch.einsum('bhid,bhjd->bhij', q, k) * self.scale
+        attn = dots.softmax(dim=-1)
+
+        out = torch.einsum('bhij,bhjd->bhid', attn, v)
+        out = out.transpose(1, 2).reshape(b, n, -1)
+        return self.to_out(out)
+
+class TransformerBlock(nn.Module):
+    def __init__(self, dim, heads, dim_head, mlp_dim, dropout=0.):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(dim)
+        self.attn = Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout)
+        self.norm2 = nn.LayerNorm(dim)
+        self.ffn = FeedForward(dim, mlp_dim, dropout=dropout)
+
+    def forward(self, x):
+        x = self.attn(self.norm1(x)) + x
+        x = self.ffn(self.norm2(x)) + x
+        return x
+
+class CoAtNetCustom(nn.Module): # Highly Simplified CoAtNet structure
+    def __init__(self, num_classes=100,
+                 s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=768, # Example channel progression
+                 s0_blocks=2, s1_blocks=2, s2_blocks=2, s3_blocks=2, s4_blocks=2, # Example block counts
+                 mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=4):
+        super().__init__()
+
+        self.stem = nn.Sequential(
+            nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(s0_channels),
+            nn.ReLU(inplace=True)
+        )
+        
+        # Stage 0 (MBConv)
+        self.s0 = self._make_mbconv_stage(s0_channels, s0_channels, s0_blocks, stride=1, expand_ratio=mbconv_expand_ratio)
+        
+        # Stage 1 (MBConv)
+        self.s1 = self._make_mbconv_stage(s0_channels, s1_channels, s1_blocks, stride=2, expand_ratio=mbconv_expand_ratio)
+        
+        # Stage 2 (Transformer, simplified)
+        self.s2_pre_conv = nn.Conv2d(s1_channels, s2_channels, kernel_size=1) # Patch embedding like
+        self.s2_transformer = self._make_transformer_stage(s2_channels, s2_blocks, transformer_heads, s2_channels // transformer_heads, s2_channels * transformer_mlp_dim_ratio)
+        
+        # Stage 3 (Transformer, simplified)
+        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2) # Downsampling
+        self.s3_transformer = self._make_transformer_stage(s3_channels, s3_blocks, transformer_heads, s3_channels // transformer_heads, s3_channels * transformer_mlp_dim_ratio)
+
+        # Stage 4 (Transformer, simplified)
+        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2) # Downsampling
+        self.s4_transformer = self._make_transformer_stage(s4_channels, s4_blocks, transformer_heads, s4_channels // transformer_heads, s4_channels * transformer_mlp_dim_ratio)
+
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Linear(s4_channels, num_classes)
+
+    def _make_mbconv_stage(self, in_c, out_c, num_blocks, stride, expand_ratio):
+        layers = [MBConvBlock(in_c if i == 0 else out_c, out_c, stride if i == 0 else 1, expand_ratio) for i in range(num_blocks)]
+        return nn.Sequential(*layers)
+
+    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim):
+        layers = [TransformerBlock(dim, heads, dim_head, mlp_dim) for _ in range(num_blocks)]
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.stem(x)
+        x = self.s0(x)
+        x = self.s1(x)
+        
+        # S2
+        x = self.s2_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2) # (B, H*W, C)
+        x = self.s2_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        # S3
+        x = self.s3_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)
+        x = self.s3_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        # S4
+        x = self.s4_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)
+        x = self.s4_transformer(x)
+        # x = x.transpose(1, 2).reshape(b, c, h, w) # Not needed before pooling if an MLP head takes (B, N, C)
+        
+        x = torch.mean(x, dim=1) # Global average pooling over sequence length for transformer output
+
+        # x = self.pool(x).flatten(1) # If last stage was conv
+        x = self.fc(x)
+        return x
+
+# --- LSKNet Inspired Components ---
+class LSKAttention(nn.Module):
+    def __init__(self, channels, kernel_sizes: List[int], reduction_ratio=16):
+        super().__init__()
+        self.num_kernels = len(kernel_sizes)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Conv2d(channels, channels // reduction_ratio, 1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels // reduction_ratio, channels * self.num_kernels, 1, bias=False)
+        )
+        self.softmax = nn.Softmax(dim=1) 
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        attn = self.avg_pool(x)            # (b, c, 1, 1)
+        attn = self.fc(attn)               # (b, c * num_kernels, 1, 1)
+        attn = attn.view(b, self.num_kernels, c, 1, 1) # (b, num_kernels, c, 1, 1)
+        attn = self.softmax(attn)          # Apply softmax over num_kernels dimension
+        return attn # (b, num_kernels, c, 1, 1)
+
+class MBConvBlock_enhanced(nn.Module):
+    def __init__(self, inp, oup, stride, expand_ratio, se_ratio=0.25, 
+                 lsk_kernel_sizes: List[int] = [3, 5], lsk_reduction_ratio=16):
+        super().__init__()
+        self.stride = stride
+        hidden_dim = inp * expand_ratio
+        self.use_res_connect = self.stride == 1 and inp == oup
+        self.lsk_kernel_sizes = lsk_kernel_sizes
+        self.num_kernels = len(lsk_kernel_sizes)
+
+        # Pointwise expansion
+        if expand_ratio != 1:
+            self.pw_expand = nn.Sequential(
+                nn.Conv2d(inp, hidden_dim, 1, 1, 0, bias=False),
+                nn.BatchNorm2d(hidden_dim),
+                nn.ReLU6(inplace=True)
+            )
+        else:
+            self.pw_expand = nn.Identity()
+
+        # LSK-based Depthwise Convolution part
+        self.lsk_dw_convs = nn.ModuleList()
+        for k_size in lsk_kernel_sizes:
+            self.lsk_dw_convs.append(
+                nn.Sequential(
+                    nn.Conv2d(hidden_dim, hidden_dim, k_size, stride, k_size//2, groups=hidden_dim, bias=False),
+                    nn.BatchNorm2d(hidden_dim),
+                    nn.ReLU6(inplace=True)
+                )
+            )
+        self.lsk_attention = LSKAttention(hidden_dim, lsk_kernel_sizes, lsk_reduction_ratio)
+
+        # Squeeze-and-excitation (optional)
+        if se_ratio > 0:
+            squeeze_channels = max(1, int(inp * se_ratio)) # SE based on input channels of the block
+            self.se = SqueezeExcite(hidden_dim, reduced_base_chs=squeeze_channels, act_layer=nn.ReLU6)
+        else:
+            self.se = nn.Identity()
+
+        # Pointwise linear projection
+        self.pw_linear = nn.Sequential(
+            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+            nn.BatchNorm2d(oup)
+        )
+
+    def forward(self, x):
+        identity = x
+        
+        x = self.pw_expand(x)
+        
+        # LSK DW Conv
+        dw_conv_outputs = []
+        for conv_branch in self.lsk_dw_convs:
+            dw_conv_outputs.append(conv_branch(x)) # (b, hidden_dim, h', w')
+        
+        # Get attention weights (b, num_kernels, hidden_dim, 1, 1)
+        attn_weights = self.lsk_attention(x) 
+        
+        # Corrected weighted sum of DW conv outputs
+        dw_conv_outputs_stacked = torch.stack(dw_conv_outputs, dim=1) # Shape: (b, num_kernels, hidden_dim, h', w')
+        x_lsk = torch.sum(dw_conv_outputs_stacked * attn_weights, dim=1) # Shape: (b, hidden_dim, h', w')
+        
+        x = x_lsk # Output from LSK DW part
+
+        x = self.se(x)
+        x = self.pw_linear(x)
+
+        if self.use_res_connect:
+            return identity + x
+        else:
+            return x
+
+# --- End LSKNet Inspired Components ---
+
+# --- Enhanced CoAtNet with LSK-MBConv ---
+class CoAtNetCustom_enhanced(nn.Module):
+    def __init__(self, num_classes=100,
+                 s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=768,
+                 s0_blocks=2, s1_blocks=2, s2_blocks=2, s3_blocks=2, s4_blocks=2,
+                 mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=4,
+                 lsk_kernel_sizes: List[int] = [3, 5], lsk_reduction_ratio=16, se_ratio_in_mbconv=0.25): # Added LSK params
+        super().__init__()
+
+        self.stem = nn.Sequential(
+            nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(s0_channels),
+            nn.ReLU(inplace=True)
+        )
+        
+        # Stage 0 (MBConv_enhanced)
+        self.s0 = self._make_mbconv_enhanced_stage(
+            s0_channels, s0_channels, s0_blocks, stride=1, 
+            expand_ratio=mbconv_expand_ratio, 
+            lsk_kernel_sizes=lsk_kernel_sizes, 
+            lsk_reduction_ratio=lsk_reduction_ratio,
+            se_ratio=se_ratio_in_mbconv
+        )
+        
+        # Stage 1 (MBConv_enhanced)
+        self.s1 = self._make_mbconv_enhanced_stage(
+            s0_channels, s1_channels, s1_blocks, stride=2, 
+            expand_ratio=mbconv_expand_ratio,
+            lsk_kernel_sizes=lsk_kernel_sizes,
+            lsk_reduction_ratio=lsk_reduction_ratio,
+            se_ratio=se_ratio_in_mbconv
+        )
+        
+        # Stage 2 (Transformer, simplified)
+        self.s2_pre_conv = nn.Conv2d(s1_channels, s2_channels, kernel_size=1) 
+        self.s2_transformer = self._make_transformer_stage(s2_channels, s2_blocks, transformer_heads, s2_channels // transformer_heads, s2_channels * transformer_mlp_dim_ratio)
+        
+        # Stage 3 (Transformer, simplified)
+        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2) 
+        self.s3_transformer = self._make_transformer_stage(s3_channels, s3_blocks, transformer_heads, s3_channels // transformer_heads, s3_channels * transformer_mlp_dim_ratio)
+
+        # Stage 4 (Transformer, simplified)
+        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2) 
+        self.s4_transformer = self._make_transformer_stage(s4_channels, s4_blocks, transformer_heads, s4_channels // transformer_heads, s4_channels * transformer_mlp_dim_ratio)
+
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Linear(s4_channels, num_classes)
+
+    def _make_mbconv_enhanced_stage(self, in_c, out_c, num_blocks, stride, expand_ratio, lsk_kernel_sizes, lsk_reduction_ratio, se_ratio):
+        layers = []
+        for i in range(num_blocks):
+            block_stride = stride if i == 0 else 1
+            current_in_c = in_c if i == 0 else out_c
+            layers.append(MBConvBlock_enhanced(
+                current_in_c, out_c, block_stride, expand_ratio, 
+                se_ratio=se_ratio, # Pass SE ratio for MBConv internal SE
+                lsk_kernel_sizes=lsk_kernel_sizes, 
+                lsk_reduction_ratio=lsk_reduction_ratio
+            ))
+        return nn.Sequential(*layers)
+
+    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim):
+        layers = [TransformerBlock(dim, heads, dim_head, mlp_dim) for _ in range(num_blocks)]
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.stem(x)
+        x = self.s0(x)
+        x = self.s1(x)
+        
+        x = self.s2_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2) 
+        x = self.s2_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        x = self.s3_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)
+        x = self.s3_transformer(x)
+        x = x.transpose(1, 2).reshape(b, c, h, w)
+
+        x = self.s4_pre_conv(x)
+        b, c, h, w = x.shape
+        x = x.flatten(2).transpose(1, 2)
+        x = self.s4_transformer(x)
+        
+        x = torch.mean(x, dim=1) 
+        x = self.fc(x)
+        return x
+# --- End Enhanced CoAtNet ---
+
+
+# --- Model Registry and Getter ---
 MODEL_REGISTRY: Dict[str, Callable[..., nn.Module]] = {}
 
 def register_model(name: str) -> Callable[..., Callable[..., nn.Module]]:
@@ -458,143 +1243,272 @@ def register_model(name: str) -> Callable[..., Callable[..., nn.Module]]:
 
 @register_model("resnet_20")
 def resnet20_builder(num_classes=100, **kwargs):
-    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs=kwargs)
+    return ResNet(BasicBlock, [3, 3, 3], num_classes=num_classes, **kwargs)
 
 @register_model("resnet_32")
 def resnet32_builder(num_classes=100, **kwargs):
-    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs=kwargs)
+    return ResNet(BasicBlock, [5, 5, 5], num_classes=num_classes, **kwargs)
 
 @register_model("resnet_56")
 def resnet56_builder(num_classes=100, **kwargs):
-    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes, block_kwargs=kwargs)
+    return ResNet(BasicBlock, [9, 9, 9], num_classes=num_classes, **kwargs)
 
 @register_model("eca_resnet_20")
 def eca_resnet20_builder(num_classes=100, k_size=3, **kwargs):
-    return ResNet(ECABasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size, **kwargs})
+    return ResNet(ECABasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size}, **kwargs)
 
 @register_model("eca_resnet_32")
-def eca_resnet32_builder(num_classes=100, k_size=3, **kwargs):
-    return ResNet(ECABasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs={'k_size': k_size, **kwargs})
+def eca_resnet32_builder(num_classes=100, k_size=5, **kwargs): # k_size default 5 for eca_r32
+    return ResNet(ECABasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs={'k_size': k_size}, **kwargs)
 
 @register_model("ghost_resnet_20")
 def ghost_resnet20_builder(num_classes=100, ratio=2, **kwargs):
-    return ResNet(GhostBasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'ratio': ratio, **kwargs})
+    return ResNet(GhostBasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'ratio': ratio}, **kwargs)
 
 @register_model("ghost_resnet_32")
 def ghost_resnet32_builder(num_classes=100, ratio=2, **kwargs):
-    return ResNet(GhostBasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs={'ratio': ratio, **kwargs})
+    return ResNet(GhostBasicBlock, [5, 5, 5], num_classes=num_classes, block_kwargs={'ratio': ratio}, **kwargs)
+
+@register_model("ghostnet_100") # Corresponds to GhostNet 1.0x
+def ghostnet_100_builder(num_classes=100, width=1.0, dropout=0.2, **kwargs):
+    # GhostNetV1 configurations: (kernel_size, hidden_expansion_size, out_channels, use_se, stride)
+    cfgs = [
+        # k, t, c, SE, s 
+        # stage1
+        [[3,  16,  16, 0, 1]],
+        # stage2
+        [[3,  48,  24, 0, 2]],
+        [[3,  72,  24, 0, 1]],
+        # stage3
+        [[5,  72,  40, 1, 2]], # use_se=1 for SqueezeExcite
+        [[5, 120,  40, 1, 1]],
+        # stage4
+        [[3, 240,  80, 0, 2]],
+        [[3, 200,  80, 0, 1],
+         [3, 184,  80, 0, 1],
+         [3, 184,  80, 0, 1],
+         [3, 480, 112, 1, 1],
+         [3, 672, 112, 1, 1]
+        ],
+        # stage5
+        [[5, 672, 160, 1, 2]],
+        [[5, 960, 160, 0, 1],
+         [5, 960, 160, 1, 1],
+         [5, 960, 160, 0, 1],
+         [5, 960, 160, 1, 1]
+        ]
+    ]
+    return GhostNetCustom(cfgs, num_classes=num_classes, width=width, dropout=dropout, **kwargs)
 
 @register_model("convnext_tiny")
 def convnext_tiny_custom_builder(num_classes=100, **kwargs):
-    return ConvNeXtCustom(depths=[2,2,6,2], dims=[32,64,128,256], num_classes=num_classes, **kwargs)
+    # Depths and Dims for ConvNeXt-Tiny like from official implementation
+    return ConvNeXtCustom(depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], num_classes=num_classes, **kwargs)
 
-@register_model("segnext_mscan_tiny")
+@register_model("segnext_mscan_tiny") # This seems to be MSCANEncoderCustom from before
 def segnext_mscan_tiny_custom_builder(num_classes=100, **kwargs):
-    return MSCANEncoderCustom(dims=[32,64,128], depths=[2,2,3], num_classes=num_classes, **kwargs)
+    # Dims and depths for a "Tiny" variant, e.g. like SegNeXt-T
+    return MSCANEncoderCustom(dims=[32, 64, 160, 256], depths=[3, 3, 5, 2], num_classes=num_classes, **kwargs)
 
 @register_model("mlp_mixer_tiny")
 def mlp_mixer_tiny_custom_builder(num_classes=100, **kwargs):
-    return MLPMixerCustom(image_size=32, patch_size=4, dim=128, depth=4, 
-                          token_mlp_dim=128, channel_mlp_dim=256,
-                          num_classes=num_classes, **kwargs)
+    # Default "Tiny" parameters for CIFAR-100 like
+    return MLPMixerCustom(image_size=32, patch_size=4, dim=128, depth=8, 
+                          token_mlp_dim=256, channel_mlp_dim=512, num_classes=num_classes, **kwargs)
 
-TIMM_NAME_MAP = {
-    "convnext_tiny_timm": "convnext_tiny",
-    "coatnet_0": "coatnet_0",
-    "cspresnet50": "cspresnet50",
-    "ghostnet_100": "ghostnet_100",
-    "hornet_tiny": "hornet_tiny_7x7",
-    "resnest50d": "resnest50d",
-    "mlp_mixer_b16": "mixer_b16_224_in21k"
-}
+@register_model("mlp_mixer_b16")
+def mlp_mixer_b16_builder(num_classes=100, **kwargs):
+    # "Base" parameters for MLP-Mixer, patch size 16. Adjusted for CIFAR.
+    # Original B/16 is dim=768, depth=12. For CIFAR, might be too large.
+    # Using a scaled down version or parameters inspired by timm's cifar adaptations if any.
+    # Let's use dim=512, depth=8, patch_size=4 (as 32/16=2x2 patches is too few)
+    return MLPMixerCustom(image_size=32, patch_size=4, dim=512, depth=8, 
+                          token_mlp_dim=1024, channel_mlp_dim=2048, num_classes=num_classes, **kwargs)
 
-def get_model(model_name: str, num_classes: int = 100, pretrained_timm: bool = False, **kwargs: Any) -> nn.Module:
-    if pretrained_timm and model_name in TIMM_NAME_MAP:
-        # For timm models, pretrained=True implies ImageNet pretraining.
-        # kwargs might include specific timm features if necessary
-        model = timm.create_model(
-            TIMM_NAME_MAP[model_name],
-            pretrained=True,
-            num_classes=num_classes,
-            **kwargs.get('timm_extra_args', {}) # Pass any extra args for timm
-        )
-        # If 'drop_path_rate' is in kwargs, ensure it's applied if the model supports it
-        if 'drop_path_rate' in kwargs and hasattr(model, 'drop_path_rate'):
-            model.drop_path_rate = kwargs['drop_path_rate']
-        return model
+
+@register_model("cspresnet50")
+def cspresnet50_builder(num_classes=100, **kwargs):
+    # ResNet50 layers: [3, 4, 6, 3] for Bottleneck. BasicBlock used here needs adjustment.
+    # Assuming BasicBlock based CSPNet for now, as Bottleneck version is more complex.
+    # Or, implement Bottleneck and CSPBottleneck. For simplicity, using BasicBlock based structure.
+    # To be a true CSPResNet50, it would need Bottleneck blocks.
+    # This will be a CSPNet with ResNet50-like depth using BasicBlocks.
+    return CSPResNet(BasicBlock, CSPBlock, [3,4,6,3], num_classes=num_classes, **kwargs)
+
+@register_model("resnest50d")
+def resnest50d_builder(num_classes=100, **kwargs):
+    return ResNeStCustom(ResNeStBottleneckD, [3, 4, 6, 3], num_classes=num_classes,
+                         radix=2, cardinality=1, bottleneck_width=64,
+                         deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, **kwargs)
+
+@register_model("coatnet_0") # Builder for the non-enhanced CoAtNetCustom
+def coatnet_0_builder(num_classes=100, **kwargs):
+    # Default CoAtNet-0 parameters
+    config = {
+        's0_channels': 64, 's1_channels': 96, 's2_channels': 192, 
+        's3_channels': 384, 's4_channels': 768,
+        's0_blocks': 2, 's1_blocks': 2, 's2_blocks': 3, 
+        's3_blocks': 5, 's4_blocks': 2, # CoAtNet-0 typical block counts
+        'mbconv_expand_ratio': 4, 
+        'transformer_heads': 4, # Simplified: same head count for all transformer stages
+        'transformer_mlp_dim_ratio': 4
+    }
+    config.update(kwargs) # Override defaults with any passed kwargs
+    return CoAtNetCustom(num_classes=num_classes, **config)
+
+@register_model("coatnet_0_custom_enhanced")
+def coatnet_0_enhanced_builder(num_classes=100, **kwargs):
+    # Default LSK params, can be overridden by kwargs if needed
+    lsk_kernel_sizes = kwargs.pop('lsk_kernel_sizes', [3,5,7]) # Example, make it configurable
+    lsk_reduction_ratio = kwargs.pop('lsk_reduction_ratio', 8) # Example
+    se_ratio_in_mbconv = kwargs.pop('se_ratio_in_mbconv', 0.25) # Default SE in MBConv
+
+    # Default CoAtNet-0 like structure parameters (can also be overridden)
+    s0_channels = kwargs.pop('s0_channels', 64)
+    s1_channels = kwargs.pop('s1_channels', 96)
+    s2_channels = kwargs.pop('s2_channels', 192)
+    s3_channels = kwargs.pop('s3_channels', 384)
+    s4_channels = kwargs.pop('s4_channels', 768)
+    s0_blocks = kwargs.pop('s0_blocks', 2)
+    s1_blocks = kwargs.pop('s1_blocks', 2)
+    s2_blocks = kwargs.pop('s2_blocks', 3) # Slightly deeper transformer for CoAtNet-0
+    s3_blocks = kwargs.pop('s3_blocks', 5) # Slightly deeper transformer
+    s4_blocks = kwargs.pop('s4_blocks', 2) # 
+    mbconv_expand_ratio = kwargs.pop('mbconv_expand_ratio', 4)
     
-    builder = MODEL_REGISTRY.get(model_name)
-    if builder:
-        # Pass only relevant kwargs to the builder
-        # This requires builders to be robust to extra kwargs or for us to filter them
-        # For simplicity here, we pass all, assuming builders handle them or use **kwargs
-        return builder(num_classes=num_classes, **kwargs)
-    
-    raise ValueError(f"Model {model_name} not found in MODEL_REGISTRY or TIMM_NAME_MAP for the given configuration.")
+    return CoAtNetCustom_enhanced(num_classes=num_classes,
+                               s0_channels=s0_channels, s1_channels=s1_channels, 
+                               s2_channels=s2_channels, s3_channels=s3_channels, s4_channels=s4_channels,
+                               s0_blocks=s0_blocks, s1_blocks=s1_blocks, 
+                               s2_blocks=s2_blocks, s3_blocks=s3_blocks, s4_blocks=s4_blocks,
+                               mbconv_expand_ratio=mbconv_expand_ratio,
+                               lsk_kernel_sizes=lsk_kernel_sizes,
+                               lsk_reduction_ratio=lsk_reduction_ratio,
+                               se_ratio_in_mbconv=se_ratio_in_mbconv,
+                               **kwargs) # Pass remaining kwargs like transformer_heads etc.
+
+def get_model(model_name: str, num_classes: int = 100, **kwargs: Any) -> nn.Module:
+    """
+    Retrieves a model instance from the registry.
+    Args:
+        model_name (str): Name of the model (must be registered).
+        num_classes (int): Number of output classes.
+        kwargs (Any): Additional arguments for the model builder.
+    Returns:
+        nn.Module: Instantiated PyTorch model.
+    Raises:
+        ValueError: If the model_name is not found in the registry.
+    """
+    if model_name not in MODEL_REGISTRY:
+        # Check for legacy timm model names and map or raise error
+        if model_name == "convnext_tiny_timm":
+            print(f"Warning: Model '{model_name}' is deprecated. Using 'convnext_tiny' (custom implementation).")
+            model_name = "convnext_tiny"
+        elif model_name == "ghostnet_100_timm": # Assuming timm's ghostnet_100 is similar to our ghostnet_100
+             print(f"Warning: Model '{model_name}' is deprecated. Using 'ghostnet_100' (custom implementation).")
+             model_name = "ghostnet_100"
+        elif model_name == "mlp_mixer_b16_timm":
+            print(f"Warning: Model '{model_name}' is deprecated. Using 'mlp_mixer_b16' (custom implementation).")
+            model_name = "mlp_mixer_b16"
+        elif model_name in ["coatnet_0", "cspresnet50_timm", "hornet_tiny_timm", "resnest50d_timm"]:
+             # For models that had distinct _timm versions and now have _custom
+             # prefer _custom if available.
+             custom_name = model_name.replace("_timm", "_custom") if "_timm" in model_name else model_name + "_custom"
+             if custom_name in MODEL_REGISTRY:
+                 print(f"Warning: Model '{model_name}' (timm version) is deprecated. Using '{custom_name}'.")
+                 model_name = custom_name
+             elif model_name == "cspresnet50_timm": # Map to the new cspresnet50
+                  print(f"Warning: Model '{model_name}' (timm version) is deprecated. Using 'cspresnet50'.")
+                  model_name = "cspresnet50"
+             elif model_name == "resnest50d_timm":
+                  print(f"Warning: Model '{model_name}' (timm version) is deprecated. Using 'resnest50d'.")
+                  model_name = "resnest50d"
+             else:
+                raise ValueError(f"Model '{model_name}' not found in registry and no direct custom replacement available. Native PyTorch implementation needed.")
+        else:
+             raise ValueError(f"Model '{model_name}' not found in MODEL_REGISTRY.")
+
+    builder = MODEL_REGISTRY[model_name]
+    print(f"Building model: {model_name} with kwargs: {kwargs}")
+    return builder(num_classes=num_classes, **kwargs)
+
 
 def count_parameters(model: nn.Module) -> float:
-    return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6
+    """Counts the number of trainable parameters in a model."""
+    return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1e6  # Return in Millions
 
-def get_model_info(model: nn.Module, model_name: str, pretrained_timm: bool = False) -> Dict[str, Any]:
+def get_model_info(model: nn.Module, model_name: str) -> Dict[str, Any]:
+    """
+    Gets basic information about the model.
+    Args:
+        model (nn.Module): The model instance.
+        model_name (str): The name of the model.
+    Returns:
+        dict: Dictionary with model information (e.g., params_M).
+    """
+    params_m = count_parameters(model)
+    print(f'{model_name} - Parameters: {params_m:.2f}M')
     return {
-        "model_name": model_name,
-        "parameters_M": count_parameters(model),
-        "is_timm_pretrained": pretrained_timm
+        'model_name': model_name,
+        'params_M': params_m,
     }
 
 if __name__ == '__main__':
-    model_names_to_test = [
-        "resnet_20", "resnet_32", "resnet_56",
-        "eca_resnet_20", "eca_resnet_32",
-        "ghost_resnet_20", "ghost_resnet_32",
-        "convnext_tiny", 
-        "segnext_mscan_tiny",
-        "mlp_mixer_tiny",
-        "convnext_tiny_timm", 
-        "coatnet_0", 
-        "cspresnet50",
-        "ghostnet_100",
-        "hornet_tiny",
-        "resnest50d",
-        "mlp_mixer_b16",
+    # Test model registration and instantiation
+    test_model_names = [
+        "resnet_56", "eca_resnet_20", "ghost_resnet_32", 
+        "convnext_tiny", "segnext_mscan_tiny", "mlp_mixer_tiny",
+        "ghostnet_100", "cspresnet50", "resnest50d",
+        "mlp_mixer_b16", "coatnet_0", "coatnet_0_custom_enhanced" # Added coatnet_0
     ]
-
-    for name in model_names_to_test:
-        print(f"--- Testing model: {name} ---")
+    
+    for name in test_model_names:
+        print(f"--- Testing {name} ---")
         try:
-            if name in ["eca_resnet_20", "eca_resnet_32"]:
-                model_instance = get_model(name, num_classes=100, pretrained_timm=(name.endswith("_timm")), k_size=3)
-            elif name in ["ghost_resnet_20", "ghost_resnet_32"]:
-                model_instance = get_model(name, num_classes=100, pretrained_timm=(name.endswith("_timm")), ratio=2)
-            else:
-                model_instance = get_model(name, num_classes=100, pretrained_timm=(name.endswith("_timm") or name in TIMM_NAME_MAP))
+            # Test with default num_classes=100
+            model_instance = get_model(name, num_classes=100)
+            info = get_model_info(model_instance, name)
+            # Test a forward pass with dummy data
+            dummy_input = torch.randn(2, 3, 32, 32) # CIFAR-100 like
+            if name == "mlp_mixer_tiny" or name == "mlp_mixer_b16": # MLP Mixers don't take 4D HxW input directly sometimes
+                pass # Their custom forward handles it / or it's for 224x224. For CIFAR, it's ok.
             
-            dummy_input = torch.randn(2, 3, 32, 32)
             output = model_instance(dummy_input)
-            print(f"Model: {name}, Output shape: {output.shape}, Params (M): {count_parameters(model_instance):.2f}")
-            
-            if name == "eca_resnet_20":
-                 model_instance_k5 = get_model(name, num_classes=100, k_size=5)
-                 output_k5 = model_instance_k5(dummy_input)
-                 print(f"Model: {name} (k_size=5), Output shape: {output_k5.shape}, Params (M): {count_parameters(model_instance_k5):.2f}")
+            print(f"Output shape for {name}: {output.shape}")
+            assert output.shape == (2, 100)
+            print(f"{name} test passed.\n")
 
         except Exception as e:
-            print(f"Error testing model {name}: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"Error testing model {name}: {e}\n")
 
-# Cleanup old functions if they are fully replaced by the registry
-# The functions like resnet20(), eca_resnet20() defined globally are now replaced by builders
-# and called via get_model.
+    # Test a model that might need specific kwargs
+    print("--- Testing eca_resnet_20 with k_size ---")
+    try:
+        model_instance = get_model("eca_resnet_20", num_classes=10, k_size=5) # Override k_size
+        info = get_model_info(model_instance, "eca_resnet_20_custom_ksize")
+        dummy_input = torch.randn(2, 3, 32, 32)
+        output = model_instance(dummy_input)
+        print(f"Output shape: {output.shape}")
+        assert output.shape == (2, 10)
+        print("eca_resnet_20 with k_size test passed.\n")
+    except Exception as e:
+        print(f"Error testing eca_resnet_20 with k_size: {e}\n") 
 
-# Remove or comment out old separate model functions if `get_model` and registry are comprehensive
-# def resnet20(): ... (old)
-# def eca_resnet20(): ... (old)
-# etc.
-
-# Remove create_timm_model as its logic is in get_model
-# def create_timm_model(model_name: str, num_classes: int = 100, pretrained: bool = True): (old)
-
-# Remove old get_model and get_model_info if fully replaced
-# def get_model(model_name: str): (old, different signature)
-# def get_model_info(model_name: str): (old) 
+    # Add a specific test for coatnet_0_custom_enhanced with some LSK kargs
+    print("--- Testing coatnet_0_custom_enhanced with specific LSK kwargs ---")
+    try:
+        model_instance_enhanced = get_model(
+            "coatnet_0_custom_enhanced", 
+            num_classes=10, 
+            lsk_kernel_sizes=[3, 5], 
+            lsk_reduction_ratio=4,
+            s0_blocks=1, s1_blocks=1, s2_blocks=1, s3_blocks=1, s4_blocks=1 # Smaller model for quick test
+        )
+        info = get_model_info(model_instance_enhanced, "coatnet_0_custom_enhanced_specific_lsk")
+        dummy_input = torch.randn(2, 3, 32, 32) # CIFAR-100 like
+        output = model_instance_enhanced(dummy_input)
+        print(f"Output shape for coatnet_0_custom_enhanced_specific_lsk: {output.shape}")
+        assert output.shape == (2, 10)
+        print("coatnet_0_custom_enhanced with specific LSK kwargs test passed.\n")
+    except Exception as e:
+        print(f"Error testing coatnet_0_custom_enhanced with specific LSK kwargs: {e}\n")

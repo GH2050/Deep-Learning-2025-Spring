@@ -5,6 +5,13 @@ import os
 import json
 import time
 import pandas as pd
+import logging
+import torch.nn as nn
+import torch.optim as optim
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data import DataLoader
 
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
@@ -20,71 +27,76 @@ REPORT_HYPERPARAMETERS = {
             'optimizer_type': 'sgd',
             'lr': 0.1,
             'scheduler_type': 'cosine_annealing',
-            'warmup_epochs': 0, # SGD with CosineAnnealing typically doesn't use warmup here
+            'warmup_epochs': 0,
             'weight_decay': 5e-4,
             'batch_size_per_gpu': 128,
-            'use_imagenet_norm': False,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                'eca_resnet_20': {'k_size': 3}, # Report: ECA k_size=3 or 5
-                'eca_resnet_32': {'k_size': 5}, # Report: ECA k_size=3 or 5, choosing 5 for variety
+                'eca_resnet_20': {'k_size': 3},
+                'eca_resnet_32': {'k_size': 5},
             }
         },
-        'GhostNet_Variants': { # ghost_resnet_20, ghost_resnet_32, ghostnet_100 (timm)
-            'optimizer_type': 'sgd', # GhostNet paper often uses SGD
-            'lr': 0.1, # Could be higher for GhostNet, but aligning with ResNet for start
+        'GhostNet_Variants': { # ghost_resnet_20, ghost_resnet_32, ghostnet_100 (custom)
+            'optimizer_type': 'sgd',
+            'lr': 0.1,
             'scheduler_type': 'cosine_annealing',
-            'warmup_epochs': 5, # Slight warmup can be beneficial
-            'weight_decay': 4e-5, # GhostNet paper uses 4e-5
-            'batch_size_per_gpu': 128, # GhostNets are efficient
-            'use_imagenet_norm': False, # For our GhostResNets. ghostnet_100_timm will use True if pretrained.
+            'warmup_epochs': 5,
+            'weight_decay': 4e-5,
+            'batch_size_per_gpu': 128,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
                 'ghost_resnet_20': {'ratio': 2},
                 'ghost_resnet_32': {'ratio': 2},
-                'ghostnet_100': {'use_imagenet_norm': True, 'batch_size_per_gpu': 64} # Timm model, often needs ImageNet norm, potentially smaller BS for larger model
+                'ghostnet_100': {'batch_size_per_gpu': 64} # ghostnet_100 is larger
             }
         },
-        'ConvNeXt_Tiny': { # convnext_tiny (custom), convnext_tiny_timm
+        'ConvNeXt_Tiny': { # convnext_tiny (custom)
             'optimizer_type': 'adamw',
-            'lr': 4e-3, # ConvNeXt paper: base_lr (5e-4 for ImageNet 1k) * batch_size / 1024. For 8xV100 * 64 = 512 total batch size, this could be 5e-4 * 512 / 1024 = 2.5e-4. Report says 0.004 for CIFAR.
-            'scheduler_type': 'cosine_annealing_warmup', # Warmup is common
-            'warmup_epochs': 20, # ConvNeXt paper uses 20 warmup epochs
+            'lr': 4e-3, # From report for CIFAR. Original paper: base_lr (5e-4) * total_batch_size / 1024
+            'scheduler_type': 'cosine_annealing_warmup',
+            'warmup_epochs': 20,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 64, # ConvNeXt-T can be a bit heavy
-            'use_imagenet_norm': True, # ConvNeXt uses LayerNorm, ImageNet stats are standard
-            'model_specific_params': {
-                 'convnext_tiny_timm': {'batch_size_per_gpu': 64} # Ensure timm variant gets correct BS if different
-            }
+            'batch_size_per_gpu': 64,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
+            'model_specific_params': {}
         },
-        'Hybrid_Attention_CNN': { # coatnet_0, cspresnet50, hornet_tiny, resnest50d
+        'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d, coatnet_0_custom_enhanced
             'optimizer_type': 'adamw',
-            'lr': 1e-3, # General AdamW LR for transformers/hybrids
+            'lr': 2e-4,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 64, # These models can be larger
-            'use_imagenet_norm': True, # Typically pretrained on ImageNet
-            'model_specific_params': {}
+            'batch_size_per_gpu': 64,
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
+            'model_specific_params': {
+                'coatnet_0_custom_enhanced': { # Default LSK parameters for the enhanced model
+                    'batch_size_per_gpu': 64,
+                    'lsk_kernel_sizes': [3, 5, 7], 
+                    'lsk_reduction_ratio': 8,
+                    'se_ratio_in_mbconv': 0.25
+                } 
+            }
         },
-        'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (timm)
+        'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (custom)
             'optimizer_type': 'adamw',
             'lr': 1e-3,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
             'batch_size_per_gpu': 128, # Mixers can be efficient
-            'use_imagenet_norm': False, # For custom tiny, can train from scratch. B16 uses True.
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                 'mlp_mixer_b16': {'use_imagenet_norm': True, 'batch_size_per_gpu': 64} # Timm B/16 is larger
+                 'mlp_mixer_b16': {'batch_size_per_gpu': 64} # B/16 custom is larger
             }
         },
         'SegNeXt_MSCAN_Tiny': { # segnext_mscan_tiny (custom)
             'optimizer_type': 'adamw',
-            'lr': 1e-3, # Similar to other transformer-like or modern CNNs
+            'lr': 1e-3,
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
             'batch_size_per_gpu': 128,
-            'use_imagenet_norm': False, # Custom tiny trained from scratch
+            'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {}
         }
     },
@@ -96,16 +108,16 @@ REPORT_HYPERPARAMETERS = {
         'eca_resnet_32': 'ResNet_Variants',
         'ghost_resnet_20': 'GhostNet_Variants',
         'ghost_resnet_32': 'GhostNet_Variants',
-        'ghostnet_100': 'GhostNet_Variants', # Timm model
-        'convnext_tiny': 'ConvNeXt_Tiny', # Custom
-        'convnext_tiny_timm': 'ConvNeXt_Tiny', # Timm model
-        'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny', # Custom
-        'coatnet_0': 'Hybrid_Attention_CNN', # Timm model
-        'cspresnet50': 'Hybrid_Attention_CNN', # Timm model
-        'hornet_tiny': 'Hybrid_Attention_CNN', # Timm model
-        'resnest50d': 'Hybrid_Attention_CNN', # Timm model
-        'mlp_mixer_tiny': 'MLP_Mixer_Variants', # Custom
-        'mlp_mixer_b16': 'MLP_Mixer_Variants' # Timm model
+        'ghostnet_100': 'GhostNet_Variants',      # Was ghostnet_100 (timm)
+        'convnext_tiny': 'ConvNeXt_Tiny',        # Was convnext_tiny (custom) and convnext_tiny_timm
+        'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny',
+        'coatnet_0_custom': 'Hybrid_Attention_CNN', # Was coatnet_0 (timm)
+        'cspresnet50': 'Hybrid_Attention_CNN',       # Was cspresnet50 (timm)
+        'hornet_tiny_custom': 'Hybrid_Attention_CNN',# Was hornet_tiny (timm)
+        'resnest50d': 'Hybrid_Attention_CNN',        # Was resnest50d (timm)
+        'mlp_mixer_tiny': 'MLP_Mixer_Variants',
+        'mlp_mixer_b16': 'MLP_Mixer_Variants',      # Was mlp_mixer_b16 (timm)
+        'coatnet_0_custom_enhanced': 'Hybrid_Attention_CNN' # Added new model to category
     }
 }
 
@@ -117,14 +129,41 @@ def get_hyperparameters(model_name: str):
     Returns:
         dict: A dictionary containing hyperparameters.
     """
+    # Handle potential legacy timm model names if they are passed by mistake
+    # This mapping should align with the logic in model.py's get_model
+    legacy_map = {
+        "convnext_tiny_timm": "convnext_tiny",
+        "ghostnet_100_timm": "ghostnet_100",
+        "mlp_mixer_b16_timm": "mlp_mixer_b16",
+        "coatnet_0": "coatnet_0_custom", # Direct map, coatnet_0 was the timm key
+        "cspresnet50_timm": "cspresnet50",
+        "hornet_tiny_timm": "hornet_tiny_custom",
+        "resnest50d_timm": "resnest50d"
+    }
+    if model_name in legacy_map:
+        # print(f"Hyperparameter lookup: mapping legacy model name '{model_name}' to '{legacy_map[model_name]}'")
+        model_name = legacy_map[model_name]
+
     category_name = REPORT_HYPERPARAMETERS['model_to_category'].get(model_name)
     if not category_name:
-        raise ValueError(f"Model {model_name} not found in model_to_category mapping.")
+        # Try to infer category if a _custom or similar suffix was missed in mapping
+        # This is a fallback, explicit mapping is better.
+        for key_pattern in ['_custom', '_timm']: # Check if removing a suffix helps
+            if model_name.endswith(key_pattern):
+                base_name = model_name[:-len(key_pattern)]
+                category_name = REPORT_HYPERPARAMETERS['model_to_category'].get(base_name)
+                if category_name:
+                    # print(f"Hyperparameter lookup: found category for base name '{base_name}' for model '{model_name}'")
+                    model_name = base_name # Use the base name for specific params if found this way
+                    break
+    
+    if not category_name:
+        raise ValueError(f"Model {model_name} not found in model_to_category mapping after attempting fallbacks.")
 
     category_hparams = REPORT_HYPERPARAMETERS['categories'][category_name].copy()
+    # Get model specific params using the potentially updated model_name
     model_specific_hparams = category_hparams.get('model_specific_params', {}).get(model_name, {})
     
-    # Start with general category defaults
     final_hparams = {
         'optimizer_type': category_hparams['optimizer_type'],
         'lr': category_hparams['lr'],
@@ -132,32 +171,40 @@ def get_hyperparameters(model_name: str):
         'warmup_epochs': category_hparams['warmup_epochs'],
         'weight_decay': category_hparams['weight_decay'],
         'batch_size_per_gpu': category_hparams['batch_size_per_gpu'],
-        'use_imagenet_norm': category_hparams['use_imagenet_norm'],
+        'use_imagenet_norm': category_hparams['use_imagenet_norm'], # This will now be False for all
         'epochs': REPORT_HYPERPARAMETERS['epochs'],
-        'model_name': model_name
+        'model_name': model_name # Store the final model name used for lookup
     }
 
-    # Override with model-specific settings from the category
-    final_hparams.update(model_specific_hparams)
+    final_hparams.update(model_specific_hparams) # Override with specific settings for the model
 
-    # Add model-specific params that are not base hyperparameters (e.g. k_size, ratio)
-    # These should be passed to the model constructor via get_model(**model_constructor_params)
     model_constructor_params = {}
-    if 'k_size' in model_specific_hparams:
-        model_constructor_params['k_size'] = model_specific_hparams['k_size']
-    if 'ratio' in model_specific_hparams:
-        model_constructor_params['ratio'] = model_specific_hparams['ratio']
-    
-    # If the model is a timm model, it's often better to use imagenet norm by default if not specified
-    # and if it was pretrained (which we assume for timm models here for hyperparams)
-    timm_models_in_report = ["convnext_tiny_timm", "coatnet_0", "cspresnet50", "ghostnet_100", "hornet_tiny", "resnest50d", "mlp_mixer_b16"]
-    if model_name in timm_models_in_report and not model_specific_hparams.get('use_imagenet_norm_explicitly_set', False):
-         # If use_imagenet_norm was not explicitly set to False for this specific timm model in model_specific_params
-         # then default to True.
-        if not ('use_imagenet_norm' in model_specific_hparams and model_specific_hparams['use_imagenet_norm'] == False):
-            final_hparams['use_imagenet_norm'] = True
+    # Extract known model constructor params from the final hparams
+    # These keys should match what model_specific_params might contain for model builders
+    known_constructor_keys = ['k_size', 'ratio', 'width', 'dropout', 
+                              'depths', 'dims', # For ConvNeXt, MSCAN
+                              'image_size', 'patch_size', 'dim', 'depth', 'token_mlp_dim', 'channel_mlp_dim', # For MLP Mixer
+                              'radix', 'cardinality', 'bottleneck_width', 'deep_stem', 'stem_width', 'avg_down', 'avd', 'avd_first', # For ResNeSt
+                              # For CoAtNetCustom (simplified)
+                              's0_channels', 's1_channels', 's2_channels', 's3_channels', 's4_channels',
+                              's0_blocks', 's1_blocks', 's2_blocks', 's3_blocks', 's4_blocks',
+                              'mbconv_expand_ratio', 'transformer_heads', 'transformer_mlp_dim_ratio',
+                              # For HorNetCustom (simplified)
+                              'order', 'dw_k', 'use_filter',
+                              # For LSKNet components in enhanced models
+                              'lsk_kernel_sizes', 'lsk_reduction_ratio', 'se_ratio_in_mbconv'
+                             ] 
+    for key in known_constructor_keys:
+        if key in final_hparams: # Check if it was set directly by model_specific_params
+            model_constructor_params[key] = final_hparams[key]
+        elif key in category_hparams.get('model_specific_params', {}).get(model_name, {}): # Check original model_specific_params
+             model_constructor_params[key] = category_hparams['model_specific_params'][model_name][key]
+
 
     final_hparams['model_constructor_params'] = model_constructor_params
+    
+    # Ensure 'use_imagenet_norm' is consistently False as we are not using TIMM pretrained models
+    final_hparams['use_imagenet_norm'] = False
 
     return final_hparams
 
@@ -369,6 +416,226 @@ def save_comparison_summary_text(results_dict, save_path='assets/comparison_summ
                     f.write(f'{model_name:<25}: {improvement:+.2f}%\n')
     
     print(f'对比总结文本已保存到: {save_path}')
+
+def setup_logging(save_dir, rank=0):
+    """设置日志记录"""
+    if rank == 0:
+        log_file = os.path.join(save_dir, 'training.log')
+        
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file, encoding='utf-8'),
+                logging.StreamHandler()
+            ]
+        )
+        
+        logger = logging.getLogger(__name__)
+        logger.info("="*50)
+        logger.info("CIFAR-100 训练开始")
+        logger.info("="*50)
+        return logger
+    return None
+
+def log_system_info(logger, rank=0):
+    """记录系统信息"""
+    if rank == 0 and logger:
+        logger.info(f"PyTorch版本: {torch.__version__}")
+        logger.info(f"CUDA版本: {torch.version.cuda}")
+        logger.info(f"可用GPU数量: {torch.cuda.device_count()}")
+        logger.info(f"当前设备: {torch.cuda.current_device()}")
+        logger.info(f"GPU内存: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+
+def setup_distributed():
+    """初始化分布式训练环境"""
+    if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
+        rank = int(os.environ["RANK"])
+        world_size = int(os.environ['WORLD_SIZE'])
+        gpu = int(os.environ['LOCAL_RANK'])
+    elif 'SLURM_PROCID' in os.environ:
+        rank = int(os.environ['SLURM_PROCID'])
+        gpu = rank % torch.cuda.device_count()
+    else:
+        print('分布式环境变量未设置，使用单GPU训练')
+        return False, 0, 1, 0
+    
+    torch.cuda.set_device(gpu)
+    dist.init_process_group(backend='nccl', init_method='env://')
+    dist.barrier()
+    return True, rank, world_size, gpu
+
+def cleanup_distributed():
+    """清理分布式训练环境"""
+    if dist.is_initialized():
+        dist.destroy_process_group()
+
+def get_optimizer_scheduler(model, hparams, steps_per_epoch):
+    """获取优化器和学习率调度器"""
+    if hparams['optimizer_type'] == 'sgd':
+        optimizer = optim.SGD(
+            model.parameters(), 
+            lr=hparams['lr'], 
+            momentum=0.9, 
+            weight_decay=hparams['weight_decay'],
+            nesterov=True
+        )
+    elif hparams['optimizer_type'] == 'adamw':
+        optimizer = optim.AdamW(
+            model.parameters(),
+            lr=hparams['lr'],
+            weight_decay=hparams['weight_decay']
+        )
+    else:
+        raise ValueError(f"不支持的优化器类型: {hparams['optimizer_type']}")
+    
+    if hparams['scheduler_type'] == 'cosine_annealing':
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, 
+            T_max=hparams['epochs'],
+            eta_min=1e-6
+        )
+    elif hparams['scheduler_type'] == 'cosine_annealing_warmup':
+        def lr_lambda(epoch):
+            if epoch < hparams['warmup_epochs']:
+                return epoch / hparams['warmup_epochs']
+            else:
+                progress = (epoch - hparams['warmup_epochs']) / (hparams['epochs'] - hparams['warmup_epochs'])
+                return 0.5 * (1 + torch.cos(torch.tensor(progress * 3.14159)).item())
+        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+    elif hparams['scheduler_type'] == 'multistep':
+        milestones = [int(hparams['epochs'] * 0.3), int(hparams['epochs'] * 0.6), int(hparams['epochs'] * 0.8)]
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.2)
+    else:
+        raise ValueError(f"不支持的调度器类型: {hparams['scheduler_type']}")
+    
+    return optimizer, scheduler
+
+def mixup_data(x, y, alpha=1.0):
+    """Mixup数据增强"""
+    if alpha > 0:
+        lam = torch.from_numpy(np.random.beta(alpha, alpha, 1)).float().to(x.device)
+    else:
+        lam = 1
+    
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+    
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    """Mixup损失函数"""
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+def train_one_epoch(model, train_loader, optimizer, criterion, device, epoch, logger=None, rank=0, use_mixup=True):
+    """训练一个epoch"""
+    model.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
+    start_time = time.time()
+    
+    for batch_idx, (inputs, targets) in enumerate(train_loader):
+        inputs, targets = inputs.to(device), targets.to(device)
+        
+        if use_mixup and torch.rand(1).item() > 0.5:
+            inputs, targets_a, targets_b, lam = mixup_data(inputs, targets, alpha=0.2)
+            outputs = model(inputs)
+            loss = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
+            
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += (lam * predicted.eq(targets_a).sum().float() + 
+                       (1 - lam) * predicted.eq(targets_b).sum().float()).item()
+        else:
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+        
+        optimizer.zero_grad()
+        loss.backward()
+        
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        
+        optimizer.step()
+        
+        running_loss += loss.item()
+        
+        if batch_idx % 50 == 0 and rank == 0:
+            current_acc = 100.0 * correct / total
+            current_loss = running_loss / (batch_idx + 1)
+            msg = f'Epoch {epoch} 批次 [{batch_idx}/{len(train_loader)}] 损失: {current_loss:.4f} 准确率: {current_acc:.2f}%'
+            print(msg)
+            if logger:
+                logger.info(msg)
+    
+    epoch_loss = running_loss / len(train_loader)
+    epoch_acc = 100.0 * correct / total
+    train_time = time.time() - start_time
+    
+    if rank == 0 and logger:
+        logger.info(f'Epoch {epoch} 训练完成 - 时间: {train_time:.2f}s, 损失: {epoch_loss:.4f}, 准确率: {epoch_acc:.2f}%')
+    
+    return epoch_loss, epoch_acc
+
+def test_model(model, test_loader, criterion, device, epoch, logger=None, distributed=False, rank=0):
+    """测试模型"""
+    model.eval()
+    test_loss = 0.0
+    correct = 0
+    total = 0
+    start_time = time.time()
+    
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(test_loader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            
+            test_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+    
+    if distributed:
+        test_loss_tensor = torch.tensor(test_loss).to(device)
+        correct_tensor = torch.tensor(correct).to(device)
+        total_tensor = torch.tensor(total).to(device)
+        
+        dist.all_reduce(test_loss_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(correct_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(total_tensor, op=dist.ReduceOp.SUM)
+        
+        test_loss = test_loss_tensor.item() / dist.get_world_size()
+        correct = correct_tensor.item()
+        total = total_tensor.item()
+    
+    test_loss = test_loss / len(test_loader)
+    test_acc = 100. * correct / total
+    test_time = time.time() - start_time
+    
+    if rank == 0 and logger:
+        logger.info(f'Epoch {epoch} 测试完成 - 时间: {test_time:.2f}s, 损失: {test_loss:.4f}, 准确率: {test_acc:.2f}%')
+    
+    return test_loss, test_acc
+
+def save_checkpoint(model, optimizer, epoch, best_acc, checkpoint_path, logger=None, rank=0):
+    """保存检查点"""
+    if rank == 0:
+        state = {
+            'epoch': epoch,
+            'model_state_dict': model.module.state_dict() if hasattr(model, 'module') else model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'best_acc': best_acc,
+        }
+        torch.save(state, checkpoint_path)
+        if logger:
+            logger.info(f"检查点已保存: {checkpoint_path}")
 
 if __name__ == '__main__':
     # Test get_hyperparameters
