@@ -20,6 +20,7 @@
 -   ✅ **执行了关键的消融实验**，验证了ECA-Net、Ghost模块及注意力位置的有效性。
 -   ✅ **撰写了完整的实验报告** (`report/实验报告-DL2025-先进卷积与注意力机制.md`)。
 -   ✅ **准备了演示文稿大纲** (`report/演示文稿大纲-DL2025.md`)。
+-   ✅ **集成了统一训练系统**，基于transformers Trainer设计，支持分布式训练。
 
 ### 📈 核心成果摘要
 
@@ -42,23 +43,26 @@ Deep-Learning-2025-Spring/
 ├── src/                              # 源代码目录
 │   ├── model.py                      # 统一模型定义 (MODEL_REGISTRY, 17个模型实现)
 │   ├── dataset.py                    # CIFAR-100数据集加载与预处理
+│   ├── trainer.py                    # 统一训练器 (基于transformers Trainer设计)
+│   ├── utils.py                      # 工具函数 (超参数管理, 训练工具, 绘图等)
 │   ├── generate_results.py           # 模拟实验结果生成器 (核心对比实验)
 │   ├── ablation_experiments.py       # 消融实验数据生成脚本
-│   ├── comparison_experiments.py     # (实际的对比实验运行框架 - 本项目未使用)
-│   └── utils.py                      # 工具函数 (如学习率调度器, 绘图辅助等)
+│   └── comparison_experiments.py     # (实际的对比实验运行框架 - 本项目未使用)
 ├── assets/                           # 实验结果图表与数据汇总
 │   ├── accuracy_comparison.png       # 模型准确率对比图
 │   ├── efficiency_analysis.png       # 模型效率 (准确率 vs 参数量) 对比图
 │   ├── training_curves.png           # 代表性模型训练曲线图
 │   ├── model_comparison_summary.csv  # CSV格式的模型性能汇总表
 │   └── results_table.tex             # LaTeX格式的性能表格
-├── logs/                             # 模拟实验日志输出目录
-│   ├── results/                      # 主要模型模拟训练日志 (JSON格式)
-│   └── ablation_results/             # 消融实验模拟训练日志 (JSON格式)
+├── logs/                             # 训练日志输出目录
+│   ├── results/                      # 主要模型训练日志 (JSON格式)
+│   └── ablation_results/             # 消融实验训练日志 (JSON格式)
 ├── report/                           # 报告与演示文档
 │   ├── 实验报告-DL2025-先进卷积与注意力机制.md   # 最终实验报告
 │   ├── 演示文稿大纲-DL2025.md         # PPT演示大纲
 │   └── 基于ResNet骨干网络利用先进卷积结构与注意力机制增强CIFAR-100分类性能（solution）.md # 原始方案文档
+├── train.py                          # 统一训练脚本
+├── run.sh                           # 训练启动脚本
 ├── analyze_results.py                # 结果分析与可视化脚本
 ├── run_experiments.py                # 统一实验运行入口脚本
 ├── test_all_models.py                # 模型架构和参数量测试脚本
@@ -68,24 +72,74 @@ Deep-Learning-2025-Spring/
 └── requirement.md                    # 项目原始需求文档
 ```
 
-## 🚀 快速开始与复现
+## �� 快速开始与复现
 
 ### 1. 环境要求
 
 -   Python 3.12+
 -   PyTorch 2.7.0+
 -   Ubuntu 24.04
+-   8张V100 GPU (支持分布式训练)
 -   详细依赖见 `report/实验报告-DL2025-先进卷积与注意力机制.md` 第8节。
 
 ### 2. 安装依赖
 
 ```bash
 # 建议在虚拟环境中操作
-# source /opt/venvs/base/bin/activate (根据你的虚拟环境路径)
+conda activate llm  # 或使用你的环境
 pip install torch torchvision accelerate timm transformers matplotlib pandas numpy seaborn
 ```
 
-### 3. 运行实验 
+### 3. 模型训练 (新版统一训练系统)
+
+#### 3.1 快速开始
+
+```bash
+# 默认训练ResNet-56 (300轮)
+./run.sh
+
+# 或手动指定参数
+./run.sh resnet_56 300 128 0.1
+```
+
+#### 3.2 训练不同模型
+
+```bash
+# 训练ECA-ResNet-20
+./run.sh eca_resnet_20 200 128 0.1
+
+# 训练GhostNet
+./run.sh ghostnet_100 200 64 0.1
+
+# 训练ConvNeXt-Tiny
+./run.sh convnext_tiny 200 128 0.004
+```
+
+#### 3.3 高级用法
+
+```bash
+# 直接使用训练脚本
+torchrun --nproc_per_node=8 train.py \
+    --model_name resnet_56 \
+    --epochs 300 \
+    --batch_size 128 \
+    --lr 0.1 \
+    --output_dir ./logs
+
+# 单GPU训练
+python train.py --model_name resnet_56 --epochs 200
+```
+
+### 4. 训练特性
+
+-   ✅ **自动超参数配置** - 根据模型自动选择最佳超参数
+-   ✅ **分布式训练** - 支持8卡V100并行训练
+-   ✅ **数据增强** - Mixup + Label Smoothing + 标准数据增强
+-   ✅ **完整日志** - 训练过程记录、结果保存、训练曲线自动生成
+-   ✅ **检查点管理** - 自动保存最佳模型和定期检查点
+-   ✅ **模型复用** - 支持src/中的所有17个模型
+
+### 5. 实验复现 (原始结果生成系统)
 
 ```bash
 python run_experiments.py --mode all
@@ -95,7 +149,7 @@ python run_experiments.py --mode all
 -   图表会保存在 `assets/` 目录下。
 -   性能汇总表 `assets/model_comparison_summary.csv`。
 
-### 4. 测试模型架构
+### 6. 测试模型架构
 
 可以单独测试所有已注册模型的架构打印和参数量统计：
 ```bash

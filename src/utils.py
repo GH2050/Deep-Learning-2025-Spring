@@ -5,6 +5,13 @@ import os
 import json
 import time
 import pandas as pd
+import logging
+import torch.nn as nn
+import torch.optim as optim
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data import DataLoader
 
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
@@ -369,6 +376,226 @@ def save_comparison_summary_text(results_dict, save_path='assets/comparison_summ
                     f.write(f'{model_name:<25}: {improvement:+.2f}%\n')
     
     print(f'对比总结文本已保存到: {save_path}')
+
+def setup_logging(save_dir, rank=0):
+    """设置日志记录"""
+    if rank == 0:
+        log_file = os.path.join(save_dir, 'training.log')
+        
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file, encoding='utf-8'),
+                logging.StreamHandler()
+            ]
+        )
+        
+        logger = logging.getLogger(__name__)
+        logger.info("="*50)
+        logger.info("CIFAR-100 训练开始")
+        logger.info("="*50)
+        return logger
+    return None
+
+def log_system_info(logger, rank=0):
+    """记录系统信息"""
+    if rank == 0 and logger:
+        logger.info(f"PyTorch版本: {torch.__version__}")
+        logger.info(f"CUDA版本: {torch.version.cuda}")
+        logger.info(f"可用GPU数量: {torch.cuda.device_count()}")
+        logger.info(f"当前设备: {torch.cuda.current_device()}")
+        logger.info(f"GPU内存: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+
+def setup_distributed():
+    """初始化分布式训练环境"""
+    if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
+        rank = int(os.environ["RANK"])
+        world_size = int(os.environ['WORLD_SIZE'])
+        gpu = int(os.environ['LOCAL_RANK'])
+    elif 'SLURM_PROCID' in os.environ:
+        rank = int(os.environ['SLURM_PROCID'])
+        gpu = rank % torch.cuda.device_count()
+    else:
+        print('分布式环境变量未设置，使用单GPU训练')
+        return False, 0, 1, 0
+    
+    torch.cuda.set_device(gpu)
+    dist.init_process_group(backend='nccl', init_method='env://')
+    dist.barrier()
+    return True, rank, world_size, gpu
+
+def cleanup_distributed():
+    """清理分布式训练环境"""
+    if dist.is_initialized():
+        dist.destroy_process_group()
+
+def get_optimizer_scheduler(model, hparams, steps_per_epoch):
+    """获取优化器和学习率调度器"""
+    if hparams['optimizer_type'] == 'sgd':
+        optimizer = optim.SGD(
+            model.parameters(), 
+            lr=hparams['lr'], 
+            momentum=0.9, 
+            weight_decay=hparams['weight_decay'],
+            nesterov=True
+        )
+    elif hparams['optimizer_type'] == 'adamw':
+        optimizer = optim.AdamW(
+            model.parameters(),
+            lr=hparams['lr'],
+            weight_decay=hparams['weight_decay']
+        )
+    else:
+        raise ValueError(f"不支持的优化器类型: {hparams['optimizer_type']}")
+    
+    if hparams['scheduler_type'] == 'cosine_annealing':
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, 
+            T_max=hparams['epochs'],
+            eta_min=1e-6
+        )
+    elif hparams['scheduler_type'] == 'cosine_annealing_warmup':
+        def lr_lambda(epoch):
+            if epoch < hparams['warmup_epochs']:
+                return epoch / hparams['warmup_epochs']
+            else:
+                progress = (epoch - hparams['warmup_epochs']) / (hparams['epochs'] - hparams['warmup_epochs'])
+                return 0.5 * (1 + torch.cos(torch.tensor(progress * 3.14159)).item())
+        scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+    elif hparams['scheduler_type'] == 'multistep':
+        milestones = [int(hparams['epochs'] * 0.3), int(hparams['epochs'] * 0.6), int(hparams['epochs'] * 0.8)]
+        scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=0.2)
+    else:
+        raise ValueError(f"不支持的调度器类型: {hparams['scheduler_type']}")
+    
+    return optimizer, scheduler
+
+def mixup_data(x, y, alpha=1.0):
+    """Mixup数据增强"""
+    if alpha > 0:
+        lam = torch.from_numpy(np.random.beta(alpha, alpha, 1)).float().to(x.device)
+    else:
+        lam = 1
+    
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size).to(x.device)
+    
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    """Mixup损失函数"""
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+def train_one_epoch(model, train_loader, optimizer, criterion, device, epoch, logger=None, rank=0, use_mixup=True):
+    """训练一个epoch"""
+    model.train()
+    running_loss = 0.0
+    correct = 0
+    total = 0
+    start_time = time.time()
+    
+    for batch_idx, (inputs, targets) in enumerate(train_loader):
+        inputs, targets = inputs.to(device), targets.to(device)
+        
+        if use_mixup and torch.rand(1).item() > 0.5:
+            inputs, targets_a, targets_b, lam = mixup_data(inputs, targets, alpha=0.2)
+            outputs = model(inputs)
+            loss = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
+            
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += (lam * predicted.eq(targets_a).sum().float() + 
+                       (1 - lam) * predicted.eq(targets_b).sum().float()).item()
+        else:
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+        
+        optimizer.zero_grad()
+        loss.backward()
+        
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        
+        optimizer.step()
+        
+        running_loss += loss.item()
+        
+        if batch_idx % 50 == 0 and rank == 0:
+            current_acc = 100.0 * correct / total
+            current_loss = running_loss / (batch_idx + 1)
+            msg = f'Epoch {epoch} 批次 [{batch_idx}/{len(train_loader)}] 损失: {current_loss:.4f} 准确率: {current_acc:.2f}%'
+            print(msg)
+            if logger:
+                logger.info(msg)
+    
+    epoch_loss = running_loss / len(train_loader)
+    epoch_acc = 100.0 * correct / total
+    train_time = time.time() - start_time
+    
+    if rank == 0 and logger:
+        logger.info(f'Epoch {epoch} 训练完成 - 时间: {train_time:.2f}s, 损失: {epoch_loss:.4f}, 准确率: {epoch_acc:.2f}%')
+    
+    return epoch_loss, epoch_acc
+
+def test_model(model, test_loader, criterion, device, epoch, logger=None, distributed=False, rank=0):
+    """测试模型"""
+    model.eval()
+    test_loss = 0.0
+    correct = 0
+    total = 0
+    start_time = time.time()
+    
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(test_loader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            
+            test_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+    
+    if distributed:
+        test_loss_tensor = torch.tensor(test_loss).to(device)
+        correct_tensor = torch.tensor(correct).to(device)
+        total_tensor = torch.tensor(total).to(device)
+        
+        dist.all_reduce(test_loss_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(correct_tensor, op=dist.ReduceOp.SUM)
+        dist.all_reduce(total_tensor, op=dist.ReduceOp.SUM)
+        
+        test_loss = test_loss_tensor.item() / dist.get_world_size()
+        correct = correct_tensor.item()
+        total = total_tensor.item()
+    
+    test_loss = test_loss / len(test_loader)
+    test_acc = 100. * correct / total
+    test_time = time.time() - start_time
+    
+    if rank == 0 and logger:
+        logger.info(f'Epoch {epoch} 测试完成 - 时间: {test_time:.2f}s, 损失: {test_loss:.4f}, 准确率: {test_acc:.2f}%')
+    
+    return test_loss, test_acc
+
+def save_checkpoint(model, optimizer, epoch, best_acc, checkpoint_path, logger=None, rank=0):
+    """保存检查点"""
+    if rank == 0:
+        state = {
+            'epoch': epoch,
+            'model_state_dict': model.module.state_dict() if hasattr(model, 'module') else model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'best_acc': best_acc,
+        }
+        torch.save(state, checkpoint_path)
+        if logger:
+            logger.info(f"检查点已保存: {checkpoint_path}")
 
 if __name__ == '__main__':
     # Test get_hyperparameters
