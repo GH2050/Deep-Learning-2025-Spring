@@ -79,4 +79,4 @@ def test_all_models():
         print(f"{i:2d}. {model_name}")
 
 if __name__ == "__main__":
-    test_all_models() 
+    test_model("mlp_mixer_tiny") 
