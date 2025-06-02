@@ -1359,12 +1359,10 @@ if __name__ == '__main__':
             output = model_instance(dummy_input)
             print(f"Output shape for {name}: {output.shape}")
             assert output.shape == (2, 100)
-            print(f"{name} test passed.
-")
+            print(f"{name} test passed.\n")
 
         except Exception as e:
-            print(f"Error testing model {name}: {e}
-")
+            print(f"Error testing model {name}: {e}\n")
 
     # Test a model that might need specific kwargs
     print("--- Testing eca_resnet_20 with k_size ---")
@@ -1375,8 +1373,6 @@ if __name__ == '__main__':
         output = model_instance(dummy_input)
         print(f"Output shape: {output.shape}")
         assert output.shape == (2, 10)
-        print("eca_resnet_20 with k_size test passed.
-")
+        print("eca_resnet_20 with k_size test passed.\n")
     except Exception as e:
-        print(f"Error testing eca_resnet_20 with k_size: {e}
-") 
+        print(f"Error testing eca_resnet_20 with k_size: {e}\n") 

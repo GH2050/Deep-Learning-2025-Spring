@@ -331,9 +331,29 @@ class Trainer:
         total_samples = 0
         
         for step, batch in enumerate(dataloader):
-            inputs = {"input_ids": batch[0], "labels": batch[1]}
-            
-            loss = self.training_step(self.model, inputs)
+            images, labels = batch
+            images = images.to(self.device)
+            labels = labels.to(self.device)
+
+            if self.args.use_mixup and self.model.training and torch.rand(1).item() > 0.5:
+                mixed_images, targets_a, targets_b, lam = mixup_data(
+                    images,
+                    labels,
+                    alpha=self.args.mixup_alpha
+                )
+                outputs = self.model(mixed_images)
+                loss = mixup_criterion(self.criterion, outputs, targets_a, targets_b, lam)
+                
+                with torch.no_grad():
+                    preds = outputs.argmax(dim=-1)
+                total_correct += (lam * preds.eq(targets_a).sum().float() + \
+                                 (1 - lam) * preds.eq(targets_b).sum().float()).item()
+            else:
+                outputs = self.model(images)
+                loss = self.criterion(outputs, labels)
+                with torch.no_grad():
+                    preds = outputs.argmax(dim=-1)
+                total_correct += (preds == labels).sum().item()
             
             self.optimizer.zero_grad()
             loss.backward()
@@ -344,10 +364,7 @@ class Trainer:
             
             total_loss += loss.item()
             
-            outputs = self.model(inputs["input_ids"])
-            preds = outputs.argmax(dim=-1)
-            total_correct += (preds == inputs["labels"]).sum().item()
-            total_samples += inputs["labels"].size(0)
+            total_samples += labels.size(0)
             
             self.global_step += 1
             
@@ -378,13 +395,17 @@ class Trainer:
         
         with torch.no_grad():
             for batch in dataloader:
-                inputs = {"input_ids": batch[0], "labels": batch[1]}
+                images, labels = batch
+                images = images.to(self.device)
+                labels = labels.to(self.device)
                 
-                eval_output = self.evaluation_step(self.model, inputs)
+                outputs = self.model(images)
+                loss = self.criterion(outputs, labels)
                 
-                total_loss += eval_output["loss"].item()
-                total_correct += eval_output["correct"].item()
-                total_samples += eval_output["total"].item()
+                total_loss += loss.item() * labels.size(0) # loss.item() is avg loss for batch
+                preds = outputs.argmax(dim=-1)
+                total_correct += (preds == labels).sum().item()
+                total_samples += labels.size(0)
         
         if self.distributed:
             loss_tensor = torch.tensor(total_loss).to(self.device)
@@ -399,8 +420,8 @@ class Trainer:
             total_correct = correct_tensor.item()
             total_samples = samples_tensor.item()
         
-        epoch_loss = total_loss / len(dataloader)
-        epoch_acc = 100.0 * total_correct / total_samples
+        epoch_loss = total_loss / total_samples if total_samples > 0 else 0 # Use total_loss directly if not averaging per batch before
+        epoch_acc = 100.0 * total_correct / total_samples if total_samples > 0 else 0
         
         if self.rank == 0 and self.logger:
             self.logger.info(f'Epoch {epoch+1} 评估完成 - 损失: {epoch_loss:.4f}, 准确率: {epoch_acc:.2f}%')
