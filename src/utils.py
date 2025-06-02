@@ -117,7 +117,9 @@ REPORT_HYPERPARAMETERS = {
         'resnest50d': 'Hybrid_Attention_CNN',        # Was resnest50d (timm)
         'mlp_mixer_tiny': 'MLP_Mixer_Variants',
         'mlp_mixer_b16': 'MLP_Mixer_Variants',      # Was mlp_mixer_b16 (timm)
-        'coatnet_0_custom_enhanced': 'Hybrid_Attention_CNN' # Added new model to category
+        'coatnet_0_custom_enhanced': 'Hybrid_Attention_CNN', # Added new model to category
+        'coatnet_cifar_opt': 'Hybrid_Attention_CNN',         # Added for the new CIFAR-optimized CoAtNet
+        'coatnet_cifar_opt_large_stem': 'Hybrid_Attention_CNN' # Added for the large stem variant
     }
 }
 
