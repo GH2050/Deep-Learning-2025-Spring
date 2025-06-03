@@ -112,6 +112,9 @@ REPORT_HYPERPARAMETERS = {
                 },
                 'coatnet_cifar_opt_large_stem': {
                     'transformer_dropout_rate': 0.1 # Also for optimized versions
+                },
+                'resnest50d': { # Specific for resnest50d
+                    'dropout_rate': 0.1 # Added Dropout rate before FC layer
                 }
             }
         },
@@ -261,7 +264,9 @@ def get_hyperparameters(model_name: str):
                               # For LSKNet components in enhanced models
                               'lsk_kernel_sizes', 'lsk_reduction_ratio', 'se_ratio_in_mbconv',
                               # For ImprovedResNet variants
-                              'drop_path_rate', 'width_multiplier'
+                              'drop_path_rate', 'width_multiplier',
+                              # For ResNeStCustom specifically
+                              'dropout_rate' # Added for ResNeSt dropout before FC
                              ] 
     for key in known_constructor_keys:
         if key in final_hparams: # Check if it was set directly by model_specific_params
