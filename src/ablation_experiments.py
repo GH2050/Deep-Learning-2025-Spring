@@ -52,12 +52,9 @@ class ECANetAblation:
             'model_name': base_model_name,
             'config_override': {},
             'label': 'ResNet-20_No_ECA_Baseline'
-            'label': 'ResNet-20_No_ECA_Baseline'
         })
         configs.append({
             'model_name': 'ecanet20_adaptive',
-            'config_override': {},
-            'label': 'ECANet-20_Adaptive_k_size'
             'config_override': {},
             'label': 'ECANet-20_Adaptive_k_size'
         })
@@ -65,13 +62,9 @@ class ECANetAblation:
             'model_name': 'ecanet20_fixed_k3', 
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_3'
-            'config_override': {},
-            'label': 'ECANet-20_Fixed_k_size_3'
         })
         configs.append({
             'model_name': 'ecanet20_fixed_k5',
-            'config_override': {},
-            'label': 'ECANet-20_Fixed_k_size_5'
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_5'
         })
@@ -79,13 +72,9 @@ class ECANetAblation:
             'model_name': 'ecanet20_fixed_k7',
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_7'
-            'config_override': {},
-            'label': 'ECANet-20_Fixed_k_size_7'
         })
         configs.append({
             'model_name': 'ecanet20_fixed_k9',
-            'config_override': {},
-            'label': 'ECANet-20_Fixed_k_size_9'
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_9'
         })
@@ -110,12 +99,9 @@ class GhostNetAblation:
             'model_name': base_model_name,
             'config_override': {},
             'label': 'ResNet-20_Baseline_for_GhostNet'
-            'label': 'ResNet-20_Baseline_for_GhostNet'
         })
         configs.append({
             'model_name': ghost_model_name,
-            'config_override': {'model_constructor_params': {'ratio': 2}},
-            'label': 'Ghost-ResNet-20_ratio_2'
             'config_override': {'model_constructor_params': {'ratio': 2}},
             'label': 'Ghost-ResNet-20_ratio_2'
         })
@@ -123,12 +109,10 @@ class GhostNetAblation:
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 3}},
             'label': 'Ghost-ResNet-20_ratio_3'
-            'label': 'Ghost-ResNet-20_ratio_3'
         })
         configs.append({
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 4}},
-            'label': 'Ghost-ResNet-20_ratio_4'
             'label': 'Ghost-ResNet-20_ratio_4'
         })
         return configs
@@ -159,18 +143,15 @@ class AttentionPositionAblation:
             'model_name': base_model_name,
             'config_override': {},
             'label': 'ResNet-20_No_ECA_Baseline_for_Position'
-            'label': 'ResNet-20_No_ECA_Baseline_for_Position'
         })
         configs.append({
             'model_name': 'eca_resnet20_pos1',
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
             'label': f'ECA-ResNet20_Pos1_k{default_k_size}'
-            'label': f'ECA-ResNet20_Pos1_k{default_k_size}'
         })
         configs.append({
             'model_name': 'eca_resnet_20', 
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
-            'label': f'ECA-ResNet20_Pos2_Default_k{default_k_size}'
             'label': f'ECA-ResNet20_Pos2_Default_k{default_k_size}'
         })
         configs.append({
