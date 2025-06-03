@@ -86,6 +86,18 @@ REPORT_HYPERPARAMETERS = {
                     'drop_path_rate': 0.05,
                     'width_multiplier': 1.0,
                 },
+                'improved_resnet20_convnext_no_droppath': {
+                    'drop_path_rate': 0.0,  # 无DropPath
+                    'width_multiplier': 1.0,
+                },
+                'improved_resnet20_convnext_std_conv': {
+                    'drop_path_rate': 0.05,
+                    'width_multiplier': 1.0,
+                },
+                'improved_resnet20_convnext_no_inverted': {
+                    'drop_path_rate': 0.05,
+                    'width_multiplier': 1.0,
+                }
             }
         },
         'Hybrid_Attention_CNN': { # coatnet_0_custom, cspresnet50, hornet_tiny_custom, resnest50d, coatnet_0_custom_enhanced
@@ -159,6 +171,9 @@ REPORT_HYPERPARAMETERS = {
         'ghostnet_100': 'GhostNet_Variants',      # Was ghostnet_100 (timm)
         'convnext_tiny': 'ConvNeXt_Tiny',        # Was convnext_tiny (custom) and convnext_tiny_timm
         'improved_resnet20_convnext': 'ImprovedResNet_ConvNeXt_Variants',
+        'improved_resnet20_convnext_no_droppath': 'ImprovedResNet_ConvNeXt_Variants',
+        'improved_resnet20_convnext_std_conv': 'ImprovedResNet_ConvNeXt_Variants',
+        'improved_resnet20_convnext_no_inverted': 'ImprovedResNet_ConvNeXt_Variants',
         'segnext_mscan_tiny': 'SegNeXt_MSCAN_Tiny',
         'coatnet_0_custom': 'Hybrid_Attention_CNN', # Was coatnet_0 (timm)
         'cspresnet50': 'Hybrid_Attention_CNN',       # Was cspresnet50 (timm)
@@ -175,7 +190,8 @@ REPORT_HYPERPARAMETERS = {
         'ecanet20_fixed_k5': 'ResNet_Variants', #### ECA-NET 20 fixed k=5
         'ecanet20_fixed_k7': 'ResNet_Variants', #### ECA-NET 20 fixed k=7
         'ecanet20_fixed_k9': 'ResNet_Variants', #### ECA-NET 20 fixed k=9
-
+        'eca_resnet20_pos1': 'ResNet_Variants', # Added for ECA position ablation
+        'eca_resnet20_pos3': 'ResNet_Variants', # Added for ECA position ablation
     }
 }
 
@@ -703,6 +719,9 @@ if __name__ == '__main__':
         'resnet_20', 'eca_resnet_20', 'ghost_resnet_32', 'convnext_tiny', 
         'convnext_tiny_timm', 'coatnet_0', 'mlp_mixer_b16', 'segnext_mscan_tiny',
         'improved_resnet20_convnext',
+        'improved_resnet20_convnext_no_droppath',
+        'improved_resnet20_convnext_std_conv', 
+        'improved_resnet20_convnext_no_inverted',
     ]
     print("--- Testing Hyperparameter Retrieval ---")
     for model_name in test_models:
