@@ -98,23 +98,23 @@ REPORT_HYPERPARAMETERS = {
             'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                'coatnet_0_custom': { # Specific for coatnet_0_custom
-                    'transformer_dropout_rate': 0.1 # Added Transformer dropout rate
+                'coatnet_0_custom': { 
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
                 },
-                'coatnet_0_custom_enhanced': { # Default LSK parameters for the enhanced model
+                'coatnet_0_custom_enhanced': { 
                     'lsk_kernel_sizes': [3, 5, 7], 
                     'lsk_reduction_ratio': 8,
                     'se_ratio_in_mbconv': 0.25,
-                    'transformer_dropout_rate': 0.1 # Added Transformer dropout rate
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
                 },
                 'coatnet_cifar_opt': {
-                    'transformer_dropout_rate': 0.1 # Also for optimized versions
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
                 },
                 'coatnet_cifar_opt_large_stem': {
-                    'transformer_dropout_rate': 0.1 # Also for optimized versions
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
                 },
-                'resnest50d': { # Specific for resnest50d
-                    'dropout_rate': 0.1 # Added Dropout rate before FC layer
+                'resnest50d': { 
+                    'dropout_rate': 0.3 # Increased from 0.1
                 }
             }
         },
@@ -128,9 +128,9 @@ REPORT_HYPERPARAMETERS = {
             'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                 'mlp_mixer_b16': {}, # Removed specific batch_size_per_gpu, will use category default
-                 'mlp_mixer_tiny': { # Specific for mlp_mixer_tiny
-                     'dropout': 0.1 # Added Dropout rate
+                 'mlp_mixer_b16': {},
+                 'mlp_mixer_tiny': { 
+                     'dropout': 0.3 # Increased from 0.1
                  }
             }
         },
@@ -144,7 +144,7 @@ REPORT_HYPERPARAMETERS = {
             'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                'drop_path_rate': 0.1 # Added DropPath rate
+                'drop_path_rate': 0.3 # Increased DropPath rate from 0.1 to 0.3
             }
         }
     },
