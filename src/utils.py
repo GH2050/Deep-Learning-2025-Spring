@@ -70,7 +70,7 @@ REPORT_HYPERPARAMETERS = {
             'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
             'model_specific_params': {
-                'drop_path_rate': 0.1 # Added DropPath rate
+                'drop_path_rate': 0.3 # Increased DropPath rate from 0.1 to 0.3
             }
         },
         'ImprovedResNet_ConvNeXt_Variants': { # 新增：改进的ResNet变种
