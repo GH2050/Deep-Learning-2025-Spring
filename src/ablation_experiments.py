@@ -92,6 +92,7 @@ class GhostNetAblation:
     2. Ghost-ResNet-20 (ratio=2)
     3. Ghost-ResNet-20 (ratio=3)
     4. Ghost-ResNet-20 (ratio=4)
+    5. GhostCopy-ResNet-20 (ratio=2)
     """
     @staticmethod
     def get_experiment_configs():
@@ -99,6 +100,7 @@ class GhostNetAblation:
         base_model_name = 'resnet20_no_eca' 
         base_model_name = 'resnet20_no_eca' 
         ghost_model_name = 'ghost_resnet_20'
+        ghostCopy_model_name = 'ghostCopy_resnet_20'
 
         configs.append({
             'model_name': base_model_name,
@@ -119,6 +121,11 @@ class GhostNetAblation:
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 4}},
             'label': 'Ghost-ResNet-20_ratio_4'
+        })
+        configs.append({
+            'model_name': ghostCopy_model_name,
+            'config_override': {'model_constructor_params': {'ratio': 2}},
+            'label': 'GhostCopy-ResNet-20_ratio_2'
         })
         return configs
 
