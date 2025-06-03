@@ -66,10 +66,12 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 20,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
-            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
+            'batch_size_per_gpu': 256, # Updated default train batch_size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization. ConvNeXt uses LayerNorm.
-            'model_specific_params': {}
+            'model_specific_params': {
+                'drop_path_rate': 0.3 # Increased DropPath rate from 0.1 to 0.3
+            }
         },
         'ImprovedResNet_ConvNeXt_Variants': { # 新增：改进的ResNet变种
             'optimizer_type': 'sgd',
@@ -92,17 +94,28 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
-            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
+            'batch_size_per_gpu': 256, # Updated default train batch_size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                'coatnet_0_custom_enhanced': { # Default LSK parameters for the enhanced model
+                'coatnet_0_custom': { 
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
+                },
+                'coatnet_0_custom_enhanced': { 
                     'lsk_kernel_sizes': [3, 5, 7], 
                     'lsk_reduction_ratio': 8,
-                    'se_ratio_in_mbconv': 0.25
+                    'se_ratio_in_mbconv': 0.25,
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
                 },
-                'coatnet_cifar_opt': {}, # Will use category defaults for batch sizes
-                'coatnet_cifar_opt_large_stem': {} # Will use category defaults for batch sizes
+                'coatnet_cifar_opt': {
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
+                },
+                'coatnet_cifar_opt_large_stem': {
+                    'transformer_dropout_rate': 0.3 # Increased from 0.1
+                },
+                'resnest50d': { 
+                    'dropout_rate': 0.3 # Increased from 0.1
+                }
             }
         },
         'MLP_Mixer_Variants': { # mlp_mixer_tiny (custom), mlp_mixer_b16 (custom)
@@ -111,11 +124,14 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
-            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
+            'batch_size_per_gpu': 256, # Updated default train batch_size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
             'model_specific_params': {
-                 'mlp_mixer_b16': {} # Removed specific batch_size_per_gpu, will use category default
+                 'mlp_mixer_b16': {},
+                 'mlp_mixer_tiny': { 
+                     'dropout': 0.3 # Increased from 0.1
+                 }
             }
         },
         'SegNeXt_MSCAN_Tiny': { # segnext_mscan_tiny (custom)
@@ -124,10 +140,12 @@ REPORT_HYPERPARAMETERS = {
             'scheduler_type': 'cosine_annealing_warmup',
             'warmup_epochs': 10,
             'weight_decay': 0.05,
-            'batch_size_per_gpu': 256, # Updated default train batch size per GPU
-            'per_device_eval_batch_size': 128, # Added default eval batch size per GPU
+            'batch_size_per_gpu': 256, # Updated default train batch_size per GPU
+            'per_device_eval_batch_size': 128, # Added default eval batch_size per GPU
             'use_imagenet_norm': False, # CIFAR-100 specific normalization
-            'model_specific_params': {}
+            'model_specific_params': {
+                'drop_path_rate': 0.3 # Increased DropPath rate from 0.1 to 0.3
+            }
         }
     },
     'model_to_category': {
@@ -246,7 +264,9 @@ def get_hyperparameters(model_name: str):
                               # For LSKNet components in enhanced models
                               'lsk_kernel_sizes', 'lsk_reduction_ratio', 'se_ratio_in_mbconv',
                               # For ImprovedResNet variants
-                              'drop_path_rate', 'width_multiplier'
+                              'drop_path_rate', 'width_multiplier',
+                              # For ResNeStCustom specifically
+                              'dropout_rate' # Added for ResNeSt dropout before FC
                              ] 
     for key in known_constructor_keys:
         if key in final_hparams: # Check if it was set directly by model_specific_params

@@ -84,6 +84,59 @@ class ECABasicBlock(nn.Module):
         out = F.relu(out)
         return out
 
+class ECABasicBlock_Pos1(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, k_size=3):
+        super(ECABasicBlock_Pos1, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.eca1 = ECALayer(planes, k_size=k_size) # ECA after Conv1
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = self.bn1(self.conv1(x))
+        out = self.eca1(out) # Apply ECA after Conv1 and BN1, before ReLU1
+        out = F.relu(out)
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ECABasicBlock_Pos3(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, k_size=3):
+        super(ECABasicBlock_Pos3, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca_after_add = ECALayer(planes * self.expansion, k_size=k_size) # ECA after Add
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = self.eca_after_add(out) # Apply ECA after Add, before final ReLU
+        out = F.relu(out)
+        return out
+
 class GhostModule(nn.Module):
     def __init__(self, inp, oup, kernel_size=1, ratio=2, dw_size=3, stride=1, relu=True):
         """
@@ -947,7 +1000,7 @@ class ResNeStBottleneckD(nn.Module): # 'D' variant for ResNeSt-D models
 
 class ResNeStCustom(nn.Module):
     def __init__(self, block, layers, num_classes=100, radix=2, cardinality=1, bottleneck_width=64,
-                 deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False):
+                 deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, dropout_rate=0.0): # Added dropout_rate
         self.cardinality = cardinality
         self.bottleneck_width = bottleneck_width
         self.radix = radix
@@ -955,6 +1008,7 @@ class ResNeStCustom(nn.Module):
         self.avd_first = avd_first
         self.inplanes = stem_width*2 if deep_stem else 64
         super(ResNeStCustom, self).__init__()
+        self.dropout_rate = dropout_rate # Store dropout_rate
 
         if deep_stem:
             self.conv1 = nn.Sequential(
@@ -981,7 +1035,12 @@ class ResNeStCustom(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         # Correct in_features for ResNeSt fc layer
         fc_in_features = 512 * block.expansion # Should not be multiplied by 2 for ResNeSt
-        self.fc = nn.Linear(fc_in_features, num_classes)
+        
+        fc_layers = []
+        if self.dropout_rate > 0:
+            fc_layers.append(nn.Dropout(self.dropout_rate))
+        fc_layers.append(nn.Linear(fc_in_features, num_classes))
+        self.fc = nn.Sequential(*fc_layers)
 
     def _make_layer(self, block, planes, blocks, stride, avg_down=True, is_first=False):
         downsample = None
@@ -1124,73 +1183,79 @@ class CoAtNetCustom(nn.Module): # Highly Simplified CoAtNet structure
     def __init__(self, num_classes=100,
                  s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=768, # Example channel progression
                  s0_blocks=2, s1_blocks=2, s2_blocks=2, s3_blocks=2, s4_blocks=2, # Example block counts
-                 mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=4):
+                 mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=4,
+                 transformer_dropout=0.0): # Added transformer_dropout parameter
         super().__init__()
+        self.num_classes = num_classes
 
-        self.stem = nn.Sequential(
-            nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(s0_channels),
-            nn.ReLU(inplace=True)
+        # Stem (S0)
+        self.s0 = self._make_mbconv_stage(3, s0_channels, s0_blocks, stride=2, expand_ratio=mbconv_expand_ratio)
+
+        # Convolutional stages (S1, S2)
+        self.s1 = self._make_mbconv_stage(s0_channels, s1_channels, s1_blocks, stride=2, expand_ratio=mbconv_expand_ratio)
+        self.s2 = self._make_mbconv_stage(s1_channels, s2_channels, s2_blocks, stride=2, expand_ratio=mbconv_expand_ratio)
+
+        # Transformer stages (S3, S4)
+        self.s3_transformer_blocks = self._make_transformer_stage(
+            dim=s2_channels, num_blocks=s3_blocks, heads=transformer_heads,
+            dim_head=s2_channels // transformer_heads,
+            mlp_dim=s2_channels * transformer_mlp_dim_ratio,
+            dropout_rate=transformer_dropout # Pass dropout to transformer stage
+        )
+        self.s3_pool = nn.MaxPool2d(kernel_size=2, stride=2) if s3_blocks > 0 else nn.Identity() # Downsample after S3 if transformers exist
+
+        self.s4_transformer_blocks = self._make_transformer_stage(
+            dim=s2_channels, # Assuming S3 output is pooled but channel dim remains from S2 for S4 input
+            num_blocks=s4_blocks, heads=transformer_heads,
+            dim_head=s2_channels // transformer_heads,
+            mlp_dim=s2_channels * transformer_mlp_dim_ratio,
+            dropout_rate=transformer_dropout # Pass dropout to transformer stage
         )
         
-        # Stage 0 (MBConv)
-        self.s0 = self._make_mbconv_stage(s0_channels, s0_channels, s0_blocks, stride=1, expand_ratio=mbconv_expand_ratio)
-        
-        # Stage 1 (MBConv)
-        self.s1 = self._make_mbconv_stage(s0_channels, s1_channels, s1_blocks, stride=2, expand_ratio=mbconv_expand_ratio)
-        
-        # Stage 2 (Transformer, simplified)
-        self.s2_pre_conv = nn.Conv2d(s1_channels, s2_channels, kernel_size=1) # Patch embedding like
-        self.s2_transformer = self._make_transformer_stage(s2_channels, s2_blocks, transformer_heads, s2_channels // transformer_heads, s2_channels * transformer_mlp_dim_ratio)
-        
-        # Stage 3 (Transformer, simplified)
-        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2) # Downsampling
-        self.s3_transformer = self._make_transformer_stage(s3_channels, s3_blocks, transformer_heads, s3_channels // transformer_heads, s3_channels * transformer_mlp_dim_ratio)
-
-        # Stage 4 (Transformer, simplified)
-        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2) # Downsampling
-        self.s4_transformer = self._make_transformer_stage(s4_channels, s4_blocks, transformer_heads, s4_channels // transformer_heads, s4_channels * transformer_mlp_dim_ratio)
-
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Linear(s4_channels, num_classes)
+        # Final classifier
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        # Determine the input dimension to the classifier
+        # If S4 has blocks, its output dim is s2_channels (as per current simple structure)
+        # If S4 has no blocks, but S3 does, its output dim is s2_channels
+        # If S2 is the last feature stage, its output dim is s2_channels
+        final_dim = s2_channels 
+        self.fc = nn.Linear(final_dim, num_classes)
 
     def _make_mbconv_stage(self, in_c, out_c, num_blocks, stride, expand_ratio):
-        layers = [MBConvBlock(in_c if i == 0 else out_c, out_c, stride if i == 0 else 1, expand_ratio) for i in range(num_blocks)]
+        layers = []
+        for i in range(num_blocks):
+            current_stride = stride if i == 0 else 1
+            layers.append(MBConvBlock(in_c if i == 0 else out_c, out_c, current_stride, expand_ratio))
         return nn.Sequential(*layers)
 
-    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim):
-        layers = [TransformerBlock(dim, heads, dim_head, mlp_dim) for _ in range(num_blocks)]
+    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim, dropout_rate):
+        layers = []
+        for _ in range(num_blocks):
+            layers.append(TransformerBlock(dim, heads, dim_head, mlp_dim, dropout=dropout_rate))
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.stem(x)
         x = self.s0(x)
         x = self.s1(x)
-        
-        # S2
-        x = self.s2_pre_conv(x)
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2) # (B, H*W, C)
-        x = self.s2_transformer(x)
-        x = x.transpose(1, 2).reshape(b, c, h, w)
+        x = self.s2(x) # Output spatial size H/8, W/8, channels s2_channels
 
-        # S3
-        x = self.s3_pre_conv(x)
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2)
-        x = self.s3_transformer(x)
-        x = x.transpose(1, 2).reshape(b, c, h, w)
+        if len(self.s3_transformer_blocks) > 0:
+            # Reshape for Transformer: (B, C, H, W) -> (B, H*W, C)
+            b, c, h, w = x.shape
+            x_reshaped = x.flatten(2).transpose(1, 2)
+            x_reshaped = self.s3_transformer_blocks(x_reshaped)
+            # Reshape back: (B, H*W, C) -> (B, C, H, W)
+            x = x_reshaped.transpose(1, 2).reshape(b, c, h, w)
+            x = self.s3_pool(x) # Downsample to H/16, W/16
 
-        # S4
-        x = self.s4_pre_conv(x)
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2)
-        x = self.s4_transformer(x)
-        # x = x.transpose(1, 2).reshape(b, c, h, w) # Not needed before pooling if an MLP head takes (B, N, C)
-        
-        x = torch.mean(x, dim=1) # Global average pooling over sequence length for transformer output
+        if len(self.s4_transformer_blocks) > 0:
+            b, c, h, w = x.shape
+            x_reshaped = x.flatten(2).transpose(1, 2)
+            x_reshaped = self.s4_transformer_blocks(x_reshaped)
+            x = x_reshaped.transpose(1, 2).reshape(b, c, h, w)
 
-        # x = self.pool(x).flatten(1) # If last stage was conv
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
 
@@ -1295,90 +1360,89 @@ class CoAtNetCustom_enhanced(nn.Module):
                  s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=768,
                  s0_blocks=2, s1_blocks=2, s2_blocks=2, s3_blocks=2, s4_blocks=2,
                  mbconv_expand_ratio=4, transformer_heads=4, transformer_mlp_dim_ratio=4,
-                 lsk_kernel_sizes: List[int] = [3, 5], lsk_reduction_ratio=16, se_ratio_in_mbconv=0.25): # Added LSK params
+                 lsk_kernel_sizes: List[int] = [3, 5], lsk_reduction_ratio=16, se_ratio_in_mbconv=0.25,
+                 transformer_dropout=0.0): # Added transformer_dropout
         super().__init__()
+        self.num_classes = num_classes
+        self.transformer_dropout = transformer_dropout # Store it
 
-        self.stem = nn.Sequential(
-            nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(s0_channels),
-            nn.ReLU(inplace=True)
-        )
-        
-        # Stage 0 (MBConv_enhanced)
+        # Stem (S0) - Enhanced MBConv
         self.s0 = self._make_mbconv_enhanced_stage(
-            s0_channels, s0_channels, s0_blocks, stride=1, 
-            expand_ratio=mbconv_expand_ratio, 
-            lsk_kernel_sizes=lsk_kernel_sizes, 
-            lsk_reduction_ratio=lsk_reduction_ratio,
-            se_ratio=se_ratio_in_mbconv
+            3, s0_channels, s0_blocks, stride=2, expand_ratio=mbconv_expand_ratio,
+            lsk_kernel_sizes=lsk_kernel_sizes, lsk_reduction_ratio=lsk_reduction_ratio, se_ratio=se_ratio_in_mbconv
         )
-        
-        # Stage 1 (MBConv_enhanced)
+
+        # Convolutional stages (S1, S2) - Enhanced MBConv
         self.s1 = self._make_mbconv_enhanced_stage(
-            s0_channels, s1_channels, s1_blocks, stride=2, 
-            expand_ratio=mbconv_expand_ratio,
-            lsk_kernel_sizes=lsk_kernel_sizes,
-            lsk_reduction_ratio=lsk_reduction_ratio,
-            se_ratio=se_ratio_in_mbconv
+            s0_channels, s1_channels, s1_blocks, stride=2, expand_ratio=mbconv_expand_ratio,
+            lsk_kernel_sizes=lsk_kernel_sizes, lsk_reduction_ratio=lsk_reduction_ratio, se_ratio=se_ratio_in_mbconv
+        )
+        self.s2 = self._make_mbconv_enhanced_stage(
+            s1_channels, s2_channels, s2_blocks, stride=2, expand_ratio=mbconv_expand_ratio,
+            lsk_kernel_sizes=lsk_kernel_sizes, lsk_reduction_ratio=lsk_reduction_ratio, se_ratio=se_ratio_in_mbconv
+        )
+
+        # Transformer stages (S3, S4)
+        self.s3_transformer_blocks = self._make_transformer_stage(
+            dim=s2_channels, num_blocks=s3_blocks, heads=transformer_heads,
+            dim_head=s2_channels // transformer_heads,
+            mlp_dim=s2_channels * transformer_mlp_dim_ratio,
+            dropout_rate=self.transformer_dropout # Use stored dropout
+        )
+        self.s3_pool = nn.MaxPool2d(kernel_size=2, stride=2) if s3_blocks > 0 else nn.Identity()
+
+        self.s4_transformer_blocks = self._make_transformer_stage(
+            dim=s2_channels,
+            num_blocks=s4_blocks, heads=transformer_heads,
+            dim_head=s2_channels // transformer_heads,
+            mlp_dim=s2_channels * transformer_mlp_dim_ratio,
+            dropout_rate=self.transformer_dropout # Use stored dropout
         )
         
-        # Stage 2 (Transformer, simplified)
-        self.s2_pre_conv = nn.Conv2d(s1_channels, s2_channels, kernel_size=1) 
-        self.s2_transformer = self._make_transformer_stage(s2_channels, s2_blocks, transformer_heads, s2_channels // transformer_heads, s2_channels * transformer_mlp_dim_ratio)
-        
-        # Stage 3 (Transformer, simplified)
-        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2) 
-        self.s3_transformer = self._make_transformer_stage(s3_channels, s3_blocks, transformer_heads, s3_channels // transformer_heads, s3_channels * transformer_mlp_dim_ratio)
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        final_dim = s2_channels
+        self.fc = nn.Linear(final_dim, num_classes)
 
-        # Stage 4 (Transformer, simplified)
-        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2) 
-        self.s4_transformer = self._make_transformer_stage(s4_channels, s4_blocks, transformer_heads, s4_channels // transformer_heads, s4_channels * transformer_mlp_dim_ratio)
-
-        self.pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Linear(s4_channels, num_classes)
 
     def _make_mbconv_enhanced_stage(self, in_c, out_c, num_blocks, stride, expand_ratio, lsk_kernel_sizes, lsk_reduction_ratio, se_ratio):
         layers = []
         for i in range(num_blocks):
-            block_stride = stride if i == 0 else 1
-            current_in_c = in_c if i == 0 else out_c
+            current_stride = stride if i == 0 else 1
             layers.append(MBConvBlock_enhanced(
-                current_in_c, out_c, block_stride, expand_ratio, 
-                se_ratio=se_ratio, # Pass SE ratio for MBConv internal SE
-                lsk_kernel_sizes=lsk_kernel_sizes, 
-                lsk_reduction_ratio=lsk_reduction_ratio
+                in_c if i == 0 else out_c, out_c, current_stride, expand_ratio,
+                lsk_kernel_sizes=lsk_kernel_sizes, lsk_reduction_ratio=lsk_reduction_ratio, se_ratio=se_ratio
             ))
         return nn.Sequential(*layers)
 
-    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim):
-        layers = [TransformerBlock(dim, heads, dim_head, mlp_dim) for _ in range(num_blocks)]
+    def _make_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim, dropout_rate):
+        layers = []
+        for _ in range(num_blocks):
+            layers.append(TransformerBlock(dim, heads, dim_head, mlp_dim, dropout=dropout_rate))
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.stem(x)
         x = self.s0(x)
         x = self.s1(x)
-        
-        x = self.s2_pre_conv(x)
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2) 
-        x = self.s2_transformer(x)
-        x = x.transpose(1, 2).reshape(b, c, h, w)
+        x = self.s2(x)
 
-        x = self.s3_pre_conv(x)
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2)
-        x = self.s3_transformer(x)
-        x = x.transpose(1, 2).reshape(b, c, h, w)
+        if len(self.s3_transformer_blocks) > 0:
+            b, c, h, w = x.shape
+            x_reshaped = x.flatten(2).transpose(1, 2)
+            x_reshaped = self.s3_transformer_blocks(x_reshaped)
+            x = x_reshaped.transpose(1, 2).reshape(b, c, h, w)
+            x = self.s3_pool(x)
 
-        x = self.s4_pre_conv(x)
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2)
-        x = self.s4_transformer(x)
-        
-        x = torch.mean(x, dim=1) 
+        if len(self.s4_transformer_blocks) > 0:
+            b, c, h, w = x.shape
+            x_reshaped = x.flatten(2).transpose(1, 2)
+            x_reshaped = self.s4_transformer_blocks(x_reshaped)
+            x = x_reshaped.transpose(1, 2).reshape(b, c, h, w)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
+
 # --- End Enhanced CoAtNet ---
 
 
@@ -1493,55 +1557,59 @@ def cspresnet50_builder(num_classes=100, **kwargs):
 
 @register_model("resnest50d")
 def resnest50d_builder(num_classes=100, **kwargs):
+    # Extract dropout_rate from kwargs, defaulting to 0.0 if not present
+    dropout_val = kwargs.pop('dropout_rate', 0.0) 
     return ResNeStCustom(ResNeStBottleneckD, [3, 4, 6, 3], num_classes=num_classes,
                          radix=2, cardinality=1, bottleneck_width=64,
-                         deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, **kwargs)
+                         deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, 
+                         dropout_rate=dropout_val, # Pass dropout_rate to constructor
+                         **kwargs)
 
 @register_model("coatnet_0") # Builder for the non-enhanced CoAtNetCustom
 def coatnet_0_builder(num_classes=100, **kwargs):
     # Default CoAtNet-0 parameters
-    config = {
-        's0_channels': 64, 's1_channels': 96, 's2_channels': 192, 
-        's3_channels': 384, 's4_channels': 768,
-        's0_blocks': 2, 's1_blocks': 2, 's2_blocks': 3, 
-        's3_blocks': 5, 's4_blocks': 2, # CoAtNet-0 typical block counts
-        'mbconv_expand_ratio': 4, 
-        'transformer_heads': 4, # Simplified: same head count for all transformer stages
-        'transformer_mlp_dim_ratio': 4
-    }
-    config.update(kwargs) # Override defaults with any passed kwargs
-    return CoAtNetCustom(num_classes=num_classes, **config)
+    transformer_dropout_val = kwargs.pop('transformer_dropout_rate', 0.0) # Extract and remove to prevent passing to deeper unused places
+    
+    # Simplified structure, adjust sX_channels and sX_blocks as per CoAtNet-0 needs
+    # These are example values, original CoAtNet-0 has specific block counts and channel sizes for each stage
+    return CoAtNetCustom(num_classes=num_classes,
+                         s0_blocks=kwargs.get('s0_blocks', 2), 
+                         s1_blocks=kwargs.get('s1_blocks', 2), 
+                         s2_blocks=kwargs.get('s2_blocks', 3),  # More MBConv
+                         s3_blocks=kwargs.get('s3_blocks', 5),  # More Transformer
+                         s4_blocks=kwargs.get('s4_blocks', 2),  # More Transformer
+                         s0_channels=kwargs.get('s0_channels', 64), 
+                         s1_channels=kwargs.get('s1_channels', 128), 
+                         s2_channels=kwargs.get('s2_channels', 256), # Input to S3/S4 Transformer
+                         # s3_channels and s4_channels are not directly used for Transformer dim in this simplified model
+                         transformer_heads=kwargs.get('transformer_heads', 8),
+                         transformer_dropout=transformer_dropout_val, # Pass the extracted dropout
+                         **kwargs)
 
 @register_model("coatnet_0_custom_enhanced")
 def coatnet_0_enhanced_builder(num_classes=100, **kwargs):
-    # Default LSK params, can be overridden by kwargs if needed
-    lsk_kernel_sizes = kwargs.pop('lsk_kernel_sizes', [3,5,7]) # Example, make it configurable
-    lsk_reduction_ratio = kwargs.pop('lsk_reduction_ratio', 8) # Example
-    se_ratio_in_mbconv = kwargs.pop('se_ratio_in_mbconv', 0.25) # Default SE in MBConv
+    transformer_dropout_val = kwargs.pop('transformer_dropout_rate', 0.0)
+    lsk_kernel_sizes = kwargs.get('lsk_kernel_sizes', [3,5,7]) # Default LSK if not provided
+    lsk_reduction_ratio = kwargs.get('lsk_reduction_ratio', 8)
+    se_ratio_in_mbconv = kwargs.get('se_ratio_in_mbconv', 0.25)
 
-    # Default CoAtNet-0 like structure parameters (can also be overridden)
-    s0_channels = kwargs.pop('s0_channels', 64)
-    s1_channels = kwargs.pop('s1_channels', 96)
-    s2_channels = kwargs.pop('s2_channels', 192)
-    s3_channels = kwargs.pop('s3_channels', 384)
-    s4_channels = kwargs.pop('s4_channels', 768)
-    s0_blocks = kwargs.pop('s0_blocks', 2)
-    s1_blocks = kwargs.pop('s1_blocks', 2)
-    s2_blocks = kwargs.pop('s2_blocks', 3) # Slightly deeper transformer for CoAtNet-0
-    s3_blocks = kwargs.pop('s3_blocks', 5) # Slightly deeper transformer
-    s4_blocks = kwargs.pop('s4_blocks', 2) # 
-    mbconv_expand_ratio = kwargs.pop('mbconv_expand_ratio', 4)
-    
-    return CoAtNetCustom_enhanced(num_classes=num_classes,
-                               s0_channels=s0_channels, s1_channels=s1_channels, 
-                               s2_channels=s2_channels, s3_channels=s3_channels, s4_channels=s4_channels,
-                               s0_blocks=s0_blocks, s1_blocks=s1_blocks, 
-                               s2_blocks=s2_blocks, s3_blocks=s3_blocks, s4_blocks=s4_blocks,
-                               mbconv_expand_ratio=mbconv_expand_ratio,
-                               lsk_kernel_sizes=lsk_kernel_sizes,
-                               lsk_reduction_ratio=lsk_reduction_ratio,
-                               se_ratio_in_mbconv=se_ratio_in_mbconv,
-                               **kwargs) # Pass remaining kwargs like transformer_heads etc.
+    return CoAtNetCustom_enhanced(
+        num_classes=num_classes,
+        s0_blocks=kwargs.get('s0_blocks', 2), 
+        s1_blocks=kwargs.get('s1_blocks', 2), 
+        s2_blocks=kwargs.get('s2_blocks', 3),
+        s3_blocks=kwargs.get('s3_blocks', 5),
+        s4_blocks=kwargs.get('s4_blocks', 2),
+        s0_channels=kwargs.get('s0_channels', 64), 
+        s1_channels=kwargs.get('s1_channels', 128), 
+        s2_channels=kwargs.get('s2_channels', 256),
+        transformer_heads=kwargs.get('transformer_heads', 8),
+        transformer_dropout=transformer_dropout_val,
+        lsk_kernel_sizes=lsk_kernel_sizes,
+        lsk_reduction_ratio=lsk_reduction_ratio,
+        se_ratio_in_mbconv=se_ratio_in_mbconv,
+        **kwargs
+    )
 
 def get_model(model_name: str, num_classes: int = 100, **kwargs: Any) -> nn.Module:
     """
@@ -1775,123 +1843,163 @@ class CoAtNetCIFAROpt(nn.Module):
                  s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=512,
                  s0_blocks=2, s1_blocks=2, s2_blocks=6, s3_blocks=10, s4_blocks=2,
                  mbconv_expand_ratio=4, transformer_heads=8, transformer_mlp_dim_ratio=4,
-                 eca_k_size=3, stem_kernel_size=3, dropout=0.1):
+                 eca_k_size=3, stem_kernel_size=3, dropout=0.0, transformer_dropout=0.0): # Added transformer_dropout
         super().__init__()
+        self.num_classes = num_classes
+        self.dropout_rate = dropout # General dropout for final layer if needed
+        self.transformer_dropout = transformer_dropout # Specific for transformer blocks
 
-        # Stem with optional larger kernel size for better 32x32 feature extraction
-        if stem_kernel_size == 5:
-            # Use 5x5 depthwise separable conv for better small image feature extraction
-            self.stem = nn.Sequential(
-                nn.Conv2d(3, s0_channels//2, kernel_size=3, stride=1, padding=1, bias=False),
-                nn.BatchNorm2d(s0_channels//2),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(s0_channels//2, s0_channels//2, kernel_size=5, stride=2, padding=2, 
-                         groups=s0_channels//2, bias=False),
-                nn.Conv2d(s0_channels//2, s0_channels, kernel_size=1, bias=False),
-                nn.BatchNorm2d(s0_channels),
-                nn.ReLU(inplace=True)
-            )
-        else:
-            # Standard 3x3 stem
-            self.stem = nn.Sequential(
-                nn.Conv2d(3, s0_channels, kernel_size=3, stride=2, padding=1, bias=False),
-                nn.BatchNorm2d(s0_channels),
-                nn.ReLU(inplace=True)
-            )
+        # Stem (S0)
+        padding = (stem_kernel_size - 1) // 2
+        self.s0_stem = nn.Sequential(
+            nn.Conv2d(3, s0_channels, kernel_size=stem_kernel_size, stride=1, padding=padding, bias=False), # stride 1 for CIFAR
+            nn.BatchNorm2d(s0_channels),
+            nn.ReLU(inplace=True)
+        )
+        # MBConv blocks for S0 after stem
+        self.s0_blocks_seq = self._make_eca_mbconv_stage(
+            s0_channels, s0_channels, s0_blocks, stride=1, # Stride 1 as stem already handled initial feature map
+            expand_ratio=mbconv_expand_ratio, eca_k_size=eca_k_size
+        )
         
-        # Stage 0 (ECA-MBConv) - 16x16
-        self.s0 = self._make_eca_mbconv_stage(s0_channels, s0_channels, s0_blocks, 
-                                             stride=1, expand_ratio=mbconv_expand_ratio, 
-                                             eca_k_size=eca_k_size)
+        # Convolutional stages (S1, S2) with ECA-MBConv
+        self.s1 = self._make_eca_mbconv_stage(
+            s0_channels, s1_channels, s1_blocks, stride=2, 
+            expand_ratio=mbconv_expand_ratio, eca_k_size=eca_k_size
+        ) # Out: C=s1_channels, H/2, W/2 (if initial was H,W) -> For CIFAR (32->16)
         
-        # Stage 1 (ECA-MBConv) - 8x8
-        self.s1 = self._make_eca_mbconv_stage(s0_channels, s1_channels, s1_blocks, 
-                                             stride=2, expand_ratio=mbconv_expand_ratio,
-                                             eca_k_size=eca_k_size)
-        
-        # Stage 2 (ECA-MBConv) - 4x4, more blocks for better conv feature learning
-        self.s2 = self._make_eca_mbconv_stage(s1_channels, s2_channels, s2_blocks,
-                                             stride=2, expand_ratio=mbconv_expand_ratio,
-                                             eca_k_size=eca_k_size)
-        
-        # Stage 3 (ECA-Transformer) - 2x2, reduced from 14 to 10 blocks
-        self.s3_pre_conv = nn.Conv2d(s2_channels, s3_channels, kernel_size=2, stride=2)
-        self.s3_transformer = self._make_eca_transformer_stage(s3_channels, s3_blocks, 
-                                                              transformer_heads, 
-                                                              s3_channels // transformer_heads,
-                                                              s3_channels * transformer_mlp_dim_ratio,
-                                                              dropout, eca_k_size)
+        self.s2 = self._make_eca_mbconv_stage(
+            s1_channels, s2_channels, s2_blocks, stride=2, 
+            expand_ratio=mbconv_expand_ratio, eca_k_size=eca_k_size
+        ) # Out: C=s2_channels, H/4, W/4 (16->8)
 
-        # Stage 4 (ECA-Transformer) - 1x1, reduced channels from 768 to 512
-        self.s4_pre_conv = nn.Conv2d(s3_channels, s4_channels, kernel_size=2, stride=2)
-        self.s4_transformer = self._make_eca_transformer_stage(s4_channels, s4_blocks,
-                                                              transformer_heads,
-                                                              s4_channels // transformer_heads, 
-                                                              s4_channels * transformer_mlp_dim_ratio,
-                                                              dropout, eca_k_size)
+        # Transformer stages (S3, S4) with ECA-Transformer
+        self.s3_transformer_blocks = self._make_eca_transformer_stage(
+            dim=s2_channels, num_blocks=s3_blocks, heads=transformer_heads,
+            dim_head=s2_channels // transformer_heads,
+            mlp_dim=s2_channels * transformer_mlp_dim_ratio,
+            dropout=self.transformer_dropout, # Use the passed transformer_dropout
+            eca_k_size=eca_k_size
+        ) # Operates on H/4, W/4 features
+        self.s3_pool = nn.MaxPool2d(kernel_size=2, stride=2) if s3_blocks > 0 and s4_blocks > 0 else nn.Identity() 
+        # Pool if S3 exists AND S4 will follow. If S3 is last transformer stage, no pool before classifier.
 
-        self.fc = nn.Linear(s4_channels, num_classes)
+        current_dim_for_s4 = s2_channels # Dim after S2, or after S3 pooling if S3 happened
+        
+        self.s4_transformer_blocks = self._make_eca_transformer_stage(
+            dim=current_dim_for_s4, num_blocks=s4_blocks, heads=transformer_heads,
+            dim_head=current_dim_for_s4 // transformer_heads,
+            mlp_dim=current_dim_for_s4 * transformer_mlp_dim_ratio,
+            dropout=self.transformer_dropout, # Use the passed transformer_dropout
+            eca_k_size=eca_k_size
+        ) # Operates on H/8, W/8 features if s3_pool happened
+
+        # Final classifier
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        
+        final_classifier_dim = s2_channels if s4_blocks == 0 else current_dim_for_s4 # Or s3_channels if s3 has diff dim
+        if s4_blocks > 0:
+            final_classifier_dim = current_dim_for_s4
+        elif s3_blocks > 0: # S3 is last, S4 is not
+            final_classifier_dim = s2_channels # S3 operates on s2_channels dim
+        else: # S2 is last feature stage
+            final_classifier_dim = s2_channels
+
+        self.fc = nn.Sequential(
+            nn.Dropout(self.dropout_rate if self.dropout_rate > 0 else 0.0), # General dropout before FC
+            nn.Linear(final_classifier_dim, num_classes)
+        )
 
     def _make_eca_mbconv_stage(self, in_c, out_c, num_blocks, stride, expand_ratio, eca_k_size):
         layers = []
         for i in range(num_blocks):
-            block_stride = stride if i == 0 else 1
-            current_in_c = in_c if i == 0 else out_c
-            layers.append(ECAMBConvBlock(current_in_c, out_c, block_stride, expand_ratio, eca_k_size))
+            current_stride = stride if i == 0 else 1
+            layers.append(ECAMBConvBlock(in_c if i == 0 else out_c, out_c, current_stride, expand_ratio, k_size=eca_k_size))
         return nn.Sequential(*layers)
 
     def _make_eca_transformer_stage(self, dim, num_blocks, heads, dim_head, mlp_dim, dropout, eca_k_size):
-        layers = [ECATransformerBlock(dim, heads, dim_head, mlp_dim, dropout, eca_k_size) 
-                 for _ in range(num_blocks)]
+        layers = []
+        for _ in range(num_blocks):
+            layers.append(ECATransformerBlock(dim, heads, dim_head, mlp_dim, dropout=dropout, eca_k_size=eca_k_size))
         return nn.Sequential(*layers)
 
     def forward(self, x):
         # Input: 32x32
-        x = self.stem(x)  # 16x16
-        x = self.s0(x)    # 16x16
-        x = self.s1(x)    # 8x8
-        x = self.s2(x)    # 4x4
+        x = self.s0_stem(x)      # Out: C=s0_channels, 32x32
+        x = self.s0_blocks_seq(x) # Out: C=s0_channels, 32x32
         
-        # S3 Transformer stage
-        x = self.s3_pre_conv(x)  # 2x2
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2)  # (B, 4, C)
-        x = self.s3_transformer(x)
-        x = x.transpose(1, 2).reshape(b, c, h, w)
+        x = self.s1(x)           # Out: C=s1_channels, 16x16
+        x = self.s2(x)           # Out: C=s2_channels, 8x8
 
-        # S4 Transformer stage  
-        x = self.s4_pre_conv(x)  # 1x1
-        b, c, h, w = x.shape
-        x = x.flatten(2).transpose(1, 2)  # (B, 1, C)
-        x = self.s4_transformer(x)
-        
-        # Global average pooling and classification
-        x = torch.mean(x, dim=1)  # (B, C)
+        if len(self.s3_transformer_blocks) > 0:
+            b, c, h, w = x.shape
+            x_reshaped = x.flatten(2).transpose(1, 2) # (B, H*W, C)
+            x_reshaped = self.s3_transformer_blocks(x_reshaped)
+            x = x_reshaped.transpose(1, 2).reshape(b, c, h, w) # (B, C, H, W)
+            x = self.s3_pool(x) # Potentially H/2, W/2 => 4x4 if S4 exists
+
+        if len(self.s4_transformer_blocks) > 0:
+            b, c, h, w = x.shape
+            x_reshaped = x.flatten(2).transpose(1, 2)
+            x_reshaped = self.s4_transformer_blocks(x_reshaped)
+            x = x_reshaped.transpose(1, 2).reshape(b, c, h, w)
+
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
         x = self.fc(x)
         return x
 
 @register_model("coatnet_cifar_opt")
 def coatnet_cifar_opt_builder(num_classes=100, **kwargs):
-    # CoAtNet-CIFAROpt configuration optimized for CIFAR-100
-    # Reduced complexity compared to standard CoAtNet-1 to prevent overfitting
+    transformer_dropout_val = kwargs.pop('transformer_dropout_rate', 0.0)
+    dropout_val = kwargs.pop('dropout', 0.1) # General dropout before FC
+    
     return CoAtNetCIFAROpt(
         num_classes=num_classes,
-        s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=512,
-        s0_blocks=2, s1_blocks=2, s2_blocks=6, s3_blocks=10, s4_blocks=2,
-        mbconv_expand_ratio=4, transformer_heads=8, transformer_mlp_dim_ratio=4,
-        eca_k_size=3, stem_kernel_size=3, dropout=0.1,
+        s0_channels=kwargs.get('s0_channels', 64), 
+        s1_channels=kwargs.get('s1_channels', 96), 
+        s2_channels=kwargs.get('s2_channels', 192),
+        s3_channels=kwargs.get('s3_channels', 384), # Not directly used for dim in this simplified setup for S3/S4
+        s4_channels=kwargs.get('s4_channels', 512), # Not directly used for dim
+        s0_blocks=kwargs.get('s0_blocks', 2), 
+        s1_blocks=kwargs.get('s1_blocks', 2), 
+        s2_blocks=kwargs.get('s2_blocks', 3), 
+        s3_blocks=kwargs.get('s3_blocks', 5), 
+        s4_blocks=kwargs.get('s4_blocks', 2),
+        mbconv_expand_ratio=kwargs.get('mbconv_expand_ratio', 4),
+        transformer_heads=kwargs.get('transformer_heads', 4), # Fewer heads for smaller model
+        transformer_mlp_dim_ratio=kwargs.get('transformer_mlp_dim_ratio', 2), # Smaller MLP ratio
+        eca_k_size=kwargs.get('eca_k_size', 3),
+        stem_kernel_size=kwargs.get('stem_kernel_size', 3),
+        dropout=dropout_val, # General dropout
+        transformer_dropout=transformer_dropout_val, # Transformer specific dropout
         **kwargs
     )
 
 @register_model("coatnet_cifar_opt_large_stem")
 def coatnet_cifar_opt_large_stem_builder(num_classes=100, **kwargs):
-    # CoAtNet-CIFAROpt with larger stem kernel for better 32x32 feature extraction
+    transformer_dropout_val = kwargs.pop('transformer_dropout_rate', 0.0)
+    dropout_val = kwargs.pop('dropout', 0.1)
+
     return CoAtNetCIFAROpt(
         num_classes=num_classes,
-        s0_channels=64, s1_channels=96, s2_channels=192, s3_channels=384, s4_channels=512,
-        s0_blocks=2, s1_blocks=2, s2_blocks=6, s3_blocks=10, s4_blocks=2,
-        mbconv_expand_ratio=4, transformer_heads=8, transformer_mlp_dim_ratio=4,
-        eca_k_size=3, stem_kernel_size=5, dropout=0.1,
+        s0_channels=kwargs.get('s0_channels', 64), 
+        s1_channels=kwargs.get('s1_channels', 96), 
+        s2_channels=kwargs.get('s2_channels', 192),
+        s3_channels=kwargs.get('s3_channels', 384),
+        s4_channels=kwargs.get('s4_channels', 512),
+        s0_blocks=kwargs.get('s0_blocks', 2), 
+        s1_blocks=kwargs.get('s1_blocks', 2), 
+        s2_blocks=kwargs.get('s2_blocks', 3), 
+        s3_blocks=kwargs.get('s3_blocks', 5), 
+        s4_blocks=kwargs.get('s4_blocks', 2),
+        mbconv_expand_ratio=kwargs.get('mbconv_expand_ratio', 4),
+        transformer_heads=kwargs.get('transformer_heads', 4),
+        transformer_mlp_dim_ratio=kwargs.get('transformer_mlp_dim_ratio', 2),
+        eca_k_size=kwargs.get('eca_k_size', 3),
+        stem_kernel_size=kwargs.get('stem_kernel_size', 5), # Larger stem
+        dropout=dropout_val,
+        transformer_dropout=transformer_dropout_val,
         **kwargs
     )
 
@@ -2117,4 +2225,12 @@ def resnet20_no_eca_builder(num_classes=100, **kwargs):
     # 过滤掉 k_size 参数，因为 NoECABasicBlock 不使用 ECA
     filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
     return ResNet(NoECABasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+@register_model("eca_resnet20_pos1")
+def eca_resnet20_pos1_builder(num_classes=100, k_size=3, **kwargs):
+    return ResNet(ECABasicBlock_Pos1, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size}, **kwargs)
+
+@register_model("eca_resnet20_pos3")
+def eca_resnet20_pos3_builder(num_classes=100, k_size=3, **kwargs):
+    return ResNet(ECABasicBlock_Pos3, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size}, **kwargs)
 #### ECA-Net 20 Comparison model ####

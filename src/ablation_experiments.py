@@ -28,56 +28,65 @@ class ECANetAblation:
     """ECA-Net消融实验配置.
     
     Ablations from report section 5.1:
-    1. Baseline (ResNet-20)
-    2. ECA-ResNet-20 (k_size=3, default in our get_hyperparameters for eca_resnet_20)
-    3. ECA-ResNet-20 (k_size=5)
-    4. ECA-ResNet-20 (k_size=7) 
-    5. Position of ECA: after second Conv (default), after ReLU, after Shortcut Add
-       (This requires modifying the ECABasicBlock or having variants. 
-        For simplicity, we will focus on k_size ablation here as position ablation
-        is complex without block variants in `model.py`.)
+    1. Baseline (ResNet-20 no ECA)
+    2. ECA-ResNet-20 (adaptive k_size)
+    3. ECA-ResNet-20 (k_size=3)
+    4. ECA-ResNet-20 (k_size=5)
+    5. ECA-ResNet-20 (k_size=7)
+    6. ECA-ResNet-20 (k_size=9)
     """
     
     @staticmethod
     def get_experiment_configs():
         configs = []
-        base_model_name = 'resnet_20' # Baseline
-        eca_model_name = 'eca_resnet_20'
+        base_model_name = 'resnet20_no_eca' # Explicit baseline
 
-        # 1. Baseline ResNet-20
+        # 1. Baseline ResNet-20 (No ECA)
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
-            'label': 'ResNet-20 (Baseline for ECA Ablation)'
+            'label': 'ResNet-20 (No ECA Baseline)'
         })
 
-        # 2. ECA-ResNet-20 with k_size=3 (default from get_hyperparameters for eca_resnet_20)
-        # The get_hyperparameters for 'eca_resnet_20' already sets k_size=3.
-        # So, an empty config_override should use it.
+        # 2. ECA-Net with adaptive k_size
         configs.append({
-            'model_name': eca_model_name,
-            'config_override': {'model_constructor_params': {'k_size': 3}}, # Explicitly state for clarity
-            'label': 'ECA-ResNet-20 (k_size=3)'
+            'model_name': 'ecanet20_adaptive',
+            'config_override': {}, # Adaptive k_size is inherent to the model block
+            'label': 'ECANet-20 (Adaptive k_size)'
         })
 
-        # 3. ECA-ResNet-20 with k_size=5
+        # 3. ECA-Net with fixed k_size=3
         configs.append({
-            'model_name': eca_model_name, 
-            'config_override': {'model_constructor_params': {'k_size': 5}},
-            'label': 'ECA-ResNet-20 (k_size=5)'
+            'model_name': 'ecanet20_fixed_k3', 
+            'config_override': {}, # k_size=3 is inherent to the model block
+            'label': 'ECANet-20 (Fixed k_size=3)'
+        })
+
+        # 4. ECA-Net with fixed k_size=5
+        configs.append({
+            'model_name': 'ecanet20_fixed_k5',
+            'config_override': {}, # k_size=5 is inherent to the model block
+            'label': 'ECANet-20 (Fixed k_size=5)'
         })
         
-        # 4. ECA-ResNet-20 with k_size=7
+        # 5. ECA-Net with fixed k_size=7
         configs.append({
-            'model_name': eca_model_name, 
-            'config_override': {'model_constructor_params': {'k_size': 7}},
-            'label': 'ECA-ResNet-20 (k_size=7)'
+            'model_name': 'ecanet20_fixed_k7',
+            'config_override': {}, # k_size=7 is inherent to the model block
+            'label': 'ECANet-20 (Fixed k_size=7)'
+        })
+
+        # 6. ECA-Net with fixed k_size=9
+        configs.append({
+            'model_name': 'ecanet20_fixed_k9',
+            'config_override': {}, # k_size=9 is inherent to the model block
+            'label': 'ECANet-20 (Fixed k_size=9)'
         })
         return configs
 
 class GhostNetAblation:
     """GhostNet消融实验配置 (Report Section 5.2).
-    1. Baseline (ResNet-20)
+    1. Baseline (ResNet-20 no ECA)
     2. Ghost-ResNet-20 (ratio=2, default for ghost_resnet_20)
     3. Ghost-ResNet-20 (ratio=3)
     4. Ghost-ResNet-20 (ratio=4)
@@ -85,10 +94,10 @@ class GhostNetAblation:
     @staticmethod
     def get_experiment_configs():
         configs = []
-        base_model_name = 'resnet_20'
+        base_model_name = 'resnet20_no_eca' # Explicit baseline
         ghost_model_name = 'ghost_resnet_20'
 
-        # 1. Baseline ResNet-20
+        # 1. Baseline ResNet-20 (No ECA, equivalent to standard ResNet-20)
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
@@ -121,6 +130,50 @@ class GhostNetAblation:
 # Note: Attention Position Ablation is more complex as it requires different model block definitions.
 # This is not easily configurable via hyperparameter overrides unless model.py supports such variants.
 # For now, we will skip implementing the AttentionPositionAblation runner that requires code changes in model.py.
+
+class AttentionPositionAblation:
+    """注意力模块位置消融实验 (报告5.3节).
+    1. Baseline (ResNet-20 no ECA)
+    2. ECA after first Conv (Pos1)
+    3. ECA after second Conv before Add (Pos2 - default eca_resnet_20)
+    4. ECA after Add on residual (Pos3)
+    All ECA variants use k_size=3 for this position ablation, based on report/common practice.
+    """
+    @staticmethod
+    def get_experiment_configs():
+        configs = []
+        base_model_name = 'resnet20_no_eca'
+        default_k_size = 3 # As per report/common choice for position ablation
+
+        # 1. Baseline ResNet-20 (No ECA)
+        configs.append({
+            'model_name': base_model_name,
+            'config_override': {},
+            'label': 'ResNet-20 (No ECA Baseline for Position Ablation)'
+        })
+
+        # 2. ECA after first Conv (Pos1)
+        configs.append({
+            'model_name': 'eca_resnet20_pos1',
+            'config_override': {'model_constructor_params': {'k_size': default_k_size}},
+            'label': 'ECA-ResNet20 (Pos1: After Conv1)'
+        })
+        
+        # 3. ECA after second Conv, before Add (Pos2 - standard ECABasicBlock)
+        # This uses the 'eca_resnet_20' builder which defaults to ECABasicBlock
+        configs.append({
+            'model_name': 'eca_resnet_20', 
+            'config_override': {'model_constructor_params': {'k_size': default_k_size}},
+            'label': 'ECA-ResNet20 (Pos2: After Conv2, Before Add)'
+        })
+
+        # 4. ECA after Add on residual (Pos3)
+        configs.append({
+            'model_name': 'eca_resnet20_pos3',
+            'config_override': {'model_constructor_params': {'k_size': default_k_size}},
+            'label': 'ECA-ResNet20 (Pos3: After Add)'
+        })
+        return configs
 
 def run_ablation_study(ablation_configs, accelerator, study_name):
     if accelerator.is_local_main_process:
@@ -172,8 +225,10 @@ def run_all_ablation_experiments():
     run_ablation_study(ghost_configs, accelerator, "GhostNet Ratio Ablation")
     accelerator.wait_for_everyone()
     
-    # Add other ablation studies here if defined
-    # e.g., Attention Position (if model.py supports variants for it)
+    # Attention Position Ablations
+    attn_pos_configs = AttentionPositionAblation.get_experiment_configs()
+    run_ablation_study(attn_pos_configs, accelerator, "ECA Attention Position Ablation")
+    accelerator.wait_for_everyone()
 
     if accelerator.is_local_main_process:
         print("\nAll ablation experiments orchestration finished.")
