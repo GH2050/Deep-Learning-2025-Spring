@@ -304,7 +304,7 @@ class ImprovedBlock_ConvNeXt(nn.Module):
         return out
     
 
-class ImprovedBlock_NoDropPath(nn.Module):
+class ImprovedBlock_ConvNeXt_NoDropPath(nn.Module):
     """消融实验: 无DropPath的版本"""
     expansion = 1
 
@@ -348,7 +348,7 @@ class ImprovedBlock_NoDropPath(nn.Module):
         return out
 
 
-class ImprovedBlock_StandardConv(nn.Module):
+class ImprovedBlock_ConvNeXt_StandardConv(nn.Module):
     """消融实验: 使用标准3x3卷积而非7x7深度卷积"""
     expansion = 1
 
@@ -392,7 +392,7 @@ class ImprovedBlock_StandardConv(nn.Module):
         return out
 
 
-class ImprovedBlock_NoInvertedBottleneck(nn.Module):
+class ImprovedBlock_ConvNeXt_NoInvertedBottleneck(nn.Module):
     """消融实验：无倒置瓶颈，直接深度卷积"""
     expansion = 1
 
@@ -1652,19 +1652,19 @@ def improved_resnet20_convnext_builder(num_classes=100, width_multiplier=1.0, dr
 @register_model("improved_resnet20_convnext_no_droppath")
 def improved_resnet20_convnext_no_droppath_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.0, **kwargs):
     """消融实验: 无DropPath的版本"""
-    return ImprovedResNet_ConvNeXt(ImprovedBlock_NoDropPath, [3, 3, 3], num_classes=num_classes, 
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_ConvNeXt_NoDropPath, [3, 3, 3], num_classes=num_classes, 
                          width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
 
 @register_model("improved_resnet20_convnext_std_conv")
 def improved_resnet20_convnext_std_conv_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.05, **kwargs):
     """消融实验: 使用标准3x3卷积"""
-    return ImprovedResNet_ConvNeXt(ImprovedBlock_StandardConv, [3, 3, 3], num_classes=num_classes, 
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_ConvNeXt_StandardConv, [3, 3, 3], num_classes=num_classes, 
                          width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
 
 @register_model("improved_resnet20_convnext_no_inverted")
 def improved_resnet20_convnext_no_inverted_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.05, **kwargs):
     """消融实验: 无倒置瓶颈"""
-    return ImprovedResNet_ConvNeXt(ImprovedBlock_NoInvertedBottleneck, [3, 3, 3], num_classes=num_classes, 
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_ConvNeXt_NoInvertedBottleneck, [3, 3, 3], num_classes=num_classes, 
                          width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
                          
 @register_model("segnext_mscan_tiny") # This seems to be MSCANEncoderCustom from before
