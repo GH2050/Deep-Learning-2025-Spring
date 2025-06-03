@@ -213,6 +213,74 @@ class GhostBasicBlock(nn.Module):
         out += self.shortcut(x)                 # 残差连接
         out = F.relu(out)                       # 最终激活
         return out
+        
+# Ghost消融实验对比：廉价操作 不用 深度可分离卷积，而是直接复制，不做操作
+class GhostModuleCopy(nn.Module):
+    def __init__(self, inp, oup, kernel_size=1, ratio=2, stride=1, relu=True):
+        super(GhostModuleCopy, self).__init__()
+        self.oup = oup
+
+        init_channels = math.ceil(oup / ratio)
+        new_channels = init_channels * (ratio - 1)
+
+        # 主卷积部分
+        self.primary_conv = nn.Sequential(
+            nn.Conv2d(inp, init_channels, kernel_size, stride, kernel_size // 2, bias=False),
+            nn.BatchNorm2d(init_channels),
+            nn.ReLU(inplace=True) if relu else nn.Sequential(),
+        )
+
+        # 廉价操作改为直接复制
+        self.new_channels = new_channels
+
+    def forward(self, x):
+        x1 = self.primary_conv(x)  # 本征特征图
+        if self.new_channels > 0:
+            # 直接复制本征特征图的前new_channels个通道
+            # 如果new_channels > init_channels，则重复复制前几个通道
+            repeats = (self.new_channels + x1.size(1) - 1) // x1.size(1)
+            x2 = x1[:, :self.new_channels].clone()
+            if repeats > 1:
+                x2 = x1.repeat(1, repeats, 1, 1)[:, :self.new_channels]
+        else:
+            x2 = torch.zeros_like(x1)
+
+        out = torch.cat([x1, x2], dim=1)
+        return out[:, :self.oup, :, :]
+
+class GhostCopyBasicBlock(nn.Module):
+    expansion = 1  
+
+    def __init__(self, in_planes, planes, stride=1, ratio=2):
+        """
+        args:
+        - in_planes：输入特征图的通道数
+        - planes：输出通道数（不乘以expansion）
+        - stride：第一层GhostModule的步长，用于下采样
+        - ratio：GhostModule中的通道扩展比
+        """
+        super(GhostCopyBasicBlock, self).__init__()
+        # 第一个GhostModule可进行下采样
+        self.ghost1 = GhostModuleCopy(in_planes, planes, kernel_size=3, ratio=ratio, stride=stride)
+        self.bn1 = nn.BatchNorm2d(planes)
+        # 第二个GhostModule保持通道数与空间尺寸
+        self.ghost2 = GhostModuleCopy(planes, planes, kernel_size=3, ratio=ratio, stride=1)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        # 如果输入输出尺寸不一致，则构造shortcut进行调整
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.ghost1(x)))  # 第一次Ghost卷积并激活
+        out = self.bn2(self.ghost2(out))        # 第二次Ghost卷积不激活
+        out += self.shortcut(x)                 # 残差连接
+        out = F.relu(out)                       # 最终激活
+        return out
 
 class ConvNeXtBlock(nn.Module):
     def __init__(self, dim, drop_path=0., layer_scale_init_value=1e-6):
