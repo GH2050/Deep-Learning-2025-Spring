@@ -59,7 +59,7 @@
 
 \hypersetup{colorlinks,citecolor=verde,linkcolor=orange,urlcolor=verde}
 % 使用标准的natbib代替abntex2cite以确保ShareLaTeX兼容性
-\usepackage{natbib}
+% \usepackage{natbib}
 \bibliographystyle{plainnat}
 
 %=============================
@@ -76,7 +76,10 @@
 \setbeamerfont{subsection in toc}{size=\scriptsize}
 \setbeamerfont{subsubsection in toc}{size=\scriptsize}
 
-\AtBeginSection[]{\begin{frame}<beamer>\frametitle{当前章节}\tableofcontents[currentsection]\end{frame}}
+% 不要当前章节
+% \AtBeginSection[]{\begin{frame}<beamer>\frametitle{当前章节}\tableofcontents[currentsection]\end{frame}}
+\AtBeginSection[]{}
+
 \LetLtxMacro{\OldIncludegraphics}{\includegraphics}
 \renewcommand{\includegraphics}[2][]{\OldIncludegraphics[height=0.8\textheight,keepaspectratio, #1]{#2}}
 \newcommand{\dis}{\displaystyle}
@@ -140,15 +143,14 @@
 %================================================
 %---------------封面信息
 %================================================
-\title{\bfseries 深度学习研究报告}
-\subtitle{\textcolor{orange}{先进卷积与注意力机制}}
+\title{\bfseries 深度学习及应用 项目展示}
+\subtitle{\textcolor{orange}{使用PyTorch实现CIFAR100 分类模型搭建}}
 \date{\textcolor{black}{\today}}
 \author{\bf
-学生：姓名\\
-导师：导师姓名\\
-副导师：副导师姓名
+小组成员：董瑞昕、廖望、卢艺晗、谭凯泽、喻心\\
+指导老师：李重仪
 }
-\institute{\textcolor{verde}{深度学习课程 - 2025年春季学期}}
+\institute{\textcolor{verde}{深度学习及应用 - 2025年春季学期}}
 
 \begin{document}
 \maketitle
@@ -165,86 +167,148 @@
 %================================================
 %---------------正文内容
 %================================================
-\section{引言}
 
-\subsection{研究问题}
-\begin{frame}{研究问题}
-本研究探讨先进卷积网络和注意力机制在深度学习中的应用。主要关注以下几个方面：
-\begin{itemize}
-\item 轻量化网络架构设计
-\item 注意力机制的有效性
-\item 模型性能与计算效率的平衡
-\end{itemize}
-\end{frame}
+% \begin{frame}{背景介绍}
+% 本研究的主要目标包括：
+% \begin{itemize}
+% \item 实现精简版ResNet的训练和优化
+% \item 分析不同注意力机制的效果
+% \item 在保持精度的前提下降低计算成本
+% \end{itemize}
 
-\subsection{研究动机}
-\begin{frame}{文本块和引用示例}
-\begin{block}{如何引用文献？}
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-引用类型 & 命令 & 结果 \\ \hline
-作者引用 & \textbackslash citet\{key\} & 作者等(年份) \\ \hline
-括号引用 & \textbackslash citep\{key\} & (作者等，年份) \\ \hline
-\end{tabular}
-\end{table}
-\end{block}
+% \begin{block}{目标说明}
+% 研究目标将指导我们的实验设计和结果分析，确保研究具有明确的方向性和可评估性。
+% \end{block}
+% \end{frame}
 
-\begin{problem}
-传统卷积神经网络存在参数量大、计算复杂度高的问题。
-\end{problem}
+% \subsection{研究问题}
+% \begin{frame}{研究问题}
+% 本研究探讨先进卷积网络和注意力机制在深度学习中的应用。主要关注以下几个方面：
+% \begin{itemize}
+% \item 轻量化网络架构设计
+% \item 注意力机制的有效性
+% \item 模型性能与计算效率的平衡
+% \end{itemize}
+% \end{frame}
 
-\begin{solution}
-采用GhostNet等轻量化网络架构，结合注意力机制提升模型效率。
-\end{solution}
-\end{frame}
+% \subsection{研究动机}
+% \begin{frame}{文本块和引用示例}
+% \begin{block}{如何引用文献？}
+% \begin{table}[H]
+% \centering
+% \begin{tabular}{|l|l|l|}
+% \hline
+% 引用类型 & 命令 & 结果 \\ \hline
+% 作者引用 & \textbackslash citet\{key\} & 作者等(年份) \\ \hline
+% 括号引用 & \textbackslash citep\{key\} & (作者等，年份) \\ \hline
+% \end{tabular}
+% \end{table}
+% \end{block}
 
-\subsection{研究目标}
-\begin{frame}{研究目标}
-本研究的主要目标包括：
-\begin{itemize}
-\item 实现轻量化卷积网络的训练和优化
-\item 分析不同注意力机制的效果
-\item 在保持精度的前提下降低计算成本
-\end{itemize}
+% \begin{problem}
+% 传统卷积神经网络存在参数量大、计算复杂度高的问题。
+% \end{problem}
 
-\begin{block}{目标说明}
-研究目标将指导我们的实验设计和结果分析，确保研究具有明确的方向性和可评估性。
-\end{block}
-\end{frame}
+% \begin{solution}
+% 采用GhostNet等轻量化网络架构，结合注意力机制提升模型效率。
+% \end{solution}
+% \end{frame}
 
-\section{文献综述}
-\begin{frame}{相关工作}
-\begin{itemize}
-\item \textbf{轻量化网络}：MobileNet、ShuffleNet、GhostNet等
-\item \textbf{注意力机制}：SE-Net、CBAM、ECA-Net等
-\item \textbf{网络优化}：知识蒸馏、剪枝、量化等技术
-\end{itemize}
-\end{frame}
+% \subsection{研究目标}
+% \begin{frame}{研究目标}
+% 本研究的主要目标包括：
+% \begin{itemize}
+% \item 实现轻量化卷积网络的训练和优化
+% \item 分析不同注意力机制的效果
+% \item 在保持精度的前提下降低计算成本
+% \end{itemize}
 
-\section{研究方法}
+% \begin{block}{目标说明}
+% 研究目标将指导我们的实验设计和结果分析，确保研究具有明确的方向性和可评估性。
+% \end{block}
+% \end{frame}
+
+% \section{文献综述}
+% \begin{frame}{相关工作}
+% \begin{itemize}
+% \item \textbf{轻量化网络}：MobileNet、ShuffleNet、GhostNet等
+% \item \textbf{注意力机制}：SE-Net、CBAM、ECA-Net等
+% \item \textbf{网络优化}：知识蒸馏、剪枝、量化等技术
+% \end{itemize}
+% \end{frame}
+
+
+% 第一部分
+\section{基础方法介绍}
+
+%第二部分
+\section{优化方法设计}
+\subsection{优化方法}
+\subsubsection{LCANet}
+\subsubsection{coatnet}
+\subsubsection{GhostNet}
+
+\subsubsection{MLPnet}
+\subsubsection{convnext }
+\subsection{原创性方法}
+\subsubsection{xx}
+\subsubsection{xx}
+
+
+%第三部分
+\section{实验结果分析}
+\subsection{实验设计}
 \begin{frame}{实验设置}
 \begin{itemize}
-\item \textbf{数据集}：CIFAR-10、ImageNet等标准数据集
+\item \textbf{数据集}：CIFAR100数据集
 \item \textbf{模型}：GhostNet、ResNet等网络架构
 \item \textbf{训练策略}：数据增强、学习率调度、正则化
 \item \textbf{评估指标}：准确率、参数量、FLOPs、推理时间
 \end{itemize}
 \end{frame}
 
-\section{实验结果}
-\begin{frame}{主要结果}
-实验结果表明：
-\begin{itemize}
-\item GhostNet在保持精度的同时显著减少了参数量
-\item 注意力机制能够有效提升模型性能
-\item 优化策略对模型收敛起到关键作用
-\end{itemize}
+\subsection{实验结果}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ （1） 1+5种方法数据汇总对比【参数量、准确率等】
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+（2） TODO：各个方法的消融实验结果分析
+
+\begin{frame}{ECA-Net (1)}
+ECA-Net \cite{Wang_2020_CVPR} 使用自适应通道注意力机制，可以在不显著增加参数量的情况下提升模型性能。实验以 ResNet-20 模型为基准，增加 ECA 模块，对模块中的核大小 k 值（自适应 k 值，固定 k 值：3, 5, 7, 9）进行测试：
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\hline
+模型配置 & 最佳准确率(\%) & 参数量(M) & 训练时长(h) \\
+\hline
+ResNet-20 (baseline) & 66.92 & 0.278324 & 0.207 \\
+ECANet-20 (adaptive) & \textbf{68.08} & 0.278351 & 0.206 \\
+ECANet-20 (k=3) & 66.84 & 0.278351 & 0.209 \\
+ECANet-20 (k=5) & 65.99 & 0.278369 & 0.204 \\
+ECANet-20 (k=7) & 66.80 & 0.278387 & 0.209 \\
+ECANet-20 (k=9) & 67.05 & 0.278405 & 0.211 \\
+\hline
+\end{tabular}
+\caption{不同核大小 k 值的测试结果}
+\end{table}
 \end{frame}
 
+\begin{frame}{ECA-Net (2)}
+实验结果表明：
+\begin{itemize}
+\item \textbf{自适应核大小}：ECANet-20 (adaptive) 取得了68.08\%的最佳准确率。
+\item \textbf{固定核大小}：不同的k值对模型性能有显著影响（k = 3:66.84\%，k = 5:65.99\%，k = 7:66.80\%，k = 9:67.05\%）
+\item \textbf{训练过程中的随机因素}：自适应核大小 (此任务中 k = 3) 与 固定 k=3 的模型测试结果不同，说明训练随机性可能导致结果较大波动。
+\end{itemize}
+
+\end{frame}
+
+
+%第四部分
 \section{总结与展望}
-\begin{frame}{结论}
+\begin{frame}{总结与展望}
 \begin{itemize}
 \item 轻量化网络在移动端部署具有重要意义
 \item 注意力机制是提升网络性能的有效手段
@@ -261,27 +325,26 @@
 \Huge{谢谢！}
 \vspace{1cm}
 
-\Large{欢迎提问与讨论}
+\Large{欢迎批评指正}
 \end{frame}
 }
 
 %================================================
 %---------------参考文献
 %================================================
-\section*{参考文献}
+\section*{}
+% \appendix
 \begin{frame}[allowframebreaks]{参考文献}
 \begin{thebibliography}{99}
-\bibitem{han2020ghostnet}
-Han, K., Wang, Y., Tian, Q., et al. (2020). GhostNet: More features from cheap operations. In CVPR.
+\bibitem{Wang_2020_CVPR} ECA-Net: Efficient Channel Attention for Deep Convolutional Neural Networks
 
-\bibitem{hu2018squeeze}
-Hu, J., Shen, L., Sun, G. (2018). Squeeze-and-excitation networks. In CVPR.
+% \bibitem{hu2018squeeze}
+% Hu, J., Shen, L., Sun, G. (2018). Squeeze-and-excitation networks. In CVPR.
 
-\bibitem{woo2018cbam}
-Woo, S., Park, J., Lee, J. Y., Kweon, I. S. (2018). CBAM: Convolutional block attention module. In ECCV.
+% \bibitem{woo2018cbam}
+% Woo, S., Park, J., Lee, J. Y., Kweon, I. S. (2018). CBAM: Convolutional block attention module. In ECCV.
 \end{thebibliography}
 \end{frame}
-
 %================================================
 %---------------模板结束
 %================================================

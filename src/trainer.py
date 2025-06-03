@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, Union
 from dataclasses import dataclass, field, fields
 import json
 
-from utils import (
+from .utils import (
     setup_logging, log_system_info, setup_distributed, cleanup_distributed,
     get_optimizer_scheduler, save_checkpoint, plot_training_curves,
     save_experiment_results, mixup_data, mixup_criterion, get_hyperparameters
