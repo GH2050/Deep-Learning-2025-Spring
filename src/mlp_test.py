@@ -184,9 +184,9 @@ transform = transforms.Compose([
 
 # 加载数据集
 train_dataset = datasets.CIFAR100(root='./data', train=True,
-                                 download=True, transform=transform)
+                                 download=False, transform=transform)
 test_dataset = datasets.CIFAR100(root='./data', train=False,
-                                download=True, transform=transform)
+                                download=False, transform=transform)
 
 # 创建数据加载器
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
@@ -200,7 +200,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.05)
 
 # 训练模型
-num_epochs = 40
+num_epochs = 10
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
