@@ -4,7 +4,6 @@ import argparse
 import os
 import torch
 
-sys.path.append('src')
 from model import get_model, get_model_info
 from dataset import get_cifar100_datasets
 from trainer import Trainer, TrainingArguments
@@ -73,7 +72,7 @@ def run_training_config(model_name: str, cli_args_dict: dict = None, programmati
         eval_dataset=eval_dataset,
     )
 
-    if trainer.is_main_process: 
+    if trainer.rank == 0:
         print(f"开始训练模型: {model_name}")
         
         run_label_suffix = ""
@@ -99,11 +98,9 @@ def run_training_config(model_name: str, cli_args_dict: dict = None, programmati
 
     trainer.train()
 
-    if trainer.is_main_process:
+    if trainer.rank == 0:
         final_run_name = training_args.run_name if training_args.run_name else model_name
-        # training_args.output_dir 应该已经是 logs/run_name 这样的形式了
-        # log_dir_path = os.path.join(training_args.output_dir, final_run_name) # Trainer 应该自己处理这个
-        log_dir_path = training_args.output_dir # output_dir from TrainingArguments should be the final specific dir
+        log_dir_path = training_args.output_dir
         print(f"模型 {model_name}{run_label_suffix} 训练完成。日志保存在: {log_dir_path}")
 
 

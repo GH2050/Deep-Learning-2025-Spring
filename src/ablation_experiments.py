@@ -1,3 +1,4 @@
+#!/usr/bin/env python3 # 保持shebang，虽然-m运行时可能不直接用
 import torch
 # import torch.nn as nn # No longer directly used here
 # import torch.optim as optim # No longer directly used here
@@ -13,10 +14,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Project imports
-from model import get_model # Relies on the new get_model
-from utils import get_hyperparameters, save_experiment_results, plot_training_curves, REPORT_HYPERPARAMETERS
-from train import run_training_config # 新的导入
+# Project imports using relative paths
+from .model import get_model
+from .utils import get_hyperparameters, save_experiment_results, plot_training_curves, REPORT_HYPERPARAMETERS
+from .train import run_training_config
 
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
@@ -148,6 +149,47 @@ class AttentionPositionAblation:
         })
         return configs
 
+class ImprovedResNetConvNeXtAblation:
+    """Improved-ResNet20-ConvNeXt 相关模型的消融实验.
+    1. Baseline (improved_resnet20_convnext)
+    2. No DropPath
+    3. Standard 3x3 Conv (instead of 7x7 depthwise)
+    4. No Inverted Bottleneck
+    """
+    @staticmethod
+    def get_experiment_configs():
+        configs = []
+        base_model_name = 'improved_resnet20_convnext'
+
+        # Baseline - the original improved_resnet20_convnext
+        configs.append({
+            'model_name': base_model_name,
+            'config_override': {}, # Assuming default drop_path_rate=0.05 from its definition
+            'label': 'ImprovedResNet20ConvNeXt_Baseline'
+        })
+        
+        # No DropPath variant
+        configs.append({
+            'model_name': 'improved_resnet20_convnext_no_droppath',
+            'config_override': {}, # drop_path_rate=0.0 is set in its builder
+            'label': 'ImprovedResNet20ConvNeXt_NoDropPath'
+        })
+
+        # Standard 3x3 Conv variant
+        configs.append({
+            'model_name': 'improved_resnet20_convnext_std_conv',
+            'config_override': {}, # drop_path_rate=0.05 is set in its builder
+            'label': 'ImprovedResNet20ConvNeXt_StdConv'
+        })
+
+        # No Inverted Bottleneck variant
+        configs.append({
+            'model_name': 'improved_resnet20_convnext_no_inverted',
+            'config_override': {}, # drop_path_rate=0.05 is set in its builder
+            'label': 'ImprovedResNet20ConvNeXt_NoInvertedBottleneck'
+        })
+        return configs
+
 def run_ablation_study(ablation_configs, study_name):
     print(f"\n\n{'='*80}")
     print(f"🔬 Starting Ablation Study: {study_name} 🔬")
@@ -160,17 +202,33 @@ def run_ablation_study(ablation_configs, study_name):
 
         # 为确保日志目录清晰，使用 study_name 和 label 生成 run_name
         # 清理 label 中的特殊字符，使其适合作为目录名
-        sanitized_label = label.replace(" ", "_").replace("(", "").replace(")", "").replace(":", "").replace("=", "").replace(",", "")
+        sanitized_label = label.replace(" ", "_").replace("(", "").replace(")", "").replace(":", "").replace("=", "").replace(",", "").replace("/", "_").replace("-", "_")
         
-        effective_config_override = config_override_from_ablation
-        effective_config_override['run_name'] = f"{study_name}_{sanitized_label}"
+        effective_run_name = f"{study_name}_{sanitized_label}"
 
-        # accelerator 对象不再需要传递，Trainer 内部处理
-        run_training_config(model_name=model_name, programmatic_config_override=effective_config_override)
+        # Prepare the programmatic_config_override for run_training_config
+        # This dictionary will be passed to TrainingArguments and the model constructor
+        programmatic_override = config_override_from_ablation
+        programmatic_override['run_name'] = effective_run_name # Ensure TrainingArguments uses this for output dirs
+
+        print(f"--- Running Ablation Case: {label} (Model: {model_name}) ---")
+        print(f"    Effective Run Name for logs: {effective_run_name}")
+        print(f"    Config Overrides: {programmatic_override}")
+        
+        try:
+            run_training_config(model_name=model_name, programmatic_config_override=programmatic_override)
+            print(f"--- Ablation Case: {label} (Model: {model_name}) completed successfully. ---")
+        except Exception as e:
+            print(f"ERROR during ablation case: {label} (Model: {model_name})")
+            print(f"Error details: {e}")
+            # Potentially log this error to a file or re-raise if one failure should stop all
+        
+        # Optional: Add a small delay or resource check if running many GPU-intensive jobs sequentially
+        # time.sleep(5) 
 
     print(f"\n---- Ablation Study: {study_name} Complete ----")
-    print("Individual model training results saved in logs/results.")
-    print("Run analyze_results.py to analyze these results.")
+    print("Individual model training results should be saved in subdirectories under logs/results.")
+    print("Run analyze_results.py to aggregate and analyze these results.")
 
 def run_all_ablation_experiments():
     print("Starting All Ablation Experiments Orchestration Script")
@@ -187,6 +245,9 @@ def run_all_ablation_experiments():
     
     attention_pos_configs = AttentionPositionAblation.get_experiment_configs()
     run_ablation_study(attention_pos_configs, study_name="Attention_Position_Ablation")
+
+    improved_resnet_convnext_configs = ImprovedResNetConvNeXtAblation.get_experiment_configs()
+    run_ablation_study(improved_resnet_convnext_configs, study_name="Improved_ResNet_ConvNeXt_Ablation")
 
     print("\nAll ablation studies attempted.")
 

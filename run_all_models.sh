@@ -58,8 +58,8 @@ echo "----------------------------------------------------"
 source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 
-# 现在使用环境中的 python
-python3 src/ablation_experiments.py
+# 现在使用环境中的 python，并将 src 目录下的脚本作为模块运行
+python -m src.ablation_experiments
 
 if [ $? -ne 0 ]; then
     echo "----------------------------------------------------"
