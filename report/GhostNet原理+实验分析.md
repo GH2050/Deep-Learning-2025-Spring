@@ -67,16 +67,30 @@ Ghost 模块将普通卷积拆分为两部分：
 
 ### （1）消融实验
 
-- 基础对比组：
+**实验设计**： 
     - baseline: ResNet20
-    - Ghost_ResNet20
-- 关键设计消融：
-    - 
-    - 
+    - Ghost_ResNet20 （ratio=2）
+    - GhostCopy_ResNet20 （ratio=2）
+
+注：GhostCopy_ResNet20将Ghost的“廉价操作”的深度可分离卷积方法改为直接复制，用于验证深度可分离卷积方法能够保持结果的准确率。
+
+**实验结果** :
+
+
+**实验结果分析**：
+
+
 
 ### （2）普通实验
+
+**实验设计**:
 
 - baseline: ResNet20
 - GhostNet ratio = 2
 - GhostNet ratio = 3
 - GhostNet ratio = 4
+
+**实验结果**:
+
+**实验结果分析**：
+
