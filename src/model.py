@@ -249,7 +249,131 @@ class ImprovedBlock_ConvNeXt(nn.Module):
         out = self.shortcut(input_x) + self.drop_path(out)
         out = F.relu(out)
         return out
+    
 
+class ImprovedBlock_NoDropPath(nn.Module):
+    """消融实验: 无DropPath的版本"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
+        super().__init__()
+        
+        expand_ratio = 4
+        expanded_planes = in_planes * expand_ratio
+
+        self.conv1 = nn.Conv2d(in_planes, expanded_planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(expanded_planes)
+        
+        self.dwconv = nn.Conv2d(
+            expanded_planes, expanded_planes, kernel_size=7, 
+            stride=stride, padding=3, groups=expanded_planes, bias=False
+        )
+        self.bn2 = nn.BatchNorm2d(expanded_planes)
+        
+        self.conv2 = nn.Conv2d(expanded_planes, planes, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes)
+        
+        # 移除DropPath
+        # self.drop_path = nn.Identity()
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+
+    def forward(self, x):
+        input_x = x
+        
+        out = F.relu(self.bn1(self.conv1(x)))      # expand
+        out = F.relu(self.bn2(self.dwconv(out)))  # depthwise
+        out = self.bn3(self.conv2(out))           # shrink
+        
+        out = self.shortcut(input_x) + out  # 直接相加，无DropPath
+        out = F.relu(out)
+        return out
+
+
+class ImprovedBlock_StandardConv(nn.Module):
+    """消融实验: 使用标准3x3卷积而非7x7深度卷积"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
+        super().__init__()
+        
+        expand_ratio = 4
+        expanded_planes = in_planes * expand_ratio
+
+        self.conv1 = nn.Conv2d(in_planes, expanded_planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(expanded_planes)
+        
+        # 使用标准3x3卷积替代深度卷积
+        self.conv_std = nn.Conv2d(
+            expanded_planes, expanded_planes, kernel_size=3, 
+            stride=stride, padding=1, bias=False
+        )
+        self.bn2 = nn.BatchNorm2d(expanded_planes)
+        
+        self.conv2 = nn.Conv2d(expanded_planes, planes, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes)
+        
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+
+    def forward(self, x):
+        input_x = x
+        
+        out = F.relu(self.bn1(self.conv1(x)))      # expand
+        out = F.relu(self.bn2(self.conv_std(out))) # 标准卷积
+        out = self.bn3(self.conv2(out))           # shrink
+        
+        out = self.shortcut(input_x) + self.drop_path(out)
+        out = F.relu(out)
+        return out
+
+
+class ImprovedBlock_NoInvertedBottleneck(nn.Module):
+    """消融实验：无倒置瓶颈，直接深度卷积"""
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, drop_path=0.0, **kwargs):
+        super().__init__()
+        
+        # 直接使用深度卷积，无扩展
+        self.dwconv = nn.Conv2d(
+            in_planes, in_planes, kernel_size=7, 
+            stride=stride, padding=3, groups=in_planes, bias=False
+        )
+        self.bn1 = nn.BatchNorm2d(in_planes)
+        
+        self.conv_proj = nn.Conv2d(in_planes, planes, kernel_size=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        
+        self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+
+    def forward(self, x):
+        input_x = x
+        
+        out = F.relu(self.bn1(self.dwconv(x)))    # 深度卷积
+        out = self.bn2(self.conv_proj(out))       # 投影到输出维度
+        
+        out = self.shortcut(input_x) + self.drop_path(out)
+        out = F.relu(out)
+        return out
 
 
 class MSCA(nn.Module):
@@ -1471,6 +1595,24 @@ def improved_resnet20_convnext_builder(num_classes=100, width_multiplier=1.0, dr
     """ResNet20 + Depthwise Conv + Inverted Bottleneck"""
     return ImprovedResNet_ConvNeXt(ImprovedBlock_ConvNeXt, [3, 3, 3], num_classes=num_classes, 
                          width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
+
+@register_model("improved_resnet20_convnext_no_droppath")
+def improved_resnet20_convnext_no_droppath_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.0, **kwargs):
+    """消融实验: 无DropPath的版本"""
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_NoDropPath, [3, 3, 3], num_classes=num_classes, 
+                         width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
+
+@register_model("improved_resnet20_convnext_std_conv")
+def improved_resnet20_convnext_std_conv_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.05, **kwargs):
+    """消融实验: 使用标准3x3卷积"""
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_StandardConv, [3, 3, 3], num_classes=num_classes, 
+                         width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
+
+@register_model("improved_resnet20_convnext_no_inverted")
+def improved_resnet20_convnext_no_inverted_builder(num_classes=100, width_multiplier=1.0, drop_path_rate=0.05, **kwargs):
+    """消融实验: 无倒置瓶颈"""
+    return ImprovedResNet_ConvNeXt(ImprovedBlock_NoInvertedBottleneck, [3, 3, 3], num_classes=num_classes, 
+                         width_multiplier=width_multiplier, drop_path_rate=drop_path_rate, **kwargs)
                          
 @register_model("segnext_mscan_tiny") # This seems to be MSCANEncoderCustom from before
 def segnext_mscan_tiny_custom_builder(num_classes=100, **kwargs):
@@ -1688,6 +1830,9 @@ if __name__ == '__main__':
     # 测试改进的 improved_resnet20_convnext 模型
     improved_test_models = [
         "improved_resnet20_convnext",
+        "improved_resnet20_convnext_no_droppath",  # 无DropPath
+        "improved_resnet20_convnext_std_conv",     # 标准卷积
+        "improved_resnet20_convnext_no_inverted",  # 无倒置瓶颈
     ]
     
     print("\n--- Testing Improved ResNet v2 Models ---")
