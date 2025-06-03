@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, Union
 from dataclasses import dataclass, field, fields
 import json
 
-from .utils import (
+from src.utils import (
     setup_logging, log_system_info, setup_distributed, cleanup_distributed,
     get_optimizer_scheduler, save_checkpoint, plot_training_curves,
     save_experiment_results, mixup_data, mixup_criterion, get_hyperparameters
@@ -157,7 +157,7 @@ class Trainer:
         self.model = self.model.to(self.device)
         if self.distributed:
             # find_unused_parameters can be True if model has parts not used in forward pass during DDP
-            self.model = DDP(self.model, device_ids=[self.gpu], find_unused_parameters=False) 
+            self.model = DDP(self.model, device_ids=[self.gpu], find_unused_parameters=True)
         elif self.use_data_parallel:
             # 使用DataParallel进行多GPU训练
             self.model = nn.DataParallel(self.model)

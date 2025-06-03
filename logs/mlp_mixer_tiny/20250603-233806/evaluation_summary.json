@@ -1,0 +1,64 @@
+{
+    "model_name": "mlp_mixer_tiny",
+    "run_label": "20250603-233806",
+    "results": {
+        "model_name": "mlp_mixer_tiny",
+        "run_name": "20250603-233806",
+        "best_test_accuracy_top1": 3.63,
+        "final_test_accuracy_top1": 3.63,
+        "training_time_hours": 0.0012946601708730063,
+        "total_epochs_trained": 1,
+        "global_steps_completed": 24,
+        "parameters_M": 2.940008
+    },
+    "hyperparameters": {
+        "output_dir": "./logs",
+        "overwrite_output_dir": false,
+        "num_train_epochs": 1,
+        "per_device_train_batch_size": 256,
+        "per_device_eval_batch_size": 512,
+        "learning_rate": 0.001,
+        "weight_decay": 0.05,
+        "adam_epsilon": 1e-08,
+        "max_grad_norm": 1.0,
+        "warmup_epochs": 10,
+        "lr_scheduler_type": "cosine_annealing",
+        "logging_steps": 50,
+        "eval_strategy": "epoch",
+        "save_strategy": "epoch",
+        "save_steps": 20,
+        "dataloader_num_workers": 4,
+        "dataloader_pin_memory": true,
+        "dataloader_drop_last": true,
+        "label_smoothing_factor": 0.1,
+        "use_mixup": true,
+        "mixup_alpha": 0.2,
+        "optimizer_type": "adamw",
+        "use_imagenet_norm": false,
+        "model_constructor_params": {
+            "dropout": 0.3
+        },
+        "resume_from_checkpoint": null,
+        "model_name_for_log": "mlp_mixer_tiny",
+        "run_name": null,
+        "checkpoint_filename_best": "best_model.pth",
+        "checkpoint_filename_epoch": "checkpoint_epoch_{epoch}.pth",
+        "evaluation_filename": "evaluation_summary.json",
+        "plot_filename": "training_curves.png"
+    },
+    "metrics_history": {
+        "train_losses": [
+            4.597145438194275
+        ],
+        "train_accs": [
+            1.875822644008925
+        ],
+        "test_losses": [
+            4.499575390625
+        ],
+        "test_accs": [
+            3.63
+        ]
+    },
+    "timestamp": "2025-06-03 23:38:11"
+}

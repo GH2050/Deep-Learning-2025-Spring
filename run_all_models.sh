@@ -58,10 +58,10 @@ echo "----------------------------------------------------"
 source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+
 # 现在使用环境中的 python，并将 src 目录下的脚本作为模块运行
-# 不使用 torchrun 启动，让消融实验脚本作为单进程运行，协调各个训练任务
-# 每个具体的训练任务内部会根据需要自动启动分布式训练
-# python -m src.ablation_experiments
+python -m src.ablation_experiments
 
 if [ $? -ne 0 ]; then
     echo "----------------------------------------------------"

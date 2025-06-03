@@ -44,6 +44,8 @@ fi
 
 echo "轮数: $EPOCHS"
 
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+
 torchrun --nproc_per_node=$GPU_COUNT \
     --master_port=29502 \
     src/train.py \

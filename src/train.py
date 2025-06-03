@@ -5,10 +5,10 @@ import os
 import torch
 import json
 
-from .model import get_model, get_model_info
-from .dataset import get_cifar100_datasets
-from .trainer import Trainer, TrainingArguments
-from .utils import get_num_classes # 假设utils.py中有这个函数
+from src.model import get_model, get_model_info
+from src.dataset import get_cifar100_datasets
+from src.trainer import Trainer, TrainingArguments
+from src.utils import get_num_classes # 假设utils.py中有这个函数
 
 def run_training_config(model_name: str, cli_args_dict: dict = None, programmatic_config_override: dict = None):
     """
