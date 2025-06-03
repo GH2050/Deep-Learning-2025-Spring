@@ -947,7 +947,7 @@ class ResNeStBottleneckD(nn.Module): # 'D' variant for ResNeSt-D models
 
 class ResNeStCustom(nn.Module):
     def __init__(self, block, layers, num_classes=100, radix=2, cardinality=1, bottleneck_width=64,
-                 deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False):
+                 deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, dropout_rate=0.0): # Added dropout_rate
         self.cardinality = cardinality
         self.bottleneck_width = bottleneck_width
         self.radix = radix
@@ -955,6 +955,7 @@ class ResNeStCustom(nn.Module):
         self.avd_first = avd_first
         self.inplanes = stem_width*2 if deep_stem else 64
         super(ResNeStCustom, self).__init__()
+        self.dropout_rate = dropout_rate # Store dropout_rate
 
         if deep_stem:
             self.conv1 = nn.Sequential(
@@ -981,7 +982,12 @@ class ResNeStCustom(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         # Correct in_features for ResNeSt fc layer
         fc_in_features = 512 * block.expansion # Should not be multiplied by 2 for ResNeSt
-        self.fc = nn.Linear(fc_in_features, num_classes)
+        
+        fc_layers = []
+        if self.dropout_rate > 0:
+            fc_layers.append(nn.Dropout(self.dropout_rate))
+        fc_layers.append(nn.Linear(fc_in_features, num_classes))
+        self.fc = nn.Sequential(*fc_layers)
 
     def _make_layer(self, block, planes, blocks, stride, avg_down=True, is_first=False):
         downsample = None
@@ -1498,9 +1504,13 @@ def cspresnet50_builder(num_classes=100, **kwargs):
 
 @register_model("resnest50d")
 def resnest50d_builder(num_classes=100, **kwargs):
+    # Extract dropout_rate from kwargs, defaulting to 0.0 if not present
+    dropout_val = kwargs.pop('dropout_rate', 0.0) 
     return ResNeStCustom(ResNeStBottleneckD, [3, 4, 6, 3], num_classes=num_classes,
                          radix=2, cardinality=1, bottleneck_width=64,
-                         deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, **kwargs)
+                         deep_stem=True, stem_width=32, avg_down=True, avd=True, avd_first=False, 
+                         dropout_rate=dropout_val, # Pass dropout_rate to constructor
+                         **kwargs)
 
 @register_model("coatnet_0") # Builder for the non-enhanced CoAtNetCustom
 def coatnet_0_builder(num_classes=100, **kwargs):
