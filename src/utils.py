@@ -190,7 +190,8 @@ REPORT_HYPERPARAMETERS = {
         'ecanet20_fixed_k5': 'ResNet_Variants', #### ECA-NET 20 fixed k=5
         'ecanet20_fixed_k7': 'ResNet_Variants', #### ECA-NET 20 fixed k=7
         'ecanet20_fixed_k9': 'ResNet_Variants', #### ECA-NET 20 fixed k=9
-
+        'eca_resnet20_pos1': 'ResNet_Variants', # Added for ECA position ablation
+        'eca_resnet20_pos3': 'ResNet_Variants', # Added for ECA position ablation
     }
 }
 

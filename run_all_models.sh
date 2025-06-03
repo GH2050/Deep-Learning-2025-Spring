@@ -10,15 +10,15 @@ models=(
     # "ghost_resnet_20"
     # "ghost_resnet_32"
     # "ghostnet_100"
-    "convnext_tiny"
+    # "convnext_tiny"
     # "improved_resnet20_convnext"
-    "segnext_mscan_tiny"
-    "mlp_mixer_tiny"
-    "mlp_mixer_b16"
-    "cspresnet50"
-    "resnest50d"
-    "coatnet_0"
-    "coatnet_0_custom_enhanced"
+    # "segnext_mscan_tiny"
+    # "mlp_mixer_tiny"
+    # "mlp_mixer_b16"
+    # "cspresnet50"
+    # "resnest50d"
+    # "coatnet_0"
+    # "coatnet_0_custom_enhanced"
     # "coatnet_cifar_opt"
     # "coatnet_cifar_opt_large_stem"
     # "ecanet20_fixed_k3"
@@ -54,10 +54,13 @@ echo "----------------------------------------------------"
 echo "开始运行所有消融实验..."
 echo "----------------------------------------------------"
 
-# 确保使用正确的python解释器和激活的环境
-# 例如: /opt/venvs/base/bin/python src/ablation_experiments.py
-# 或者，如果环境已激活，可以直接调用 python
-python3 src/ablation_experiments.py
+# 激活正确的 Conda 环境
+source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
+conda activate llm
+
+# 现在使用环境中的 python，并将 src 目录下的脚本作为模块运行
+# 使用 torchrun 启动以支持多GPU
+torchrun --nproc_per_node=auto -m src.ablation_experiments
 
 if [ $? -ne 0 ]; then
     echo "----------------------------------------------------"

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3 # 保持shebang，虽然-m运行时可能不直接用
 import torch
 # import torch.nn as nn # No longer directly used here
 # import torch.optim as optim # No longer directly used here
@@ -13,10 +14,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Project imports
-from model import get_model # Relies on the new get_model
-from utils import get_hyperparameters, save_experiment_results, plot_training_curves, REPORT_HYPERPARAMETERS
-from train_all_models import run_training_for_model # Key import
+# Project imports using relative paths
+from .model import get_model
+from .utils import get_hyperparameters, save_experiment_results, plot_training_curves, REPORT_HYPERPARAMETERS
+from .train import run_training_config
 
 plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei', 'sans-serif']
 plt.rcParams['axes.unicode_minus'] = False
@@ -39,90 +40,72 @@ class ECANetAblation:
     @staticmethod
     def get_experiment_configs():
         configs = []
-        base_model_name = 'resnet20_no_eca' # Explicit baseline
+        base_model_name = 'resnet20_no_eca' 
 
-        # 1. Baseline ResNet-20 (No ECA)
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
-            'label': 'ResNet-20 (No ECA Baseline)'
+            'label': 'ResNet-20_No_ECA_Baseline'
         })
-
-        # 2. ECA-Net with adaptive k_size
         configs.append({
             'model_name': 'ecanet20_adaptive',
-            'config_override': {}, # Adaptive k_size is inherent to the model block
-            'label': 'ECANet-20 (Adaptive k_size)'
+            'config_override': {},
+            'label': 'ECANet-20_Adaptive_k_size'
         })
-
-        # 3. ECA-Net with fixed k_size=3
         configs.append({
             'model_name': 'ecanet20_fixed_k3', 
-            'config_override': {}, # k_size=3 is inherent to the model block
-            'label': 'ECANet-20 (Fixed k_size=3)'
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_3'
         })
-
-        # 4. ECA-Net with fixed k_size=5
         configs.append({
             'model_name': 'ecanet20_fixed_k5',
-            'config_override': {}, # k_size=5 is inherent to the model block
-            'label': 'ECANet-20 (Fixed k_size=5)'
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_5'
         })
-        
-        # 5. ECA-Net with fixed k_size=7
         configs.append({
             'model_name': 'ecanet20_fixed_k7',
-            'config_override': {}, # k_size=7 is inherent to the model block
-            'label': 'ECANet-20 (Fixed k_size=7)'
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_7'
         })
-
-        # 6. ECA-Net with fixed k_size=9
         configs.append({
             'model_name': 'ecanet20_fixed_k9',
-            'config_override': {}, # k_size=9 is inherent to the model block
-            'label': 'ECANet-20 (Fixed k_size=9)'
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_9'
         })
         return configs
 
 class GhostNetAblation:
     """GhostNet消融实验配置 (Report Section 5.2).
     1. Baseline (ResNet-20 no ECA)
-    2. Ghost-ResNet-20 (ratio=2, default for ghost_resnet_20)
+    2. Ghost-ResNet-20 (ratio=2)
     3. Ghost-ResNet-20 (ratio=3)
     4. Ghost-ResNet-20 (ratio=4)
     """
     @staticmethod
     def get_experiment_configs():
         configs = []
-        base_model_name = 'resnet20_no_eca' # Explicit baseline
+        base_model_name = 'resnet20_no_eca' 
         ghost_model_name = 'ghost_resnet_20'
 
-        # 1. Baseline ResNet-20 (No ECA, equivalent to standard ResNet-20)
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
-            'label': 'ResNet-20 (Baseline for GhostNet Ablation)'
+            'label': 'ResNet-20_Baseline_for_GhostNet'
         })
-
-        # 2. Ghost-ResNet-20 with ratio=2 (default from get_hyperparameters for ghost_resnet_20)
         configs.append({
             'model_name': ghost_model_name,
-            'config_override': {'model_constructor_params': {'ratio': 2}}, # Explicit
-            'label': 'Ghost-ResNet-20 (ratio=2)'
+            'config_override': {'model_constructor_params': {'ratio': 2}},
+            'label': 'Ghost-ResNet-20_ratio_2'
         })
-
-        # 3. Ghost-ResNet-20 with ratio=3
         configs.append({
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 3}},
-            'label': 'Ghost-ResNet-20 (ratio=3)'
+            'label': 'Ghost-ResNet-20_ratio_3'
         })
-        
-        # 4. Ghost-ResNet-20 with ratio=4
         configs.append({
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 4}},
-            'label': 'Ghost-ResNet-20 (ratio=4)'
+            'label': 'Ghost-ResNet-20_ratio_4'
         })
         return configs
 
@@ -134,105 +117,109 @@ class GhostNetAblation:
 class AttentionPositionAblation:
     """注意力模块位置消融实验 (报告5.3节).
     1. Baseline (ResNet-20 no ECA)
-    2. ECA after first Conv (Pos1)
-    3. ECA after second Conv before Add (Pos2 - default eca_resnet_20)
-    4. ECA after Add on residual (Pos3)
-    All ECA variants use k_size=3 for this position ablation, based on report/common practice.
+    2. ECA after first Conv (Pos1, k_size=3)
+    3. ECA after second Conv before Add (Pos2 - default eca_resnet_20, k_size=3)
+    4. ECA after Add on residual (Pos3, k_size=3)
     """
     @staticmethod
     def get_experiment_configs():
         configs = []
         base_model_name = 'resnet20_no_eca'
-        default_k_size = 3 # As per report/common choice for position ablation
+        default_k_size = 3 
 
-        # 1. Baseline ResNet-20 (No ECA)
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
-            'label': 'ResNet-20 (No ECA Baseline for Position Ablation)'
+            'label': 'ResNet-20_No_ECA_Baseline_for_Position'
         })
-
-        # 2. ECA after first Conv (Pos1)
         configs.append({
             'model_name': 'eca_resnet20_pos1',
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
-            'label': 'ECA-ResNet20 (Pos1: After Conv1)'
+            'label': f'ECA-ResNet20_Pos1_k{default_k_size}'
         })
-        
-        # 3. ECA after second Conv, before Add (Pos2 - standard ECABasicBlock)
-        # This uses the 'eca_resnet_20' builder which defaults to ECABasicBlock
         configs.append({
             'model_name': 'eca_resnet_20', 
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
-            'label': 'ECA-ResNet20 (Pos2: After Conv2, Before Add)'
+            'label': f'ECA-ResNet20_Pos2_Default_k{default_k_size}'
         })
-
-        # 4. ECA after Add on residual (Pos3)
         configs.append({
             'model_name': 'eca_resnet20_pos3',
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
-            'label': 'ECA-ResNet20 (Pos3: After Add)'
+            'label': f'ECA-ResNet20_Pos3_k{default_k_size}'
         })
         return configs
 
-def run_ablation_study(ablation_configs, accelerator, study_name):
-    if accelerator.is_local_main_process:
-        print(f"\n\n{'='*80}")
-        print(f"🔬 Starting Ablation Study: {study_name} 🔬")
-        print(f"{'='*80}")
+def run_ablation_study(ablation_configs, study_name):
+    print(f"\n\n{'='*80}")
+    print(f"🔬 Starting Ablation Study: {study_name} 🔬")
+    print(f"{'='*80}")
 
     for config in ablation_configs:
         model_name = config['model_name']
-        config_override = config.get('config_override', {})
-        label = config.get('label', model_name) # Label can be used for logging/distinguishing runs
+        config_override_from_ablation = config.get('config_override', {}).copy()
+        label = config.get('label', model_name) 
 
-        if accelerator.is_local_main_process:
-            print(f"--- Running Ablation Case: {label} (Model: {model_name}, Override: {config_override}) ---")
+        # 为确保日志目录清晰，使用 study_name 和 label 生成 run_name
+        # 清理 label 中的特殊字符，使其适合作为目录名
+        sanitized_label = label.replace(" ", "_").replace("(", "").replace(")", "").replace(":", "").replace("=", "").replace(",", "").replace("/", "_").replace("-", "_")
         
-        # To make output files unique for ablation runs on the same base model name,
-        # we should ideally include the label or a summary of the override in the output name.
-        # For now, run_training_for_model uses the base model_name. The hparams in the JSON will differ.
-        # Consider modifying run_training_for_model to accept an optional `run_name_suffix` for output files.
-        # As a temporary workaround if needed, or if generate_results.py can handle it:
-        # The `label` or a hash of `config_override` could be part of what `run_training_for_model` logs
-        # or how `save_experiment_results` names files if we customize it further.
-        
-        # For now, rely on the config_override being logged inside the JSON for differentiation.
-        # The filename will be based on `model_name`.
-        run_training_for_model(model_name, accelerator, config_override=config_override)
+        effective_run_name = f"{study_name}_{sanitized_label}"
 
-    if accelerator.is_local_main_process:
-        print(f"\n---- Ablation Study: {study_name} Complete ----")
-        print("Individual model training results saved in logs/results.")
-        print("Run generate_results.py to analyze these results.")
+        # Prepare the programmatic_config_override for run_training_config
+        # This dictionary will be passed to TrainingArguments and the model constructor
+        programmatic_override = config_override_from_ablation
+        programmatic_override['run_name'] = effective_run_name # Ensure TrainingArguments uses this for output dirs
+
+        # 统一设置消融实验的训练轮数为300
+        programmatic_override['num_train_epochs'] = 300
+
+        print(f"--- Running Ablation Case: {label} (Model: {model_name}) ---")
+        print(f"    Effective Run Name for logs: {effective_run_name}")
+        print(f"    Config Overrides: {programmatic_override}")
+        
+        try:
+            run_training_config(model_name=model_name, programmatic_config_override=programmatic_override)
+            print(f"--- Ablation Case: {label} (Model: {model_name}) completed successfully. ---")
+        except Exception as e:
+            print(f"ERROR during ablation case: {label} (Model: {model_name})")
+            print(f"Error details: {e}")
+            # Potentially log this error to a file or re-raise if one failure should stop all
+        
+        # Optional: Add a small delay or resource check if running many GPU-intensive jobs sequentially
+        # time.sleep(5) 
+
+    print(f"\n---- Ablation Study: {study_name} Complete ----")
+    print("Individual model training results should be saved in subdirectories under logs/results.")
+    print("Run analyze_results.py to aggregate and analyze these results.")
 
 def run_all_ablation_experiments():
-    accelerator = Accelerator()
+    print("Starting All Ablation Experiments Orchestration Script")
+    # 创建必要的目录，Trainer中的逻辑可能也会创建，这里确保它们存在
+    Path("logs/results").mkdir(parents=True, exist_ok=True)
+    Path("logs/checkpoints").mkdir(parents=True, exist_ok=True)
+    Path("assets").mkdir(parents=True, exist_ok=True)
 
-    if accelerator.is_local_main_process:
-        print("Starting All Ablation Experiments Orchestration Script")
-        Path("logs/results").mkdir(parents=True, exist_ok=True)
-        Path("logs/checkpoints").mkdir(parents=True, exist_ok=True)
-        Path("assets").mkdir(parents=True, exist_ok=True)
-
-    # ECA-Net Ablations
     eca_configs = ECANetAblation.get_experiment_configs()
-    run_ablation_study(eca_configs, accelerator, "ECA-Net k_size Ablation")
-    accelerator.wait_for_everyone()
+    run_ablation_study(eca_configs, study_name="ECA_Net_Ablation")
 
-    # GhostNet Ablations
     ghost_configs = GhostNetAblation.get_experiment_configs()
-    run_ablation_study(ghost_configs, accelerator, "GhostNet Ratio Ablation")
-    accelerator.wait_for_everyone()
+    run_ablation_study(ghost_configs, study_name="GhostNet_Ablation")
     
-    # Attention Position Ablations
-    attn_pos_configs = AttentionPositionAblation.get_experiment_configs()
-    run_ablation_study(attn_pos_configs, accelerator, "ECA Attention Position Ablation")
-    accelerator.wait_for_everyone()
+    attention_pos_configs = AttentionPositionAblation.get_experiment_configs()
+    run_ablation_study(attention_pos_configs, study_name="Attention_Position_Ablation")
 
-    if accelerator.is_local_main_process:
-        print("\nAll ablation experiments orchestration finished.")
-        print("Individual results are in logs/results/. Run generate_results.py for summaries.")
+    print("\nAll ablation studies attempted.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    # 这里的 Accelerator 初始化仅用于可能的顶层分布式脚本控制，
+    # 但由于 Trainer 现在处理自己的 Accelerator，可能不需要在这里显式管理 Accelerator 实例。
+    # 如果脚本本身不需要分布式控制（例如，它只在主进程上编排单次训练），则不需要 Accelerator。
+    # accelerator = Accelerator()
+    # if accelerator.is_main_process: # 只在主进程运行编排逻辑
+    #    run_all_ablation_experiments()
+    # else:
+    #    # 在非主进程中，如果 Trainer 需要所有进程都启动，则可能需要某种同步
+    #    # 但通常 Trainer 的启动方式会处理这个问题。
+    #    pass 
+    # 简化：假设此脚本由单个进程运行以启动多个（可能是分布式的）训练作业
     run_all_ablation_experiments() 
