@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# 模型列表
+models=(
+    "resnet_20"
+    "resnet_32"
+    # "resnet_56"
+    "eca_resnet_20"
+    "eca_resnet_32"
+    "ghost_resnet_20"
+    "ghost_resnet_32"
+    "ghostnet_100"
+    "convnext_tiny"
+    "improved_resnet20_convnext"
+    "segnext_mscan_tiny"
+    "mlp_mixer_tiny"
+    "mlp_mixer_b16"
+    "cspresnet50"
+    "resnest50d"
+    # "coatnet_0"
+    # "coatnet_0_custom_enhanced"
+    # "coatnet_cifar_opt"
+    "coatnet_cifar_opt_large_stem"
+    "ecanet20_fixed_k3"
+    "ecanet20_fixed_k5"
+    "ecanet20_fixed_k7"
+    "ecanet20_fixed_k9"
+    "ecanet20_adaptive"
+    "resnet20_no_eca"
+)
+
+# 依次执行模型训练
+for model_name in "${models[@]}"
+do
+    echo "----------------------------------------------------"
+    echo "开始训练模型: $model_name"
+    echo "----------------------------------------------------"
+    bash run.sh "$model_name"
+    
+    if [ $? -ne 0 ]; then
+        echo "----------------------------------------------------"
+        echo "模型 $model_name 训练失败，跳过..."
+        echo "----------------------------------------------------"
+    else
+        echo "----------------------------------------------------"
+        echo "模型 $model_name 训练完成。"
+        echo "----------------------------------------------------"
+    fi
+done
+
+echo "所有模型训练尝试完毕。" 
