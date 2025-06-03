@@ -2,31 +2,31 @@
 
 # 模型列表
 models=(
-    "resnet_20"
-    "resnet_32"
+    # "resnet_20"
+    # "resnet_32"
     # "resnet_56"
-    "eca_resnet_20"
-    "eca_resnet_32"
-    "ghost_resnet_20"
-    "ghost_resnet_32"
-    "ghostnet_100"
-    "convnext_tiny"
-    "improved_resnet20_convnext"
-    "segnext_mscan_tiny"
-    "mlp_mixer_tiny"
-    "mlp_mixer_b16"
-    "cspresnet50"
-    "resnest50d"
+    # "eca_resnet_20"
+    # "eca_resnet_32"
+    # "ghost_resnet_20"
+    # "ghost_resnet_32"
+    # "ghostnet_100"
+    # "convnext_tiny"
+    # "improved_resnet20_convnext"
+    # "segnext_mscan_tiny"
+    # "mlp_mixer_tiny"
+    # "mlp_mixer_b16"
+    # "cspresnet50"
+    # "resnest50d"
     # "coatnet_0"
     # "coatnet_0_custom_enhanced"
     # "coatnet_cifar_opt"
-    "coatnet_cifar_opt_large_stem"
-    "ecanet20_fixed_k3"
-    "ecanet20_fixed_k5"
-    "ecanet20_fixed_k7"
-    "ecanet20_fixed_k9"
-    "ecanet20_adaptive"
-    "resnet20_no_eca"
+    # "coatnet_cifar_opt_large_stem"
+    # "ecanet20_fixed_k3"
+    # "ecanet20_fixed_k5"
+    # "ecanet20_fixed_k7"
+    # "ecanet20_fixed_k9"
+    # "ecanet20_adaptive"
+    # "resnet20_no_eca"
 )
 
 # 依次执行模型训练
@@ -54,9 +54,11 @@ echo "----------------------------------------------------"
 echo "开始运行所有消融实验..."
 echo "----------------------------------------------------"
 
-# 确保使用正确的python解释器和激活的环境
-# 例如: /opt/venvs/base/bin/python src/ablation_experiments.py
-# 或者，如果环境已激活，可以直接调用 python
+# 激活正确的 Conda 环境
+source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
+conda activate llm
+
+# 现在使用环境中的 python
 python3 src/ablation_experiments.py
 
 if [ $? -ne 0 ]; then
