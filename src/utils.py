@@ -168,6 +168,7 @@ REPORT_HYPERPARAMETERS = {
         'eca_resnet_32': 'ResNet_Variants',
         'ghost_resnet_20': 'GhostNet_Variants',
         'ghost_resnet_32': 'GhostNet_Variants',
+        'ghostCopy_resnet_20': 'GhostNet_Variants',
         'ghostnet_100': 'GhostNet_Variants',      # Was ghostnet_100 (timm)
         'convnext_tiny': 'ConvNeXt_Tiny',        # Was convnext_tiny (custom) and convnext_tiny_timm
         'improved_resnet20_convnext': 'ImprovedResNet_ConvNeXt_Variants',

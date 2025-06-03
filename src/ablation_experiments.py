@@ -261,7 +261,7 @@ def run_ablation_study(ablation_configs, study_name):
             # 使用 torchrun 启动训练任务以获得最佳多GPU性能
             # 构建命令行参数
             cmd = [
-                "torchrun", 
+                "/root/data-tmp/miniconda3/envs/llm/bin/torchrun", 
                 "--nproc_per_node=auto",  # 自动检测GPU数量
                 "-m", "src.train",
                 "--model_name", model_name
@@ -316,14 +316,14 @@ def run_all_ablation_experiments():
     # eca_configs = ECANetAblation.get_experiment_configs()
     # run_ablation_study(eca_configs, study_name="ECA_Net_Ablation")
 
-    # ghost_configs = GhostNetAblation.get_experiment_configs()
-    # run_ablation_study(ghost_configs, study_name="GhostNet_Ablation")
+    ghost_configs = GhostNetAblation.get_experiment_configs()
+    run_ablation_study(ghost_configs, study_name="GhostNet_Ablation")
     
-    attention_pos_configs = AttentionPositionAblation.get_experiment_configs()
-    run_ablation_study(attention_pos_configs, study_name="Attention_Position_Ablation")
+    # attention_pos_configs = AttentionPositionAblation.get_experiment_configs()
+    # run_ablation_study(attention_pos_configs, study_name="Attention_Position_Ablation")
 
-    improved_resnet_convnext_configs = ImprovedResNetConvNeXtAblation.get_experiment_configs()
-    run_ablation_study(improved_resnet_convnext_configs, study_name="Improved_ResNet_ConvNeXt_Ablation")
+    # improved_resnet_convnext_configs = ImprovedResNetConvNeXtAblation.get_experiment_configs()
+    # run_ablation_study(improved_resnet_convnext_configs, study_name="Improved_ResNet_ConvNeXt_Ablation")
 
     print("\nAll ablation studies attempted.")
 
