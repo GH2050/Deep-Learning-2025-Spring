@@ -84,6 +84,59 @@ class ECABasicBlock(nn.Module):
         out = F.relu(out)
         return out
 
+class ECABasicBlock_Pos1(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, k_size=3):
+        super(ECABasicBlock_Pos1, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.eca1 = ECALayer(planes, k_size=k_size) # ECA after Conv1
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = self.bn1(self.conv1(x))
+        out = self.eca1(out) # Apply ECA after Conv1 and BN1, before ReLU1
+        out = F.relu(out)
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
+class ECABasicBlock_Pos3(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, k_size=3):
+        super(ECABasicBlock_Pos3, self).__init__()
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.eca_after_add = ECALayer(planes * self.expansion, k_size=k_size) # ECA after Add
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != self.expansion * planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = self.eca_after_add(out) # Apply ECA after Add, before final ReLU
+        out = F.relu(out)
+        return out
+
 class GhostModule(nn.Module):
     def __init__(self, inp, oup, kernel_size=1, ratio=2, dw_size=3, stride=1, relu=True):
         """
@@ -2317,4 +2370,12 @@ def resnet20_no_eca_builder(num_classes=100, **kwargs):
     # 过滤掉 k_size 参数，因为 NoECABasicBlock 不使用 ECA
     filtered_kwargs = {k: v for k, v in kwargs.items() if k != 'k_size'}
     return ResNet(NoECABasicBlock, [3, 3, 3], num_classes=num_classes, **filtered_kwargs)
+
+@register_model("eca_resnet20_pos1")
+def eca_resnet20_pos1_builder(num_classes=100, k_size=3, **kwargs):
+    return ResNet(ECABasicBlock_Pos1, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size}, **kwargs)
+
+@register_model("eca_resnet20_pos3")
+def eca_resnet20_pos3_builder(num_classes=100, k_size=3, **kwargs):
+    return ResNet(ECABasicBlock_Pos3, [3, 3, 3], num_classes=num_classes, block_kwargs={'k_size': k_size}, **kwargs)
 #### ECA-Net 20 Comparison model ####
