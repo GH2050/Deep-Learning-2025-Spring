@@ -1,4 +1,5 @@
 #!/usr/bin/env python3 # 保持shebang，虽然-m运行时可能不直接用
+#!/usr/bin/env python3 # 保持shebang，虽然-m运行时可能不直接用
 import torch
 # import torch.nn as nn # No longer directly used here
 # import torch.optim as optim # No longer directly used here
@@ -14,6 +15,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+# Project imports using relative paths
+from .model import get_model
+from .utils import get_hyperparameters, save_experiment_results, plot_training_curves, REPORT_HYPERPARAMETERS
+from .train import run_training_config
 # Project imports using relative paths
 from .model import get_model
 from .utils import get_hyperparameters, save_experiment_results, plot_training_curves, REPORT_HYPERPARAMETERS
@@ -41,14 +46,18 @@ class ECANetAblation:
     def get_experiment_configs():
         configs = []
         base_model_name = 'resnet20_no_eca' 
+        base_model_name = 'resnet20_no_eca' 
 
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
             'label': 'ResNet-20_No_ECA_Baseline'
+            'label': 'ResNet-20_No_ECA_Baseline'
         })
         configs.append({
             'model_name': 'ecanet20_adaptive',
+            'config_override': {},
+            'label': 'ECANet-20_Adaptive_k_size'
             'config_override': {},
             'label': 'ECANet-20_Adaptive_k_size'
         })
@@ -56,9 +65,13 @@ class ECANetAblation:
             'model_name': 'ecanet20_fixed_k3', 
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_3'
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_3'
         })
         configs.append({
             'model_name': 'ecanet20_fixed_k5',
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_5'
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_5'
         })
@@ -66,9 +79,13 @@ class ECANetAblation:
             'model_name': 'ecanet20_fixed_k7',
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_7'
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_7'
         })
         configs.append({
             'model_name': 'ecanet20_fixed_k9',
+            'config_override': {},
+            'label': 'ECANet-20_Fixed_k_size_9'
             'config_override': {},
             'label': 'ECANet-20_Fixed_k_size_9'
         })
@@ -78,6 +95,7 @@ class GhostNetAblation:
     """GhostNet消融实验配置 (Report Section 5.2).
     1. Baseline (ResNet-20 no ECA)
     2. Ghost-ResNet-20 (ratio=2)
+    2. Ghost-ResNet-20 (ratio=2)
     3. Ghost-ResNet-20 (ratio=3)
     4. Ghost-ResNet-20 (ratio=4)
     """
@@ -85,15 +103,19 @@ class GhostNetAblation:
     def get_experiment_configs():
         configs = []
         base_model_name = 'resnet20_no_eca' 
+        base_model_name = 'resnet20_no_eca' 
         ghost_model_name = 'ghost_resnet_20'
 
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
             'label': 'ResNet-20_Baseline_for_GhostNet'
+            'label': 'ResNet-20_Baseline_for_GhostNet'
         })
         configs.append({
             'model_name': ghost_model_name,
+            'config_override': {'model_constructor_params': {'ratio': 2}},
+            'label': 'Ghost-ResNet-20_ratio_2'
             'config_override': {'model_constructor_params': {'ratio': 2}},
             'label': 'Ghost-ResNet-20_ratio_2'
         })
@@ -101,10 +123,12 @@ class GhostNetAblation:
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 3}},
             'label': 'Ghost-ResNet-20_ratio_3'
+            'label': 'Ghost-ResNet-20_ratio_3'
         })
         configs.append({
             'model_name': ghost_model_name,
             'config_override': {'model_constructor_params': {'ratio': 4}},
+            'label': 'Ghost-ResNet-20_ratio_4'
             'label': 'Ghost-ResNet-20_ratio_4'
         })
         return configs
@@ -120,26 +144,33 @@ class AttentionPositionAblation:
     2. ECA after first Conv (Pos1, k_size=3)
     3. ECA after second Conv before Add (Pos2 - default eca_resnet_20, k_size=3)
     4. ECA after Add on residual (Pos3, k_size=3)
+    2. ECA after first Conv (Pos1, k_size=3)
+    3. ECA after second Conv before Add (Pos2 - default eca_resnet_20, k_size=3)
+    4. ECA after Add on residual (Pos3, k_size=3)
     """
     @staticmethod
     def get_experiment_configs():
         configs = []
         base_model_name = 'resnet20_no_eca'
         default_k_size = 3 
+        default_k_size = 3 
 
         configs.append({
             'model_name': base_model_name,
             'config_override': {},
+            'label': 'ResNet-20_No_ECA_Baseline_for_Position'
             'label': 'ResNet-20_No_ECA_Baseline_for_Position'
         })
         configs.append({
             'model_name': 'eca_resnet20_pos1',
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
             'label': f'ECA-ResNet20_Pos1_k{default_k_size}'
+            'label': f'ECA-ResNet20_Pos1_k{default_k_size}'
         })
         configs.append({
             'model_name': 'eca_resnet_20', 
             'config_override': {'model_constructor_params': {'k_size': default_k_size}},
+            'label': f'ECA-ResNet20_Pos2_Default_k{default_k_size}'
             'label': f'ECA-ResNet20_Pos2_Default_k{default_k_size}'
         })
         configs.append({
@@ -194,6 +225,10 @@ def run_ablation_study(ablation_configs, study_name):
     print(f"\n\n{'='*80}")
     print(f"🔬 Starting Ablation Study: {study_name} 🔬")
     print(f"{'='*80}")
+def run_ablation_study(ablation_configs, study_name):
+    print(f"\n\n{'='*80}")
+    print(f"🔬 Starting Ablation Study: {study_name} 🔬")
+    print(f"{'='*80}")
 
     for config in ablation_configs:
         model_name = config['model_name']
@@ -236,8 +271,14 @@ def run_all_ablation_experiments():
     Path("logs/results").mkdir(parents=True, exist_ok=True)
     Path("logs/checkpoints").mkdir(parents=True, exist_ok=True)
     Path("assets").mkdir(parents=True, exist_ok=True)
+    print("Starting All Ablation Experiments Orchestration Script")
+    # 创建必要的目录，Trainer中的逻辑可能也会创建，这里确保它们存在
+    Path("logs/results").mkdir(parents=True, exist_ok=True)
+    Path("logs/checkpoints").mkdir(parents=True, exist_ok=True)
+    Path("assets").mkdir(parents=True, exist_ok=True)
 
     eca_configs = ECANetAblation.get_experiment_configs()
+    run_ablation_study(eca_configs, study_name="ECA_Net_Ablation")
     run_ablation_study(eca_configs, study_name="ECA_Net_Ablation")
 
     ghost_configs = GhostNetAblation.get_experiment_configs()

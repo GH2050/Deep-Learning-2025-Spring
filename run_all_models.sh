@@ -59,7 +59,8 @@ source /root/data-tmp/miniconda3/etc/profile.d/conda.sh
 conda activate llm
 
 # 现在使用环境中的 python，并将 src 目录下的脚本作为模块运行
-python -m src.ablation_experiments
+# 使用 torchrun 启动以支持多GPU
+torchrun --nproc_per_node=auto -m src.ablation_experiments
 
 if [ $? -ne 0 ]; then
     echo "----------------------------------------------------"
