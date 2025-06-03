@@ -1798,6 +1798,9 @@ def ghostnet_100_builder(num_classes=100, width=1.0, dropout=0.2, **kwargs):
         ]
     ]
     return GhostNetCustom(cfgs, num_classes=num_classes, width=width, dropout=dropout, **kwargs)
+@register_model("ghostCopy_resnet_20")
+def ghost_resnet20_builder(num_classes=100, ratio=2, **kwargs):
+    return ResNet(GhostCopyBasicBlock, [3, 3, 3], num_classes=num_classes, block_kwargs={'ratio': ratio}, **kwargs)
 
 @register_model("convnext_tiny")
 def convnext_tiny_custom_builder(num_classes=100, **kwargs):
