@@ -115,6 +115,14 @@ class Trainer:
         self.compute_metrics = compute_metrics
         
         self.distributed, self.rank, self.world_size, self.gpu = setup_distributed()
+        
+        # 如果没有设置分布式环境但有多个GPU可用，自动使用DataParallel
+        self.use_data_parallel = False
+        if not self.distributed and torch.cuda.is_available() and torch.cuda.device_count() > 1:
+            self.use_data_parallel = True
+            self.world_size = torch.cuda.device_count()
+            print(f'检测到 {torch.cuda.device_count()} 个GPU，将使用DataParallel进行多GPU训练')
+        
         self.device = torch.device(f'cuda:{self.gpu}' if torch.cuda.is_available() and self.distributed else 'cuda' if torch.cuda.is_available() else 'cpu')
 
         # 构建 effective_output_dir
@@ -138,13 +146,21 @@ class Trainer:
             self.logger.info(f"所有输出将保存到: {self.effective_output_dir}")
             log_system_info(self.logger, self.rank)
             self.logger.info(f'TrainingArguments: {json.dumps(self.args.__dict__, indent=2)}')
-            self.logger.info(f'分布式训练: {self.distributed}, Rank: {self.rank}, World Size: {self.world_size}')
+            if self.distributed:
+                self.logger.info(f'分布式训练 (DDP): True, Rank: {self.rank}, World Size: {self.world_size}')
+            elif self.use_data_parallel:
+                self.logger.info(f'多GPU训练 (DataParallel): True, GPU数量: {self.world_size}')
+            else:
+                self.logger.info(f'单GPU训练: True')
             self.logger.info(f'使用设备: {self.device}')
         
         self.model = self.model.to(self.device)
         if self.distributed:
             # find_unused_parameters can be True if model has parts not used in forward pass during DDP
             self.model = DDP(self.model, device_ids=[self.gpu], find_unused_parameters=False) 
+        elif self.use_data_parallel:
+            # 使用DataParallel进行多GPU训练
+            self.model = nn.DataParallel(self.model)
         
         self.criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing_factor)
         self.best_metric = 0.0 # Typically, higher is better (e.g., accuracy)
@@ -224,7 +240,10 @@ class Trainer:
             self.logger.info(f"  训练样本数 = {len(self.train_dataset)}, 每轮步骤数 = {steps_per_epoch}")
             self.logger.info(f"  总轮数 = {self.args.num_train_epochs}")
             self.logger.info(f"  每设备批次大小 = {self.args.per_device_train_batch_size}")
-            self.logger.info(f"  总批次大小 (所有GPU) = {self.args.per_device_train_batch_size * self.world_size}")
+            if self.distributed or self.use_data_parallel:
+                self.logger.info(f"  总批次大小 (所有GPU) = {self.args.per_device_train_batch_size * self.world_size}")
+            else:
+                self.logger.info(f"  单GPU批次大小 = {self.args.per_device_train_batch_size}")
             self.logger.info(f"  初始学习率 = {self.optimizer.param_groups[0]['lr']:.2e}")
         
         start_time = time.time()
@@ -288,7 +307,9 @@ class Trainer:
             
             if step % self.args.logging_steps == 0 and self.rank == 0 and self.logger:
                 current_lr = self.optimizer.param_groups[0]['lr']
-                samples_processed = step * self.args.per_device_train_batch_size * self.world_size
+                # 对于DataParallel，实际处理的样本数需要考虑多GPU
+                effective_world_size = self.world_size if (self.distributed or self.use_data_parallel) else 1
+                samples_processed = step * self.args.per_device_train_batch_size * effective_world_size
                 batches_per_epoch = len(dataloader)
                 log_loss = total_loss / total_samples if total_samples > 0 else 0 # Avg loss so far in epoch
                 log_acc = 100.0 * total_correct / total_samples if total_samples > 0 else 0

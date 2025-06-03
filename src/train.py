@@ -3,6 +3,7 @@ import sys
 import argparse
 import os
 import torch
+import json
 
 from .model import get_model, get_model_info
 from .dataset import get_cifar100_datasets
@@ -124,7 +125,21 @@ def main():
     }
     cli_overrides_filtered = {k: v for k, v in cli_overrides.items() if v is not None}
     
-    run_training_config(model_name=args.model_name, cli_args_dict=cli_overrides_filtered)
+    # 检查环境变量中的 model_constructor_params
+    programmatic_override = {}
+    if 'MODEL_CONSTRUCTOR_PARAMS' in os.environ:
+        try:
+            model_constructor_params = json.loads(os.environ['MODEL_CONSTRUCTOR_PARAMS'])
+            programmatic_override['model_constructor_params'] = model_constructor_params
+            print(f"从环境变量获取模型构造参数: {model_constructor_params}")
+        except json.JSONDecodeError as e:
+            print(f"警告: 无法解析环境变量 MODEL_CONSTRUCTOR_PARAMS: {e}")
+    
+    run_training_config(
+        model_name=args.model_name, 
+        cli_args_dict=cli_overrides_filtered,
+        programmatic_config_override=programmatic_override
+    )
 
 if __name__ == "__main__":
     main() 
