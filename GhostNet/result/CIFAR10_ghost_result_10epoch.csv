@@ -1,0 +1,13 @@
+Class,Accuracy (%)
+airplane,73.2
+automobile,92.9
+bird,63.2
+cat,56.4
+deer,78.7
+dog,66.5
+frog,88.7
+horse,76.1
+ship,94.6
+truck,85.3
+
+Overall Accuracy,77.56
