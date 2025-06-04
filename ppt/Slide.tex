@@ -82,6 +82,21 @@
 \newcommand{\lb}{\left\lbrace}
 \newcommand{\rb}{\right\rbrace}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 修改默认字体大小，全局影响
+% \makeatletter
+% \renewcommand\normalsize{%
+%   \@setfontsize\normalsize{8pt}{10pt}%
+% }
+% \makeatother
+% 也可以在每个frame下增加以下命令修改当前页字体大小（参考团队分工页）
+% 字号命令	实际大小
+% \tiny	5pt
+% \scriptsize	7pt
+% \footnotesize	8pt
+% \small	9pt
+% \normalsize	10pt 默认最小字体
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %================================================
 %---------------模板颜色配置
 %================================================
@@ -277,37 +292,20 @@
 \begin{columns}[T]
     \begin{column}{0.48\textwidth}
         \textbf{创新模型架构详解}:
-        \begin{itemize}
-            \item \textbf{improved\_resnet20\_convnext}:
+        
+            \textbf{improved\_resnet20\_convnext}:
             \begin{itemize}
                 \item 倒置瓶颈(4×扩展) + 7×7深度卷积
                 \item DropPath(rate=0.05) + BatchNorm2d
                 \item 0.175M参数实现72.33\%准确率
                 \item 保留ResNet跳跃连接融合ConvNeXt设计
             \end{itemize}
-            \item \textbf{ECA-Net自适应优化}:
+            \textbf{ECA-Net自适应优化}:
             \begin{itemize}
                 \item 根据通道数动态调整k值
                 \item 第一卷积后插入效果最佳(+1.18\%)
                 \item 仅增加27个参数，提升1.58\%
             \end{itemize}
-        \end{itemize}
-        
-        \textbf{轻量化技术突破}:
-        \begin{itemize}
-            \item \textbf{Ghost模块}: ratio=2实现46.8\%参数压缩
-            \item \textbf{特征重用}: 内在+幽灵特征高效机制
-            \item \textbf{训练加速}: 0.075小时完成300轮
-        \end{itemize}
-        
-        \textbf{分布式训练系统}:
-        \begin{itemize}
-            \item \textbf{硬件}: 8×NVIDIA V100 (16GB显存)
-            \item \textbf{并行}: DDP数据并行 + 混合精度(FP16)
-            \item \textbf{批处理}: 128/GPU×8 = 1024总批大小
-            \item \textbf{优化}: Accelerate库自动化管理
-        \end{itemize}
-        
         \textbf{优化器配置矩阵}:
         \begin{itemize}
             \item \textbf{CNN架构}: SGD(lr=0.1, momentum=0.9, wd=5e-4)
@@ -316,13 +314,6 @@
             \item \textbf{周期}: 统一300 epochs确保充分收敛
         \end{itemize}
         
-        \textbf{技术验证成果}:
-        \begin{itemize}
-            \item \textbf{模型覆盖}: 21个变体，4大技术类型
-            \item \textbf{性能突破}: 创新模型413.31参数效率比
-            \item \textbf{消融验证}: 多维度组件有效性分析
-            \item \textbf{训练效率}: 从0.075到0.7小时不等
-        \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
         \textbf{数据增强策略}:
@@ -348,22 +339,8 @@
             \item \textbf{注意力优化}: ECA自适应核大小计算
             \item \textbf{系统工程}: 完整的分布式训练流程
         \end{itemize}
-        
-        \textbf{实验设计特色}:
-        \begin{itemize}
-            \item \textbf{统一基准}: 所有模型CIFAR-100从头训练
-            \item \textbf{公平对比}: 相同数据增强和训练策略
-            \item \textbf{多维评估}: 准确率、参数量、训练时间
-            \item \textbf{自动化}: 模型注册、训练、评估全流程
-        \end{itemize}
-        
-        \textbf{创新贡献总结}:
-        \begin{itemize}
-            \item \textbf{架构设计}: 轻量高效的ConvNeXt融合方案
-            \item \textbf{注意力机制}: ECA自适应核大小优化
-            \item \textbf{系统实现}: 21模型统一评估框架
-            \item \textbf{实证分析}: 深入的消融实验验证
-        \end{itemize}
+    
+
     \end{column}
 \end{columns}
 }
@@ -374,7 +351,7 @@
 \begin{frame}{\textbf{幻灯片 5: 核心实验结果 - 整体性能对比} (约2分钟)}
 \frametitle{核心实验结果 - 整体性能对比}
 
-\vspace{-1.2em}
+\vspace{-2em}
 \hspace{-2cm}
 \begin{table}[h]
 \small
@@ -449,7 +426,7 @@
 
 \vspace{-0.2em}
 \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.48\textwidth}
         \textbf{参数效率冠军}:
         \begin{itemize}
             \item \textbf{创新模型}: 413.31效率比\\
@@ -460,7 +437,7 @@
             （\texttt{ecanet20\_adaptive}）
         \end{itemize}
     \end{column}
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.48\textwidth}
         \textbf{训练效率对比}:
         \begin{itemize}
             \item \textbf{最快}: \texttt{ghost\_resnet\_20}\\
@@ -509,8 +486,8 @@
 \end{frame}
 
 \section{消融实验}
-\begin{frame}{\textbf{幻灯片 9: 消融实验核心结果} (约2分钟)}
-\frametitle{消融实验核心结果}
+\begin{frame}{\textbf{幻灯片 9: 消融实验核心发现} (约2分钟)}
+\frametitle{消融实验核心发现}
 
 \begin{columns}[T]
     \begin{column}{0.49\textwidth}
@@ -670,10 +647,10 @@
 \end{frame}
 
 \section{团队贡献}
+\scriptsize
 \begin{frame}{\textbf{幻灯片 12: 团队贡献致谢} (约30秒)}
 \frametitle{团队贡献致谢}
 
-{\scriptsize
 \begin{columns}[T]
     \begin{column}{0.48\textwidth}
         \textbf{核心技术贡献}:
@@ -681,14 +658,6 @@
             \item \textbf{董瑞昕}: ECA-Net注意力机制研究专家，负责\texttt{eca\_resnet\_20/32}、\texttt{ecanet20\_adaptive}等模型实现，设计并执行ECA-Net消融实验，验证自适应核大小策略
             \item \textbf{廖望}: 项目技术架构师，主导CoAtNet系列模型研究与\texttt{coatnet\_cifar\_opt}创新设计，负责8卡V100分布式训练环境配置，承担主要训练工作
             \item \textbf{卢艺晗}: 轻量化网络研究者，专注GhostNet系列实现，包括\texttt{ghostnet\_100}、\texttt{ghost\_resnet\_20}等，深入分析参数效率与性能权衡
-        \end{itemize}
-        
-        \textbf{工程实现贡献}:
-        \begin{itemize}
-            \item \textbf{统一框架}: 模块化代码设计与MODEL\_REGISTRY管理系统
-            \item \textbf{分布式训练}: 8卡V100环境配置与DDP训练优化
-            \item \textbf{实验自动化}: 训练流程自动化与结果统计分析
-            \item \textbf{代码规范}: 统一的模型接口与评估标准
         \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -698,29 +667,20 @@
             \item \textbf{喻心}: MLP-Mixer架构研究者，实现\texttt{mlp\_mixer\_tiny}和\texttt{mlp\_mixer\_b16}，为非卷积架构探索提供重要对比数据
         \end{itemize}
         
-        \textbf{文档与分析贡献}:
+        \vspace{0.5em}
+        \textbf{工程与文档}:
         \begin{itemize}
-            \item \textbf{实验记录}: 详细的训练日志与性能数据统计
-            \item \textbf{结果可视化}: 训练曲线、性能对比图表制作
-            \item \textbf{报告撰写}: 系统性技术文档与成果展示
-            \item \textbf{消融分析}: 深入的组件有效性验证实验
-        \end{itemize}
-        
-        \textbf{项目协调与管理}:
-        \begin{itemize}
-            \item \textbf{任务分工}: 明确的技术领域责任划分
-            \item \textbf{进度协调}: 实验进展跟踪与里程碑管理
-            \item \textbf{质量控制}: 代码审查与实验结果验证
-            \item \textbf{成果整合}: 多人协作成果的统一整理
+            \item \textbf{统一框架}: 模块化代码设计与MODEL\_REGISTRY管理
+            \item \textbf{实验记录}: 自动化结果分析与可视化
+            \item \textbf{报告撰写}: 系统性文档与成果展示
         \end{itemize}
     \end{column}
 \end{columns}
-}
 
-\vspace{0.5em}
+\vspace{0.8em}
 \centering
-{\small \textit{通过明确分工与紧密协作，团队成功完成21个模型变体的实现与评估，\\
-为先进卷积结构与注意力机制在CIFAR-100分类任务上的应用提供了宝贵实证数据！}}
+\textit{通过明确分工与紧密协作，团队成功完成21个模型变体的实现与评估，\\
+为先进卷积结构与注意力机制在CIFAR-100分类任务上的应用提供了宝贵实证数据！}
 
 \end{frame}
 
@@ -730,7 +690,7 @@
 
 \begin{table}[h]
 \centering
-\small
+\scriptsize
 \begin{tabular}{|c|l|c|c|c|}
 \hline
 排名 & 模型名称 & Top-1准确率(\%) & Top-5准确率(\%) & 参数量(M) \\
@@ -757,7 +717,7 @@
 
 \begin{table}[h]
 \centering
-\small
+\scriptsize
 \begin{tabular}{|l|c|c|c|c|c|}
 \hline
 配置 & Ratio & Top-1准确率(\%) & 参数量(M) & 训练时间(h) & 参数减少率 \\
@@ -778,7 +738,7 @@ Ghost-ResNet-20 & 4 & 51.77 & \textbf{0.084} & \textbf{0.220} & \textbf{70.0\%} 
 
 \begin{table}[h]
 \centering
-\tiny
+\scriptsize
 \begin{tabular}{|l|l|l|l|}
 \hline
 技术组件 & ConvNeXt 原版 & \textcolor{red}{\texttt{improved\_resnet20\_convnext}} & 适配说明 \\
