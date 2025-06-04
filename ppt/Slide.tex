@@ -181,40 +181,31 @@
 \begin{frame}{\textbf{幻灯片 2: 项目概述与核心创新} (约2分钟)}
 \frametitle{项目概述与核心创新}
 
-% 一、研究目标
+{\footnotesize
 \textbf{（一）研究目标}
 
-\vspace{0.5em}
-\begin{itemize}
-    \item \textbf{实现与创新}：以精简版 ResNet 为基础，实现并集成 5 类有代表性的优化方法；提出 2 种原创性方法
-    \item \textbf{性能对比}：在 CIFAR-100 数据集上系统评估关键性能指标，包括准确率、参数量与训练时间
-    \item \textbf{消融研究}：通过消融实验验证模型设计思路的有效性
-\end{itemize}
-
-\vspace{1em}
-% 二、工作成果
+    以精简版 ResNet 为基础，实现并集成 5 类有代表性的优化方法；提出 2 种原创性方法，在CIFAR-100数据集上系统评估关键性能指标，包括准确率、参数量与训练时间；通过消融实验验证模型设计思路的有效性。
+    
 \textbf{（二）工作成果}
-
-\vspace{0.5em}
 \begin{itemize}
     \item \textbf{5 类先进方法复现}:
         \begin{itemize}
-            \item \textbf{基础架构：}ResNet系列  （ResNet-20/32/56 作为性能基准）\cite{He2016Deep}
+            \item \footnotesize\textbf{基础架构：}ResNet系列  （ResNet-20/32/56 作为性能基准）\cite{He2016Deep}
             \item \textbf{注意力机制：}ECA-Net （ 高效通道注意力，避免降维 ）\cite{Wang_2020_CVPR}
             \item \textbf{轻量化设计：}GhostNet（廉价操作生成更多特征） \cite{Han2020GhostNet}
-            \item \textbf{现代化架构:}ConvNeXt （现代化卷积设计，借鉴Transformer ）\cite{Liu2022ConvNet}
+            \item \textbf{现代化架构:}ConvNeXt （现代化卷积设计+Transformer ）\cite{Liu2022ConvNet}
             \item \textbf{混合架构：}CoAtNet \cite{Dai2021CoAtNet}、MLP-Mixer\cite{Tolstikhin2021MLPMixer}
         \end{itemize}
 
-    
     \item \textbf{2 个核心创新突破}:
-    \begin{itemize}
-        \item \textcolor{red}{\texttt{improved\_resnet20\_convnext}}：\textbf{仅用 0.175M 参数实现 72.33\% 准确率}，参数效率达 413.31
-        \item \textcolor{red}{\texttt{coatnet\_cifar\_opt}}：卷积与 Transformer 融合架构，适配优化后性能提升显著
-    \end{itemize}
-    \item \textbf{ECA-Net 自适应核}：动态调整 $k$，提升准确率 1.58\%，仅增加 27 个参数
-    \item \textbf{系统性消融实验}：验证倒置瓶颈结构关键性（移除后性能骤降 20.29\%）
+        \begin{itemize}
+            \item \footnotesize\textcolor{red}{\texttt{improved\_resnet20\_convnext}}：\textbf{仅用 0.175M 参数实现 72.33\% 准确率}，参数效率达 413.31
+            \item \textcolor{red}{\texttt{coatnet\_cifar\_opt}}：卷积与 Transformer融合架构，适配优化性能提升显著
+        \end{itemize}
+    \item \footnotesize\textbf{ECA-Net 自适应核}：动态调整 $k$，提升准确率 1.58\%，仅增加 27 个参数
+    \item \footnotesize\textbf{系统性消融实验}：验证倒置瓶颈结构关键性（移除后性能骤降 20.29\%）
 \end{itemize}
+}
 
 \end{frame}
 
@@ -326,9 +317,7 @@
             \end{itemize}
             \textbf{ECA-Net自适应优化}:
             \begin{itemize}
-                \item 根据通道数动态调整k值（$k = |log_2(C) + b|/\gamma$）
-                \item 第一卷积后插入效果最佳(+1.18\%)
-                \item 仅增加27个参数，提升1.58\%
+                \item 根据通道数动态调整k值（$k = |log_2(C) + b|/\gamma$，第一卷积后插入效果最佳(+1.18\%)，仅增加27个参数
             \end{itemize}
         
         
@@ -350,7 +339,7 @@
         \end{itemize}
         \textbf{实验控制变量}:
         \begin{itemize}
-            \item \textbf{训练方式}: 所有模型零预训练权重从头训练
+            \item \textbf{训练方式}: 所有模型从头训练
             \item \textbf{评估指标}: Top-1/Top-5准确率 + 参数效率
             \item \textbf{管理系统}: MODEL\_REGISTRY统一自动化流程
             \item \textbf{硬件环境}: 8卡V100分布式并行训练
@@ -614,59 +603,93 @@
 
 \end{frame}
 
-\section{关键发现与未来工作}
-\begin{frame}{\textbf{幻灯片 11: 关键发现与未来工作} (约1.5分钟)}
-\frametitle{关键发现与未来工作}
+\section{结论、研究局限性与未来工作}
+\begin{frame}{\textbf{幻灯片 11: 结论} (约1.5分钟)}
+\frametitle{结论}
+
+\vspace{-0.5em}
+{\scriptsize
+
+\textbf{1. 架构性能发现}:
+\begin{itemize}
+    \item \textbf{从头训练基准确立}: ResNet系列达到66.5\%-72.5\%准确率，为复杂架构提供可信参考基准
+    \item \textbf{注意力机制普遍有效}: ECA-Net以27个参数提升1.58\%，展现轻量化注意力的卓越效率
+    \item \textbf{过拟合根本性挑战}: 20M+参数模型在5万样本上训练-测试gap超13-20个百分点，传统正则化失效
+    \item \textbf{模型容量匹配重要性}: 轻量级模型(ResNet-20系列、ECA-Net)更适配小数据集特性
+\end{itemize}
+
+\textbf{2. 效率与创新突破}:
+\begin{itemize}
+    \item \textbf{Ghost模块极致效率}: 0.075小时完成300轮训练，计算效率2.313领先全场
+    \item \textbf{创新模型参数突破}: improved\_resnet20\_convnext参数效率413.31，超越基线75\%
+    \item \textbf{多维权衡复杂性}: 准确率、参数量、FLOPs、训练时间呈非线性关系
+\end{itemize}
+
+\textbf{3. 实践指导意义}:
+\begin{itemize}
+    \item \textbf{轻量化优先原则}: 在中小规模数据集上，参数效率比绝对性能更重要
+    \item \textbf{注意力机制价值}: 轻量级注意力投入产出比极高，应优先考虑
+    \item \textbf{现代化融合策略}: ConvNeXt设计思想与传统架构的融合带来显著提升
+    \item \textbf{数据驱动选择}: 根据数据集规模选择合适的模型复杂度是成功关键
+\end{itemize}}
+
+
+\end{frame}
+
+\begin{frame}{\textbf{幻灯片 12: 研究局限性与未来工作} (约1.5分钟)}
+\frametitle{研究局限性与未来工作}
 
 \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-        \textbf{性能关键发现}:
+        {\scriptsize \textbf{当前研究局限性}:
+        
+        \textbf{数据集局限}:
         \begin{itemize}
-            \item 从头训练可达到72.5\%准确率（ResNet-56基线）
-            \item 注意力机制普遍有效，ECA-Net表现尤为突出
-            \item 大容量模型在小数据集上存在过拟合挑战
-            \item 正则化强化效果有限
+            \item \textbf{单一数据集}: 仅在CIFAR-100上验证，缺乏跨数据集泛化验证
+            \item \textbf{规模限制}: 未在大规模数据集上测试模型的可扩展性
         \end{itemize}
         
-        \vspace{0.5em}
-        \textbf{效率关键发现}:
+        \textbf{方法局限}:
         \begin{itemize}
-            \item Ghost模块极致轻量化，训练仅需\textasciitilde0.075小时
-            \item 创新模型参数效率突破：413.31
-            \item 模型容量与数据规模匹配的重要性
+            \item \textbf{超参数敏感}: 部分复杂模型可能需要更精细的超参数调优
+            \item \textbf{训练策略}: 未充分探索高级数据增强和学习率策略的影响
+            \item \textbf{架构搜索}: 缺乏自动化的神经架构搜索验证
         \end{itemize}
+        
+        \textbf{分析深度}:
+        \begin{itemize}
+            \item \textbf{可解释性不足}: 缺乏对模型决策过程的深入分析
+            \item \textbf{鲁棒性评估}: 未进行对抗攻击等鲁棒性测试
+        \end{itemize}}
     \end{column}
     \begin{column}{0.5\textwidth}
-        \textbf{未来工作展望}:
+        {\scriptsize \textbf{未来工作方向}:
         
         \textbf{技术深化}:
         \begin{itemize}
-            \item 精细化超参数优化
-            \item Vision Transformer探索
-            \item 知识蒸馏技术应用
+            \item \textbf{深度HPO}: 贝叶斯优化、遗传算法精细调优未充分发挥潜力的复杂模型
+            \item \textbf{ViT系统对比}: Swin Transformer、MaxViT等主流架构与CNN混合架构全面比较
+            \item \textbf{知识蒸馏}: 利用大模型指导轻量化模型，探索性能-效率新平衡点
         \end{itemize}
         
         \textbf{应用拓展}:
         \begin{itemize}
-            \item 更大数据集验证
-            \item 其他视觉任务迁移
+            \item \textbf{数据集泛化}: ImageNet、ImageNet-1K等大规模数据集验证方法普适性
+            \item \textbf{下游任务迁移}: 目标检测、语义分割简化版本评估预训练效果
         \end{itemize}
         
         \textbf{理论分析}:
         \begin{itemize}
-            \item 模型可解释性研究
-            \item 鲁棒性评估
-        \end{itemize}
+            \item \textbf{模型可解释性}: Grad-CAM可视化不同注意力机制的决策过程
+            \item \textbf{鲁棒性评估}: 对抗攻击、分布外数据的抗干扰能力测试
+            \item \textbf{硬件适配优化}: 模型量化、剪枝技术与目标硬件的深度协同
+        \end{itemize}}
     \end{column}
 \end{columns}
 
-\vspace{0.5em}
-\centering
-\textbf{感谢各位老师和同学！欢迎提问交流！}
-
 \end{frame}
 
-\section{团队贡献}
+\section{团队贡献致谢}
 \scriptsize
 \begin{frame}{\textbf{幻灯片 12: 团队贡献致谢} (约30秒)}
 \frametitle{团队贡献致谢}
@@ -701,6 +724,10 @@
 \centering
 \textit{通过明确分工与紧密协作，团队成功完成21个模型变体的实现与评估，\\
 为先进卷积结构与注意力机制在CIFAR-100分类任务上的应用提供了宝贵实证数据！}
+
+\vspace{0.5em}
+\centering
+\textbf{感谢各位老师和同学！欢迎提问交流！}
 
 \end{frame}
 
@@ -812,14 +839,14 @@ Ghost-ResNet-20 & 4 & 51.77 & \textbf{0.084} & \textbf{0.220} & \textbf{70.0\%} 
 %================================================
 %---------------结束页面
 %================================================
-\setbeamercolor{palette primary}{fg=black, bg=white}
-\begin{frame}[standout]
-\centering
-\Huge{谢谢！}
-\vspace{1cm}
+% \setbeamercolor{palette primary}{fg=black, bg=white}
+% \begin{frame}[standout]
+% \centering
+% \Huge{谢谢！}
+% \vspace{1cm}
 
-\Large{欢迎批评指正}
-\end{frame}
+% \Large{欢迎批评指正}
+% \end{frame}
 
 %================================================
 %---------------参考文献
