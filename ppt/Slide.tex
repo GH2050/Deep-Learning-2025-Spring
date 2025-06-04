@@ -179,29 +179,38 @@
         \end{itemize}
         
         \vspace{0.2em}
-        \textbf{核心创新}:
+        \textbf{核心创新与突破}:
         \begin{itemize}
-            \item \texttt{improved\_resnet20\_convnext}: 融合现代设计的轻量ResNet
-            \item 系统性消融实验与深度分析
-            \item 8卡V100分布式训练优化
+            \item \textcolor{red}{\texttt{improved\_resnet20\_convnext}}: \textbf{0.175M参数实现72.33\%准确率}，参数效率413.31
+            \item \textbf{ECA-Net自适应核}: 自适应k提升1.58\%，仅增加27个参数
+            \item \textbf{系统性消融}: 验证倒置瓶颈的关键作用（移除后性能骤降20.29\%）
+            \item \textbf{8卡V100分布式}: 300轮训练，DDP+混合精度优化
         \end{itemize}
     \end{column}
     \begin{column}{0.5\textwidth}
-        \textbf{相关技术背景}:
+        \textbf{关键技术发现}:
         \begin{itemize}
-            \item \textbf{基础架构}: ResNet深度残差网络 \cite{He2016Deep}
-            \item \textbf{注意力机制}: ECA-Net通道注意力 \cite{Wang_2020_CVPR}
-            \item \textbf{轻量化设计}: GhostNet特征重用 \cite{Han2020GhostNet}
-            \item \textbf{现代卷积}: ConvNeXt设计理念 \cite{Liu2022ConvNet}
-            \item \textbf{混合架构}: CoAtNet卷积-Transformer结合 \cite{Dai2021CoAtNet}
+            \item \textbf{注意力机制}: ECA-Net表现最佳，轻量化增强显著
+            \item \textbf{模型容量匹配}: 大模型在小数据集过拟合严重
+            \item \textbf{参数效率冠军}: Ghost模块训练仅需0.075小时
+            \item \textbf{架构适配}: 7×7深度卷积优于3×3标准卷积
         \end{itemize}
         
         \vspace{0.2em}
-        \textbf{技术挑战}:
+        \textbf{性能基准与对比}:
         \begin{itemize}
-            \item 小数据集上的模型容量匹配
-            \item 参数效率与性能的最优平衡
-            \item 现代架构在传统任务上的适配
+            \item \textbf{最佳性能}: ResNet-56达到72.50\%基线
+            \item \textbf{技术分组}: 注意力机制类平均67.86\%，参数效率最优
+            \item \textbf{训练效率}: 轻量模型0.075-0.2小时，复杂架构0.3-0.7小时
+            \item \textbf{收敛特性}: 创新模型展现优秀拟合与泛化能力
+        \end{itemize}
+        
+        \vspace{0.2em}
+        \textbf{实验验证深度}:
+        \begin{itemize}
+            \item \textbf{21个模型变体}全面评估
+            \item \textbf{4大技术类型}系统对比
+            \item \textbf{多维度消融}实验设计
         \end{itemize}
     \end{column}
 \end{columns}
@@ -218,7 +227,7 @@
     \begin{column}{0.5\textwidth}
         \textbf{基础架构}:
         \begin{itemize}
-            \item \textbf{ResNet系列}: ResNet-20/32/56 作为性能基准
+            \item \textbf{ResNet系列}: ResNet-20/32/56 作为性能基准 \cite{He2016Deep}
         \end{itemize}
         
         \textbf{注意力机制}:
@@ -267,40 +276,61 @@
 {\footnotesize
 \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-        \textbf{创新模型设计}:
+        \textbf{创新模型架构详解}:
         \begin{itemize}
-            \item \textbf{\texttt{improved\_resnet20\_convnext}}:
+            \item \textbf{improved\_resnet20\_convnext}:
             \begin{itemize}
-                \item 融合ConvNeXt设计的轻量化ResNet
-                \item 倒置瓶颈 + 7×7深度卷积 + DropPath
-                \item 保留BatchNorm + ReLU + ResNet骨架
-                \item 0.175M参数实现72.33\%准确率
+                \item \textbf{核心设计}: 倒置瓶颈(4×扩展) + 7×7深度卷积
+                \item \textbf{现代元素}: DropPath(rate=0.05) + BatchNorm2d
+                \item \textbf{参数效率}: 0.175M参数实现72.33\%准确率
+                \item \textbf{技术融合}: 保留ResNet跳跃连接 + ConvNeXt设计理念
             \end{itemize}
-            \item \textbf{\texttt{CoAtNet-CIFAROpt}}系列:
+            \item \textbf{ECA-Net自适应优化}:
             \begin{itemize}
-                \item 针对CIFAR-100优化的混合架构
-                \item 卷积-Transformer适配小尺寸图像
+                \item \textbf{自适应核计算}: 根据通道数动态调整k值
+                \item \textbf{位置优化}: 第一卷积后插入效果最佳(+1.18\%)
+                \item \textbf{极低开销}: 仅增加27个参数，提升1.58\%
             \end{itemize}
+        \end{itemize}
+        
+        \vspace{0.2em}
+        \textbf{轻量化技术突破}:
+        \begin{itemize}
+            \item \textbf{Ghost模块优化}: ratio=2实现46.8\%参数压缩
+            \item \textbf{内在+幽灵特征}: 高效特征重用机制
+            \item \textbf{训练加速}: 0.075小时完成300轮训练
         \end{itemize}
     \end{column}
     \begin{column}{0.5\textwidth}
-        \textbf{统一实验框架}:
+        \textbf{分布式训练系统}:
         \begin{itemize}
-            \item \textbf{模型管理}: \texttt{MODEL\_REGISTRY} 注册机制
-            \item \textbf{训练配置}:
-            \begin{itemize}
-                \item 数据增强：CIFAR-100归一化 + TrivialAugmentWide
-                \item 优化器：SGD (动量0.9) / AdamW
-                \item 学习率：余弦退火调度
-                \item 300 epochs，批大小128/GPU×8
-            \end{itemize}
-            \item \textbf{分布式训练}: DDP + 混合精度 \cite{Paszke2019PyTorch}
-            \item \textbf{实验流程}:
-            \begin{itemize}
-                \item 性能对比实验
-                \item 系统性消融实验
-                \item 自动化结果分析
-            \end{itemize}
+            \item \textbf{硬件配置}: 8×NVIDIA V100 (16GB显存)
+            \item \textbf{并行策略}: DDP数据并行 + 混合精度(FP16)
+            \item \textbf{批处理}: 128/GPU×8 = 1024总批大小
+            \item \textbf{内存优化}: Accelerate库自动化管理
+        \end{itemize}
+        
+        \textbf{数据增强策略}:
+        \begin{itemize}
+            \item \textbf{基础增强}: RandomCrop(32,pad=4) + RandomFlip
+            \item \textbf{自动增强}: TrivialAugmentWide策略
+            \item \textbf{正则化}: RandomErasing(p=0.5, scale=0.02-0.33)
+            \item \textbf{归一化}: CIFAR-100专用统计参数
+        \end{itemize}
+        
+        \textbf{优化器配置矩阵}:
+        \begin{itemize}
+            \item \textbf{CNN架构}: SGD(lr=0.1, momentum=0.9, wd=5e-4)
+            \item \textbf{现代架构}: AdamW(lr=4e-3, wd=0.05, warmup)
+            \item \textbf{调度策略}: 余弦退火 / 带预热余弦退火
+            \item \textbf{训练周期}: 统一300 epochs确保充分收敛
+        \end{itemize}
+        
+        \textbf{实验控制变量}:
+        \begin{itemize}
+            \item \textbf{从头训练}: 所有模型零预训练权重
+            \item \textbf{统一评估}: Top-1/Top-5准确率 + 参数效率
+            \item \textbf{自动化流程}: MODEL\_REGISTRY统一管理
         \end{itemize}
     \end{column}
 \end{columns}
@@ -312,28 +342,26 @@
 \begin{frame}{\textbf{幻灯片 5: 核心实验结果 - 整体性能对比} (约2分钟)}
 \frametitle{核心实验结果 - 整体性能对比}
 
-\vspace{-0.8em}
-\hspace{-1.5cm}
-\begin{center}
+\vspace{-1.2em}
+\hspace{-2cm}
 \begin{table}[h]
 \small
 \begin{tabular}{|c|l|c|c|c|}
 \hline
 排名 & 模型名称 & Top-1(\%) & 参数(M) & 效率 \\
 \hline
-1 & ResNet-56 \cite{He2016Deep} & \textbf{72.50} & 0.86 & 84.30 \\
+1 & ResNet-56 & \textbf{72.50} & 0.86 & 84.30 \\
 2 & \textcolor{red}{\texttt{improved\_resnet20\_convnext}}* & 72.33 & \textbf{0.175} & \textbf{413.31} \\
-3 & ECA-ResNet-32 \cite{Wang_2020_CVPR} & 71.00 & 0.47 & 151.06 \\
-4 & ResNet-32 \cite{He2016Deep} & 69.50 & 0.47 & 147.87 \\
-5 & ECANet-20 (adaptive) \cite{Wang_2020_CVPR} & 68.08 & 0.278 & 244.89 \\
+3 & ECA-ResNet-32 & 71.00 & 0.47 & 151.06 \\
+4 & ResNet-32 & 69.50 & 0.47 & 147.87 \\
+5 & ECANet-20 (adaptive) & 68.08 & 0.278 & 244.89 \\
 \hline
 \end{tabular}
-\tiny \textcolor{red}{\textbf{*创新模型}} - 0.175M参数实现72.33\%准确率，参数效率413.31领先2.8倍，接近ResNet-56基线水平
+\tiny *\textcolor{red}{\textbf{创新模型}} - 0.175M参数实现72.33\%准确率，参数效率413.31领先2.8倍，接近ResNet-56基线水平
 \caption{Top-5 模型性能排行}
 \end{table}
-\end{center}
 
-\vspace{-0.5em}
+\vspace{-0.7em}
 
 \begin{figure}[h]
     \centering
@@ -434,7 +462,7 @@
     \begin{column}{0.33\textwidth}
         \centering
         \includegraphics[width=\linewidth]{images/coatnet_0_training_curves.png}
-        \tiny CoatNet-0：复杂架构的收敛挑战
+        \tiny CoAtNet-0：复杂架构的收敛挑战
     \end{column}
 \end{columns}
 
