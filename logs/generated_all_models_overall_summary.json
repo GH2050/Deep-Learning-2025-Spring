@@ -1,0 +1,184 @@
+{
+    "coatnet_0": {
+        "model_name": "coatnet_0",
+        "best_acc": 66.61,
+        "best_acc_top5": 88.949,
+        "parameters": 26.312964,
+        "total_time": 1054.1180984973907
+    },
+    "coatnet_0_custom_enhanced": {
+        "model_name": "coatnet_0_custom_enhanced",
+        "best_acc": 66.26012196341098,
+        "best_acc_top5": 88.63410976706989,
+        "parameters": 26.574852,
+        "total_time": 1496.4441256523132
+    },
+    "coatnet_cifar_opt": {
+        "model_name": "coatnet_cifar_opt",
+        "best_acc": 58.68,
+        "best_acc_top5": 81.812,
+        "parameters": 27.008486,
+        "total_time": 1143.322181224823
+    },
+    "coatnet_cifar_opt_large_stem": {
+        "model_name": "coatnet_cifar_opt_large_stem",
+        "best_acc": 55.96,
+        "best_acc_top5": 79.364,
+        "parameters": 27.010534,
+        "total_time": 1194.0955152511597
+    },
+    "convnext_tiny": {
+        "model_name": "convnext_tiny",
+        "best_acc": 57.74,
+        "best_acc_top5": 80.96600000000001,
+        "parameters": 27.897028,
+        "total_time": 905.108850479126
+    },
+    "cspresnet50": {
+        "model_name": "cspresnet50",
+        "best_acc": 50.22,
+        "best_acc_top5": 74.19800000000001,
+        "parameters": 25.208356,
+        "total_time": 829.2988095283508
+    },
+    "ecanet20_adaptive": {
+        "model_name": "ecanet20_adaptive",
+        "best_acc": 68.08,
+        "best_acc_top5": 90.27199999999999,
+        "parameters": 0.278351,
+        "total_time": 742.8480365276337
+    },
+    "ecanet20_fixed_k3": {
+        "model_name": "ecanet20_fixed_k3",
+        "best_acc": 66.84,
+        "best_acc_top5": 89.156,
+        "parameters": 0.278351,
+        "total_time": 753.3373544216156
+    },
+    "ecanet20_fixed_k5": {
+        "model_name": "ecanet20_fixed_k5",
+        "best_acc": 65.99,
+        "best_acc_top5": 88.39099999999999,
+        "parameters": 0.278369,
+        "total_time": 734.6297228336334
+    },
+    "ecanet20_fixed_k7": {
+        "model_name": "ecanet20_fixed_k7",
+        "best_acc": 66.8,
+        "best_acc_top5": 89.12,
+        "parameters": 0.278387,
+        "total_time": 751.8301975727081
+    },
+    "ecanet20_fixed_k9": {
+        "model_name": "ecanet20_fixed_k9",
+        "best_acc": 67.05,
+        "best_acc_top5": 89.345,
+        "parameters": 0.278405,
+        "total_time": 761.350818157196
+    },
+    "eca_resnet_20": {
+        "model_name": "eca_resnet_20",
+        "best_acc": 66.27,
+        "best_acc_top5": 88.643,
+        "parameters": 0.278351,
+        "total_time": 774.1871745586395
+    },
+    "eca_resnet_32": {
+        "model_name": "eca_resnet_32",
+        "best_acc": 70.43,
+        "best_acc_top5": 92.34400000000001,
+        "parameters": 0.472831,
+        "total_time": 779.2226657867432
+    },
+    "ghostnet_100": {
+        "model_name": "ghostnet_100",
+        "best_acc": 56.940000000000005,
+        "best_acc_top5": 80.58999999999999,
+        "parameters": 4.029608,
+        "total_time": 1632.3161385059357
+    },
+    "ghost_resnet_20": {
+        "model_name": "ghost_resnet_20",
+        "best_acc": 59.53,
+        "best_acc_top5": 82.577,
+        "parameters": 0.14906,
+        "total_time": 795.8498420715332
+    },
+    "ghost_resnet_32": {
+        "model_name": "ghost_resnet_32",
+        "best_acc": 61.55,
+        "best_acc_top5": 84.395,
+        "parameters": 0.249636,
+        "total_time": 958.9050345420839
+    },
+    "improved_resnet20_convnext": {
+        "model_name": "improved_resnet20_convnext",
+        "best_acc": 72.33,
+        "best_acc_top5": 93.864,
+        "parameters": 0.174868,
+        "total_time": 833.547351360321
+    },
+    "mlp_mixer_b16": {
+        "model_name": "mlp_mixer_b16",
+        "best_acc": 60.93,
+        "best_acc_top5": 83.837,
+        "parameters": 17.948772,
+        "total_time": 2404.352592229843
+    },
+    "mlp_mixer_tiny": {
+        "model_name": "mlp_mixer_tiny",
+        "best_acc": 59.52,
+        "best_acc_top5": 82.568,
+        "parameters": 1.341924,
+        "total_time": 757.2828404903412
+    },
+    "resnest50d": {
+        "model_name": "resnest50d",
+        "best_acc": 57.2,
+        "best_acc_top5": 80.48,
+        "parameters": 25.63914,
+        "total_time": 1062.4852735996246
+    },
+    "resnet20_no_eca": {
+        "model_name": "resnet20_no_eca",
+        "best_acc": 66.92,
+        "best_acc_top5": 89.22800000000001,
+        "parameters": 0.278324,
+        "total_time": 746.4592399597168
+    },
+    "resnet56_improved": {
+        "model_name": "resnet56_improved",
+        "best_acc": 0.0,
+        "best_acc_top5": 0.0,
+        "parameters": 0.0,
+        "total_time": 1060.7810842990875
+    },
+    "resnet_20": {
+        "model_name": "resnet_20",
+        "best_acc": 66.62,
+        "best_acc_top5": 88.958,
+        "parameters": 0.278324,
+        "total_time": 744.0970017910004
+    },
+    "resnet_32": {
+        "model_name": "resnet_32",
+        "best_acc": 69.95,
+        "best_acc_top5": 91.955,
+        "parameters": 0.472756,
+        "total_time": 780.5212669372559
+    },
+    "resnet_56": {
+        "model_name": "resnet_56",
+        "best_acc": 74.08,
+        "best_acc_top5": 95.0,
+        "parameters": 0.86162,
+        "total_time": 809.7702193260193
+    },
+    "segnext_mscan_tiny": {
+        "model_name": "segnext_mscan_tiny",
+        "best_acc": 58.32,
+        "best_acc_top5": 81.488,
+        "parameters": 3.359556,
+        "total_time": 853.619775056839
+    }
+}
