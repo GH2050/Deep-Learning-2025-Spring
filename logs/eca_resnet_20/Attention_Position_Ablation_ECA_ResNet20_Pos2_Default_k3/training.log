@@ -1,0 +1,1101 @@
+2025-06-03 22:05:01,376 - INFO - ==================================================
+2025-06-03 22:05:01,376 - INFO - CIFAR-100 训练开始
+2025-06-03 22:05:01,376 - INFO - ==================================================
+2025-06-03 22:05:01,376 - INFO - 所有输出将保存到: ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3
+2025-06-03 22:05:01,376 - INFO - PyTorch版本: 2.7.0+cu126
+2025-06-03 22:05:01,377 - INFO - CUDA版本: 12.6
+2025-06-03 22:05:01,382 - INFO - 可用GPU数量: 8
+2025-06-03 22:05:01,382 - INFO - 当前设备: 0
+2025-06-03 22:05:01,382 - INFO - GPU内存: 15.8 GB
+2025-06-03 22:05:01,382 - INFO - TrainingArguments: {
+  "output_dir": "./logs",
+  "overwrite_output_dir": false,
+  "num_train_epochs": 300,
+  "per_device_train_batch_size": 256,
+  "per_device_eval_batch_size": 512,
+  "learning_rate": 0.1,
+  "weight_decay": 0.0005,
+  "adam_epsilon": 1e-08,
+  "max_grad_norm": 1.0,
+  "warmup_epochs": 0,
+  "lr_scheduler_type": "cosine_annealing",
+  "logging_steps": 50,
+  "eval_strategy": "epoch",
+  "save_strategy": "epoch",
+  "save_steps": 20,
+  "dataloader_num_workers": 4,
+  "dataloader_pin_memory": true,
+  "dataloader_drop_last": true,
+  "label_smoothing_factor": 0.1,
+  "use_mixup": true,
+  "mixup_alpha": 0.2,
+  "optimizer_type": "sgd",
+  "use_imagenet_norm": false,
+  "model_constructor_params": {
+    "k_size": 3
+  },
+  "resume_from_checkpoint": null,
+  "model_name_for_log": "eca_resnet_20",
+  "run_name": "Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3",
+  "checkpoint_filename_best": "best_model.pth",
+  "checkpoint_filename_epoch": "checkpoint_epoch_{epoch}.pth",
+  "evaluation_filename": "evaluation_summary.json",
+  "plot_filename": "training_curves.png"
+}
+2025-06-03 22:05:01,382 - INFO - 分布式训练 (DDP): True, Rank: 0, World Size: 8
+2025-06-03 22:05:01,383 - INFO - 使用设备: cuda:0
+2025-06-03 22:05:01,408 - INFO - ***** 开始训练 *****
+2025-06-03 22:05:01,408 - INFO -   训练模型: eca_resnet_20, 运行: Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3
+2025-06-03 22:05:01,408 - INFO -   训练样本数 = 50000, 每轮步骤数 = 24
+2025-06-03 22:05:01,408 - INFO -   总轮数 = 300
+2025-06-03 22:05:01,408 - INFO -   每设备批次大小 = 256
+2025-06-03 22:05:01,408 - INFO -   总批次大小 (所有GPU) = 2048
+2025-06-03 22:05:01,408 - INFO -   初始学习率 = 1.00e-01
+2025-06-03 22:05:02,925 - INFO - Epoch 1/300 | Batch 0/24 | Loss: 4.6610 | Acc: 1.17% | LR: 1.00e-01
+2025-06-03 22:05:04,306 - INFO - Epoch 1 TRAIN Summary: Avg Loss: 4.5366, Avg Acc: 2.89%, Duration: 2.90s
+2025-06-03 22:05:04,739 - INFO - Epoch 1 EVAL  Summary: Avg Loss: 4.4507, Avg Acc: 3.35%, Duration: 0.43s
+2025-06-03 22:05:04,770 - INFO - Epoch 1: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:04,770 - INFO - Epoch 1: 新的最佳准确率: 3.35% (已保存至 best_model.pth)
+2025-06-03 22:05:05,233 - INFO - Epoch 2/300 | Batch 0/24 | Loss: 4.4535 | Acc: 4.25% | LR: 1.00e-01
+2025-06-03 22:05:06,910 - INFO - Epoch 2 TRAIN Summary: Avg Loss: 4.3649, Avg Acc: 5.36%, Duration: 2.14s
+2025-06-03 22:05:07,292 - INFO - Epoch 2 EVAL  Summary: Avg Loss: 4.1635, Avg Acc: 7.57%, Duration: 0.38s
+2025-06-03 22:05:07,320 - INFO - Epoch 2: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:07,320 - INFO - Epoch 2: 新的最佳准确率: 7.57% (已保存至 best_model.pth)
+2025-06-03 22:05:07,759 - INFO - Epoch 3/300 | Batch 0/24 | Loss: 4.2587 | Acc: 7.81% | LR: 1.00e-01
+2025-06-03 22:05:09,456 - INFO - Epoch 3 TRAIN Summary: Avg Loss: 4.2193, Avg Acc: 7.46%, Duration: 2.14s
+2025-06-03 22:05:09,835 - INFO - Epoch 3 EVAL  Summary: Avg Loss: 3.9982, Avg Acc: 10.58%, Duration: 0.38s
+2025-06-03 22:05:09,879 - INFO - Epoch 3: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:09,879 - INFO - Epoch 3: 新的最佳准确率: 10.58% (已保存至 best_model.pth)
+2025-06-03 22:05:10,318 - INFO - Epoch 4/300 | Batch 0/24 | Loss: 4.1726 | Acc: 8.17% | LR: 1.00e-01
+2025-06-03 22:05:11,840 - INFO - Epoch 4 TRAIN Summary: Avg Loss: 4.1402, Avg Acc: 8.47%, Duration: 1.96s
+2025-06-03 22:05:12,241 - INFO - Epoch 4 EVAL  Summary: Avg Loss: 3.9785, Avg Acc: 10.70%, Duration: 0.40s
+2025-06-03 22:05:12,281 - INFO - Epoch 4: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:12,282 - INFO - Epoch 4: 新的最佳准确率: 10.70% (已保存至 best_model.pth)
+2025-06-03 22:05:12,778 - INFO - Epoch 5/300 | Batch 0/24 | Loss: 4.0436 | Acc: 8.59% | LR: 1.00e-01
+2025-06-03 22:05:14,431 - INFO - Epoch 5 TRAIN Summary: Avg Loss: 4.0425, Avg Acc: 10.06%, Duration: 2.15s
+2025-06-03 22:05:14,827 - INFO - Epoch 5 EVAL  Summary: Avg Loss: 3.8285, Avg Acc: 13.77%, Duration: 0.40s
+2025-06-03 22:05:14,855 - INFO - Epoch 5: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:14,855 - INFO - Epoch 5: 新的最佳准确率: 13.77% (已保存至 best_model.pth)
+2025-06-03 22:05:15,328 - INFO - Epoch 6/300 | Batch 0/24 | Loss: 4.0341 | Acc: 10.55% | LR: 9.99e-02
+2025-06-03 22:05:16,963 - INFO - Epoch 6 TRAIN Summary: Avg Loss: 4.0246, Avg Acc: 11.02%, Duration: 2.11s
+2025-06-03 22:05:17,364 - INFO - Epoch 6 EVAL  Summary: Avg Loss: 3.7925, Avg Acc: 13.73%, Duration: 0.40s
+2025-06-03 22:05:17,837 - INFO - Epoch 7/300 | Batch 0/24 | Loss: 4.0054 | Acc: 10.86% | LR: 9.99e-02
+2025-06-03 22:05:19,410 - INFO - Epoch 7 TRAIN Summary: Avg Loss: 4.0021, Avg Acc: 12.00%, Duration: 2.04s
+2025-06-03 22:05:19,813 - INFO - Epoch 7 EVAL  Summary: Avg Loss: 3.6577, Avg Acc: 17.17%, Duration: 0.40s
+2025-06-03 22:05:19,853 - INFO - Epoch 7: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:19,853 - INFO - Epoch 7: 新的最佳准确率: 17.17% (已保存至 best_model.pth)
+2025-06-03 22:05:20,306 - INFO - Epoch 8/300 | Batch 0/24 | Loss: 3.7999 | Acc: 11.33% | LR: 9.99e-02
+2025-06-03 22:05:21,940 - INFO - Epoch 8 TRAIN Summary: Avg Loss: 3.8817, Avg Acc: 14.00%, Duration: 2.09s
+2025-06-03 22:05:22,349 - INFO - Epoch 8 EVAL  Summary: Avg Loss: 3.5693, Avg Acc: 19.68%, Duration: 0.41s
+2025-06-03 22:05:22,379 - INFO - Epoch 8: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:22,380 - INFO - Epoch 8: 新的最佳准确率: 19.68% (已保存至 best_model.pth)
+2025-06-03 22:05:22,832 - INFO - Epoch 9/300 | Batch 0/24 | Loss: 3.8116 | Acc: 13.50% | LR: 9.98e-02
+2025-06-03 22:05:24,468 - INFO - Epoch 9 TRAIN Summary: Avg Loss: 3.7839, Avg Acc: 16.55%, Duration: 2.09s
+2025-06-03 22:05:24,893 - INFO - Epoch 9 EVAL  Summary: Avg Loss: 3.4586, Avg Acc: 20.80%, Duration: 0.42s
+2025-06-03 22:05:24,924 - INFO - Epoch 9: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:24,924 - INFO - Epoch 9: 新的最佳准确率: 20.80% (已保存至 best_model.pth)
+2025-06-03 22:05:25,367 - INFO - Epoch 10/300 | Batch 0/24 | Loss: 3.6461 | Acc: 17.97% | LR: 9.98e-02
+2025-06-03 22:05:26,892 - INFO - Epoch 10 TRAIN Summary: Avg Loss: 3.7257, Avg Acc: 16.77%, Duration: 1.97s
+2025-06-03 22:05:27,321 - INFO - Epoch 10 EVAL  Summary: Avg Loss: 3.5534, Avg Acc: 19.54%, Duration: 0.43s
+2025-06-03 22:05:27,799 - INFO - Epoch 11/300 | Batch 0/24 | Loss: 3.6363 | Acc: 21.17% | LR: 9.97e-02
+2025-06-03 22:05:29,439 - INFO - Epoch 11 TRAIN Summary: Avg Loss: 3.7131, Avg Acc: 18.43%, Duration: 2.12s
+2025-06-03 22:05:29,866 - INFO - Epoch 11 EVAL  Summary: Avg Loss: 3.3192, Avg Acc: 25.17%, Duration: 0.43s
+2025-06-03 22:05:29,899 - INFO - Epoch 11: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:29,899 - INFO - Epoch 11: 新的最佳准确率: 25.17% (已保存至 best_model.pth)
+2025-06-03 22:05:30,368 - INFO - Epoch 12/300 | Batch 0/24 | Loss: 4.2073 | Acc: 11.52% | LR: 9.97e-02
+2025-06-03 22:05:32,002 - INFO - Epoch 12 TRAIN Summary: Avg Loss: 3.6169, Avg Acc: 19.72%, Duration: 2.10s
+2025-06-03 22:05:32,453 - INFO - Epoch 12 EVAL  Summary: Avg Loss: 3.4406, Avg Acc: 23.54%, Duration: 0.45s
+2025-06-03 22:05:32,932 - INFO - Epoch 13/300 | Batch 0/24 | Loss: 3.8355 | Acc: 17.99% | LR: 9.96e-02
+2025-06-03 22:05:34,537 - INFO - Epoch 13 TRAIN Summary: Avg Loss: 3.5117, Avg Acc: 22.49%, Duration: 2.08s
+2025-06-03 22:05:34,973 - INFO - Epoch 13 EVAL  Summary: Avg Loss: 3.2140, Avg Acc: 27.32%, Duration: 0.43s
+2025-06-03 22:05:35,015 - INFO - Epoch 13: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:35,015 - INFO - Epoch 13: 新的最佳准确率: 27.32% (已保存至 best_model.pth)
+2025-06-03 22:05:35,491 - INFO - Epoch 14/300 | Batch 0/24 | Loss: 3.3910 | Acc: 23.44% | LR: 9.95e-02
+2025-06-03 22:05:37,130 - INFO - Epoch 14 TRAIN Summary: Avg Loss: 3.4410, Avg Acc: 24.51%, Duration: 2.11s
+2025-06-03 22:05:37,568 - INFO - Epoch 14 EVAL  Summary: Avg Loss: 3.1756, Avg Acc: 28.37%, Duration: 0.44s
+2025-06-03 22:05:37,598 - INFO - Epoch 14: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:37,598 - INFO - Epoch 14: 新的最佳准确率: 28.37% (已保存至 best_model.pth)
+2025-06-03 22:05:38,061 - INFO - Epoch 15/300 | Batch 0/24 | Loss: 3.4285 | Acc: 22.26% | LR: 9.95e-02
+2025-06-03 22:05:39,602 - INFO - Epoch 15 TRAIN Summary: Avg Loss: 3.4382, Avg Acc: 23.86%, Duration: 2.00s
+2025-06-03 22:05:40,036 - INFO - Epoch 15 EVAL  Summary: Avg Loss: 3.1042, Avg Acc: 29.92%, Duration: 0.43s
+2025-06-03 22:05:40,078 - INFO - Epoch 15: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:40,078 - INFO - Epoch 15: 新的最佳准确率: 29.92% (已保存至 best_model.pth)
+2025-06-03 22:05:40,547 - INFO - Epoch 16/300 | Batch 0/24 | Loss: 4.1491 | Acc: 13.85% | LR: 9.94e-02
+2025-06-03 22:05:42,059 - INFO - Epoch 16 TRAIN Summary: Avg Loss: 3.4673, Avg Acc: 23.73%, Duration: 1.98s
+2025-06-03 22:05:42,501 - INFO - Epoch 16 EVAL  Summary: Avg Loss: 3.0227, Avg Acc: 32.46%, Duration: 0.44s
+2025-06-03 22:05:42,543 - INFO - Epoch 16: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:42,544 - INFO - Epoch 16: 新的最佳准确率: 32.46% (已保存至 best_model.pth)
+2025-06-03 22:05:43,018 - INFO - Epoch 17/300 | Batch 0/24 | Loss: 3.3713 | Acc: 25.00% | LR: 9.93e-02
+2025-06-03 22:05:44,663 - INFO - Epoch 17 TRAIN Summary: Avg Loss: 3.4073, Avg Acc: 24.93%, Duration: 2.12s
+2025-06-03 22:05:45,085 - INFO - Epoch 17 EVAL  Summary: Avg Loss: 3.0082, Avg Acc: 33.15%, Duration: 0.42s
+2025-06-03 22:05:45,119 - INFO - Epoch 17: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:45,119 - INFO - Epoch 17: 新的最佳准确率: 33.15% (已保存至 best_model.pth)
+2025-06-03 22:05:45,568 - INFO - Epoch 18/300 | Batch 0/24 | Loss: 3.2086 | Acc: 31.25% | LR: 9.92e-02
+2025-06-03 22:05:47,187 - INFO - Epoch 18 TRAIN Summary: Avg Loss: 3.3940, Avg Acc: 25.18%, Duration: 2.07s
+2025-06-03 22:05:47,586 - INFO - Epoch 18 EVAL  Summary: Avg Loss: 2.9593, Avg Acc: 32.98%, Duration: 0.40s
+2025-06-03 22:05:48,156 - INFO - Epoch 19/300 | Batch 0/24 | Loss: 3.3065 | Acc: 27.00% | LR: 9.91e-02
+2025-06-03 22:05:49,669 - INFO - Epoch 19 TRAIN Summary: Avg Loss: 3.3213, Avg Acc: 27.90%, Duration: 2.08s
+2025-06-03 22:05:50,109 - INFO - Epoch 19 EVAL  Summary: Avg Loss: 3.2435, Avg Acc: 26.09%, Duration: 0.44s
+2025-06-03 22:05:50,587 - INFO - Epoch 20/300 | Batch 0/24 | Loss: 3.0566 | Acc: 28.91% | LR: 9.90e-02
+2025-06-03 22:05:52,108 - INFO - Epoch 20 TRAIN Summary: Avg Loss: 3.3447, Avg Acc: 26.98%, Duration: 2.00s
+2025-06-03 22:05:52,557 - INFO - Epoch 20 EVAL  Summary: Avg Loss: 2.8773, Avg Acc: 35.42%, Duration: 0.45s
+2025-06-03 22:05:52,598 - INFO - Epoch 20: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:52,598 - INFO - Epoch 20: 新的最佳准确率: 35.42% (已保存至 best_model.pth)
+2025-06-03 22:05:52,629 - INFO - Epoch 20: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_20.pth
+2025-06-03 22:05:53,117 - INFO - Epoch 21/300 | Batch 0/24 | Loss: 4.2388 | Acc: 11.29% | LR: 9.89e-02
+2025-06-03 22:05:54,565 - INFO - Epoch 21 TRAIN Summary: Avg Loss: 3.2636, Avg Acc: 28.89%, Duration: 1.93s
+2025-06-03 22:05:55,005 - INFO - Epoch 21 EVAL  Summary: Avg Loss: 2.8883, Avg Acc: 35.61%, Duration: 0.44s
+2025-06-03 22:05:55,036 - INFO - Epoch 21: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:55,036 - INFO - Epoch 21: 新的最佳准确率: 35.61% (已保存至 best_model.pth)
+2025-06-03 22:05:55,500 - INFO - Epoch 22/300 | Batch 0/24 | Loss: 4.0186 | Acc: 15.78% | LR: 9.88e-02
+2025-06-03 22:05:57,068 - INFO - Epoch 22 TRAIN Summary: Avg Loss: 3.2993, Avg Acc: 28.45%, Duration: 2.03s
+2025-06-03 22:05:57,513 - INFO - Epoch 22 EVAL  Summary: Avg Loss: 2.9797, Avg Acc: 32.90%, Duration: 0.44s
+2025-06-03 22:05:58,017 - INFO - Epoch 23/300 | Batch 0/24 | Loss: 2.9582 | Acc: 33.59% | LR: 9.87e-02
+2025-06-03 22:05:59,497 - INFO - Epoch 23 TRAIN Summary: Avg Loss: 3.2965, Avg Acc: 28.14%, Duration: 1.98s
+2025-06-03 22:05:59,935 - INFO - Epoch 23 EVAL  Summary: Avg Loss: 2.7320, Avg Acc: 39.18%, Duration: 0.44s
+2025-06-03 22:05:59,971 - INFO - Epoch 23: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:05:59,971 - INFO - Epoch 23: 新的最佳准确率: 39.18% (已保存至 best_model.pth)
+2025-06-03 22:06:00,433 - INFO - Epoch 24/300 | Batch 0/24 | Loss: 3.0755 | Acc: 31.25% | LR: 9.86e-02
+2025-06-03 22:06:02,017 - INFO - Epoch 24 TRAIN Summary: Avg Loss: 3.1102, Avg Acc: 32.31%, Duration: 2.05s
+2025-06-03 22:06:02,466 - INFO - Epoch 24 EVAL  Summary: Avg Loss: 2.9146, Avg Acc: 34.93%, Duration: 0.45s
+2025-06-03 22:06:02,990 - INFO - Epoch 25/300 | Batch 0/24 | Loss: 3.2686 | Acc: 29.19% | LR: 9.84e-02
+2025-06-03 22:06:04,550 - INFO - Epoch 25 TRAIN Summary: Avg Loss: 3.1169, Avg Acc: 31.38%, Duration: 2.08s
+2025-06-03 22:06:04,974 - INFO - Epoch 25 EVAL  Summary: Avg Loss: 2.6492, Avg Acc: 41.18%, Duration: 0.42s
+2025-06-03 22:06:05,005 - INFO - Epoch 25: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:05,005 - INFO - Epoch 25: 新的最佳准确率: 41.18% (已保存至 best_model.pth)
+2025-06-03 22:06:05,481 - INFO - Epoch 26/300 | Batch 0/24 | Loss: 3.1676 | Acc: 31.83% | LR: 9.83e-02
+2025-06-03 22:06:07,132 - INFO - Epoch 26 TRAIN Summary: Avg Loss: 3.0947, Avg Acc: 32.62%, Duration: 2.13s
+2025-06-03 22:06:07,550 - INFO - Epoch 26 EVAL  Summary: Avg Loss: 2.7375, Avg Acc: 40.23%, Duration: 0.42s
+2025-06-03 22:06:08,030 - INFO - Epoch 27/300 | Batch 0/24 | Loss: 2.9416 | Acc: 36.33% | LR: 9.82e-02
+2025-06-03 22:06:09,736 - INFO - Epoch 27 TRAIN Summary: Avg Loss: 3.1617, Avg Acc: 32.22%, Duration: 2.18s
+2025-06-03 22:06:10,182 - INFO - Epoch 27 EVAL  Summary: Avg Loss: 2.6295, Avg Acc: 42.89%, Duration: 0.44s
+2025-06-03 22:06:10,211 - INFO - Epoch 27: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:10,212 - INFO - Epoch 27: 新的最佳准确率: 42.89% (已保存至 best_model.pth)
+2025-06-03 22:06:10,668 - INFO - Epoch 28/300 | Batch 0/24 | Loss: 3.1001 | Acc: 32.39% | LR: 9.80e-02
+2025-06-03 22:06:12,335 - INFO - Epoch 28 TRAIN Summary: Avg Loss: 3.0714, Avg Acc: 32.29%, Duration: 2.12s
+2025-06-03 22:06:12,770 - INFO - Epoch 28 EVAL  Summary: Avg Loss: 2.6725, Avg Acc: 41.23%, Duration: 0.43s
+2025-06-03 22:06:13,265 - INFO - Epoch 29/300 | Batch 0/24 | Loss: 4.2052 | Acc: 11.53% | LR: 9.79e-02
+2025-06-03 22:06:14,842 - INFO - Epoch 29 TRAIN Summary: Avg Loss: 3.1260, Avg Acc: 32.29%, Duration: 2.07s
+2025-06-03 22:06:15,272 - INFO - Epoch 29 EVAL  Summary: Avg Loss: 2.7236, Avg Acc: 39.84%, Duration: 0.43s
+2025-06-03 22:06:15,765 - INFO - Epoch 30/300 | Batch 0/24 | Loss: 2.8059 | Acc: 39.06% | LR: 9.77e-02
+2025-06-03 22:06:17,380 - INFO - Epoch 30 TRAIN Summary: Avg Loss: 3.0876, Avg Acc: 33.70%, Duration: 2.11s
+2025-06-03 22:06:17,828 - INFO - Epoch 30 EVAL  Summary: Avg Loss: 2.6706, Avg Acc: 41.26%, Duration: 0.45s
+2025-06-03 22:06:18,322 - INFO - Epoch 31/300 | Batch 0/24 | Loss: 3.7804 | Acc: 24.43% | LR: 9.76e-02
+2025-06-03 22:06:19,864 - INFO - Epoch 31 TRAIN Summary: Avg Loss: 3.1809, Avg Acc: 32.50%, Duration: 2.03s
+2025-06-03 22:06:20,264 - INFO - Epoch 31 EVAL  Summary: Avg Loss: 2.6218, Avg Acc: 42.27%, Duration: 0.40s
+2025-06-03 22:06:20,753 - INFO - Epoch 32/300 | Batch 0/24 | Loss: 3.9294 | Acc: 17.81% | LR: 9.74e-02
+2025-06-03 22:06:22,405 - INFO - Epoch 32 TRAIN Summary: Avg Loss: 3.0859, Avg Acc: 33.81%, Duration: 2.14s
+2025-06-03 22:06:22,833 - INFO - Epoch 32 EVAL  Summary: Avg Loss: 2.5275, Avg Acc: 45.56%, Duration: 0.43s
+2025-06-03 22:06:22,861 - INFO - Epoch 32: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:22,861 - INFO - Epoch 32: 新的最佳准确率: 45.56% (已保存至 best_model.pth)
+2025-06-03 22:06:23,359 - INFO - Epoch 33/300 | Batch 0/24 | Loss: 2.8257 | Acc: 38.67% | LR: 9.72e-02
+2025-06-03 22:06:24,907 - INFO - Epoch 33 TRAIN Summary: Avg Loss: 3.1001, Avg Acc: 33.67%, Duration: 2.04s
+2025-06-03 22:06:25,353 - INFO - Epoch 33 EVAL  Summary: Avg Loss: 2.5112, Avg Acc: 45.82%, Duration: 0.44s
+2025-06-03 22:06:25,396 - INFO - Epoch 33: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:25,396 - INFO - Epoch 33: 新的最佳准确率: 45.82% (已保存至 best_model.pth)
+2025-06-03 22:06:25,872 - INFO - Epoch 34/300 | Batch 0/24 | Loss: 3.0054 | Acc: 38.87% | LR: 9.70e-02
+2025-06-03 22:06:27,427 - INFO - Epoch 34 TRAIN Summary: Avg Loss: 3.1505, Avg Acc: 32.61%, Duration: 2.03s
+2025-06-03 22:06:27,869 - INFO - Epoch 34 EVAL  Summary: Avg Loss: 2.6578, Avg Acc: 41.48%, Duration: 0.44s
+2025-06-03 22:06:28,364 - INFO - Epoch 35/300 | Batch 0/24 | Loss: 2.7542 | Acc: 39.45% | LR: 9.69e-02
+2025-06-03 22:06:30,015 - INFO - Epoch 35 TRAIN Summary: Avg Loss: 3.0367, Avg Acc: 34.85%, Duration: 2.14s
+2025-06-03 22:06:30,456 - INFO - Epoch 35 EVAL  Summary: Avg Loss: 2.5186, Avg Acc: 46.05%, Duration: 0.44s
+2025-06-03 22:06:30,486 - INFO - Epoch 35: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:30,486 - INFO - Epoch 35: 新的最佳准确率: 46.05% (已保存至 best_model.pth)
+2025-06-03 22:06:30,945 - INFO - Epoch 36/300 | Batch 0/24 | Loss: 4.0101 | Acc: 17.36% | LR: 9.67e-02
+2025-06-03 22:06:32,487 - INFO - Epoch 36 TRAIN Summary: Avg Loss: 2.9774, Avg Acc: 35.79%, Duration: 2.00s
+2025-06-03 22:06:32,922 - INFO - Epoch 36 EVAL  Summary: Avg Loss: 2.5883, Avg Acc: 44.00%, Duration: 0.43s
+2025-06-03 22:06:33,424 - INFO - Epoch 37/300 | Batch 0/24 | Loss: 4.0476 | Acc: 15.48% | LR: 9.65e-02
+2025-06-03 22:06:34,943 - INFO - Epoch 37 TRAIN Summary: Avg Loss: 3.0078, Avg Acc: 35.99%, Duration: 2.02s
+2025-06-03 22:06:35,388 - INFO - Epoch 37 EVAL  Summary: Avg Loss: 2.5881, Avg Acc: 43.05%, Duration: 0.44s
+2025-06-03 22:06:35,876 - INFO - Epoch 38/300 | Batch 0/24 | Loss: 2.8922 | Acc: 35.94% | LR: 9.63e-02
+2025-06-03 22:06:37,531 - INFO - Epoch 38 TRAIN Summary: Avg Loss: 2.9006, Avg Acc: 38.39%, Duration: 2.14s
+2025-06-03 22:06:37,963 - INFO - Epoch 38 EVAL  Summary: Avg Loss: 2.4904, Avg Acc: 47.05%, Duration: 0.43s
+2025-06-03 22:06:37,997 - INFO - Epoch 38: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:37,997 - INFO - Epoch 38: 新的最佳准确率: 47.05% (已保存至 best_model.pth)
+2025-06-03 22:06:38,471 - INFO - Epoch 39/300 | Batch 0/24 | Loss: 2.7454 | Acc: 41.00% | LR: 9.61e-02
+2025-06-03 22:06:40,058 - INFO - Epoch 39 TRAIN Summary: Avg Loss: 2.9895, Avg Acc: 36.13%, Duration: 2.06s
+2025-06-03 22:06:40,504 - INFO - Epoch 39 EVAL  Summary: Avg Loss: 2.5200, Avg Acc: 46.03%, Duration: 0.44s
+2025-06-03 22:06:41,011 - INFO - Epoch 40/300 | Batch 0/24 | Loss: 2.8318 | Acc: 39.39% | LR: 9.59e-02
+2025-06-03 22:06:42,588 - INFO - Epoch 40 TRAIN Summary: Avg Loss: 2.8861, Avg Acc: 38.13%, Duration: 2.08s
+2025-06-03 22:06:43,015 - INFO - Epoch 40 EVAL  Summary: Avg Loss: 2.5790, Avg Acc: 44.02%, Duration: 0.43s
+2025-06-03 22:06:43,051 - INFO - Epoch 40: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_40.pth
+2025-06-03 22:06:43,516 - INFO - Epoch 41/300 | Batch 0/24 | Loss: 2.7604 | Acc: 41.41% | LR: 9.57e-02
+2025-06-03 22:06:45,121 - INFO - Epoch 41 TRAIN Summary: Avg Loss: 3.0532, Avg Acc: 35.68%, Duration: 2.07s
+2025-06-03 22:06:45,540 - INFO - Epoch 41 EVAL  Summary: Avg Loss: 2.6615, Avg Acc: 42.23%, Duration: 0.42s
+2025-06-03 22:06:46,032 - INFO - Epoch 42/300 | Batch 0/24 | Loss: 2.8502 | Acc: 37.89% | LR: 9.55e-02
+2025-06-03 22:06:47,628 - INFO - Epoch 42 TRAIN Summary: Avg Loss: 2.9015, Avg Acc: 37.83%, Duration: 2.09s
+2025-06-03 22:06:48,055 - INFO - Epoch 42 EVAL  Summary: Avg Loss: 2.5309, Avg Acc: 45.55%, Duration: 0.42s
+2025-06-03 22:06:48,542 - INFO - Epoch 43/300 | Batch 0/24 | Loss: 3.9237 | Acc: 16.92% | LR: 9.52e-02
+2025-06-03 22:06:50,061 - INFO - Epoch 43 TRAIN Summary: Avg Loss: 3.0188, Avg Acc: 36.30%, Duration: 2.00s
+2025-06-03 22:06:50,502 - INFO - Epoch 43 EVAL  Summary: Avg Loss: 2.4882, Avg Acc: 47.31%, Duration: 0.44s
+2025-06-03 22:06:50,535 - INFO - Epoch 43: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:50,535 - INFO - Epoch 43: 新的最佳准确率: 47.31% (已保存至 best_model.pth)
+2025-06-03 22:06:51,018 - INFO - Epoch 44/300 | Batch 0/24 | Loss: 2.6466 | Acc: 48.13% | LR: 9.50e-02
+2025-06-03 22:06:52,566 - INFO - Epoch 44 TRAIN Summary: Avg Loss: 2.8471, Avg Acc: 40.09%, Duration: 2.03s
+2025-06-03 22:06:53,000 - INFO - Epoch 44 EVAL  Summary: Avg Loss: 2.6716, Avg Acc: 41.40%, Duration: 0.43s
+2025-06-03 22:06:53,475 - INFO - Epoch 45/300 | Batch 0/24 | Loss: 2.7410 | Acc: 40.23% | LR: 9.48e-02
+2025-06-03 22:06:54,987 - INFO - Epoch 45 TRAIN Summary: Avg Loss: 3.0469, Avg Acc: 35.94%, Duration: 1.99s
+2025-06-03 22:06:55,427 - INFO - Epoch 45 EVAL  Summary: Avg Loss: 2.4091, Avg Acc: 48.99%, Duration: 0.44s
+2025-06-03 22:06:55,462 - INFO - Epoch 45: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:06:55,462 - INFO - Epoch 45: 新的最佳准确率: 48.99% (已保存至 best_model.pth)
+2025-06-03 22:06:55,935 - INFO - Epoch 46/300 | Batch 0/24 | Loss: 3.1015 | Acc: 35.07% | LR: 9.46e-02
+2025-06-03 22:06:57,628 - INFO - Epoch 46 TRAIN Summary: Avg Loss: 2.9940, Avg Acc: 37.15%, Duration: 2.17s
+2025-06-03 22:06:58,081 - INFO - Epoch 46 EVAL  Summary: Avg Loss: 2.4426, Avg Acc: 48.11%, Duration: 0.45s
+2025-06-03 22:06:58,562 - INFO - Epoch 47/300 | Batch 0/24 | Loss: 3.3290 | Acc: 32.59% | LR: 9.43e-02
+2025-06-03 22:07:00,230 - INFO - Epoch 47 TRAIN Summary: Avg Loss: 2.7393, Avg Acc: 41.63%, Duration: 2.15s
+2025-06-03 22:07:00,662 - INFO - Epoch 47 EVAL  Summary: Avg Loss: 2.4481, Avg Acc: 47.49%, Duration: 0.43s
+2025-06-03 22:07:01,148 - INFO - Epoch 48/300 | Batch 0/24 | Loss: 2.5919 | Acc: 46.88% | LR: 9.41e-02
+2025-06-03 22:07:02,729 - INFO - Epoch 48 TRAIN Summary: Avg Loss: 2.8890, Avg Acc: 38.97%, Duration: 2.07s
+2025-06-03 22:07:03,174 - INFO - Epoch 48 EVAL  Summary: Avg Loss: 2.4703, Avg Acc: 46.93%, Duration: 0.44s
+2025-06-03 22:07:03,655 - INFO - Epoch 49/300 | Batch 0/24 | Loss: 4.1993 | Acc: 13.21% | LR: 9.38e-02
+2025-06-03 22:07:05,347 - INFO - Epoch 49 TRAIN Summary: Avg Loss: 2.9763, Avg Acc: 36.97%, Duration: 2.17s
+2025-06-03 22:07:05,776 - INFO - Epoch 49 EVAL  Summary: Avg Loss: 2.5790, Avg Acc: 44.77%, Duration: 0.43s
+2025-06-03 22:07:06,253 - INFO - Epoch 50/300 | Batch 0/24 | Loss: 2.6608 | Acc: 46.88% | LR: 9.36e-02
+2025-06-03 22:07:07,785 - INFO - Epoch 50 TRAIN Summary: Avg Loss: 2.8521, Avg Acc: 40.49%, Duration: 2.01s
+2025-06-03 22:07:08,232 - INFO - Epoch 50 EVAL  Summary: Avg Loss: 2.4549, Avg Acc: 48.04%, Duration: 0.44s
+2025-06-03 22:07:08,719 - INFO - Epoch 51/300 | Batch 0/24 | Loss: 2.5378 | Acc: 48.44% | LR: 9.33e-02
+2025-06-03 22:07:10,312 - INFO - Epoch 51 TRAIN Summary: Avg Loss: 2.7322, Avg Acc: 41.99%, Duration: 2.08s
+2025-06-03 22:07:10,739 - INFO - Epoch 51 EVAL  Summary: Avg Loss: 2.4262, Avg Acc: 48.25%, Duration: 0.43s
+2025-06-03 22:07:11,224 - INFO - Epoch 52/300 | Batch 0/24 | Loss: 3.2130 | Acc: 36.69% | LR: 9.30e-02
+2025-06-03 22:07:12,882 - INFO - Epoch 52 TRAIN Summary: Avg Loss: 2.8741, Avg Acc: 40.37%, Duration: 2.14s
+2025-06-03 22:07:13,341 - INFO - Epoch 52 EVAL  Summary: Avg Loss: 2.3332, Avg Acc: 50.76%, Duration: 0.46s
+2025-06-03 22:07:13,370 - INFO - Epoch 52: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:07:13,370 - INFO - Epoch 52: 新的最佳准确率: 50.76% (已保存至 best_model.pth)
+2025-06-03 22:07:13,823 - INFO - Epoch 53/300 | Batch 0/24 | Loss: 2.7387 | Acc: 41.02% | LR: 9.28e-02
+2025-06-03 22:07:15,442 - INFO - Epoch 53 TRAIN Summary: Avg Loss: 2.8837, Avg Acc: 39.32%, Duration: 2.07s
+2025-06-03 22:07:15,872 - INFO - Epoch 53 EVAL  Summary: Avg Loss: 2.4659, Avg Acc: 46.87%, Duration: 0.43s
+2025-06-03 22:07:16,362 - INFO - Epoch 54/300 | Batch 0/24 | Loss: 2.7450 | Acc: 44.42% | LR: 9.25e-02
+2025-06-03 22:07:18,048 - INFO - Epoch 54 TRAIN Summary: Avg Loss: 2.7962, Avg Acc: 41.97%, Duration: 2.18s
+2025-06-03 22:07:18,438 - INFO - Epoch 54 EVAL  Summary: Avg Loss: 2.4461, Avg Acc: 47.76%, Duration: 0.39s
+2025-06-03 22:07:18,931 - INFO - Epoch 55/300 | Batch 0/24 | Loss: 2.6053 | Acc: 41.41% | LR: 9.22e-02
+2025-06-03 22:07:20,431 - INFO - Epoch 55 TRAIN Summary: Avg Loss: 2.8351, Avg Acc: 40.69%, Duration: 1.99s
+2025-06-03 22:07:20,861 - INFO - Epoch 55 EVAL  Summary: Avg Loss: 2.4142, Avg Acc: 48.09%, Duration: 0.43s
+2025-06-03 22:07:21,349 - INFO - Epoch 56/300 | Batch 0/24 | Loss: 2.6035 | Acc: 45.70% | LR: 9.19e-02
+2025-06-03 22:07:23,014 - INFO - Epoch 56 TRAIN Summary: Avg Loss: 2.8276, Avg Acc: 40.17%, Duration: 2.15s
+2025-06-03 22:07:23,393 - INFO - Epoch 56 EVAL  Summary: Avg Loss: 2.3439, Avg Acc: 51.42%, Duration: 0.38s
+2025-06-03 22:07:23,422 - INFO - Epoch 56: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:07:23,422 - INFO - Epoch 56: 新的最佳准确率: 51.42% (已保存至 best_model.pth)
+2025-06-03 22:07:23,883 - INFO - Epoch 57/300 | Batch 0/24 | Loss: 2.8105 | Acc: 39.06% | LR: 9.16e-02
+2025-06-03 22:07:25,552 - INFO - Epoch 57 TRAIN Summary: Avg Loss: 2.7329, Avg Acc: 42.87%, Duration: 2.13s
+2025-06-03 22:07:25,967 - INFO - Epoch 57 EVAL  Summary: Avg Loss: 2.4097, Avg Acc: 49.03%, Duration: 0.41s
+2025-06-03 22:07:26,461 - INFO - Epoch 58/300 | Batch 0/24 | Loss: 2.5969 | Acc: 45.31% | LR: 9.14e-02
+2025-06-03 22:07:28,049 - INFO - Epoch 58 TRAIN Summary: Avg Loss: 2.8988, Avg Acc: 39.36%, Duration: 2.08s
+2025-06-03 22:07:28,504 - INFO - Epoch 58 EVAL  Summary: Avg Loss: 2.3580, Avg Acc: 50.56%, Duration: 0.45s
+2025-06-03 22:07:28,990 - INFO - Epoch 59/300 | Batch 0/24 | Loss: 2.4735 | Acc: 50.00% | LR: 9.11e-02
+2025-06-03 22:07:30,656 - INFO - Epoch 59 TRAIN Summary: Avg Loss: 2.9601, Avg Acc: 38.79%, Duration: 2.15s
+2025-06-03 22:07:31,069 - INFO - Epoch 59 EVAL  Summary: Avg Loss: 2.3402, Avg Acc: 51.18%, Duration: 0.41s
+2025-06-03 22:07:31,595 - INFO - Epoch 60/300 | Batch 0/24 | Loss: 2.5254 | Acc: 50.63% | LR: 9.08e-02
+2025-06-03 22:07:33,113 - INFO - Epoch 60 TRAIN Summary: Avg Loss: 2.8233, Avg Acc: 41.33%, Duration: 2.04s
+2025-06-03 22:07:33,551 - INFO - Epoch 60 EVAL  Summary: Avg Loss: 2.3353, Avg Acc: 51.00%, Duration: 0.44s
+2025-06-03 22:07:33,585 - INFO - Epoch 60: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_60.pth
+2025-06-03 22:07:34,066 - INFO - Epoch 61/300 | Batch 0/24 | Loss: 2.6374 | Acc: 46.88% | LR: 9.05e-02
+2025-06-03 22:07:35,634 - INFO - Epoch 61 TRAIN Summary: Avg Loss: 2.8055, Avg Acc: 41.10%, Duration: 2.05s
+2025-06-03 22:07:36,060 - INFO - Epoch 61 EVAL  Summary: Avg Loss: 2.5175, Avg Acc: 46.48%, Duration: 0.42s
+2025-06-03 22:07:36,550 - INFO - Epoch 62/300 | Batch 0/24 | Loss: 2.6258 | Acc: 44.92% | LR: 9.01e-02
+2025-06-03 22:07:38,102 - INFO - Epoch 62 TRAIN Summary: Avg Loss: 2.6710, Avg Acc: 44.63%, Duration: 2.04s
+2025-06-03 22:07:38,527 - INFO - Epoch 62 EVAL  Summary: Avg Loss: 2.3323, Avg Acc: 50.82%, Duration: 0.42s
+2025-06-03 22:07:39,016 - INFO - Epoch 63/300 | Batch 0/24 | Loss: 2.5447 | Acc: 42.58% | LR: 8.98e-02
+2025-06-03 22:07:40,725 - INFO - Epoch 63 TRAIN Summary: Avg Loss: 2.8429, Avg Acc: 40.44%, Duration: 2.20s
+2025-06-03 22:07:41,140 - INFO - Epoch 63 EVAL  Summary: Avg Loss: 2.3826, Avg Acc: 49.87%, Duration: 0.41s
+2025-06-03 22:07:41,631 - INFO - Epoch 64/300 | Batch 0/24 | Loss: 2.8396 | Acc: 43.28% | LR: 8.95e-02
+2025-06-03 22:07:43,156 - INFO - Epoch 64 TRAIN Summary: Avg Loss: 2.7123, Avg Acc: 42.96%, Duration: 2.01s
+2025-06-03 22:07:43,583 - INFO - Epoch 64 EVAL  Summary: Avg Loss: 2.2741, Avg Acc: 53.30%, Duration: 0.43s
+2025-06-03 22:07:43,611 - INFO - Epoch 64: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:07:43,611 - INFO - Epoch 64: 新的最佳准确率: 53.30% (已保存至 best_model.pth)
+2025-06-03 22:07:44,089 - INFO - Epoch 65/300 | Batch 0/24 | Loss: 2.4617 | Acc: 48.81% | LR: 8.92e-02
+2025-06-03 22:07:45,640 - INFO - Epoch 65 TRAIN Summary: Avg Loss: 2.6730, Avg Acc: 44.87%, Duration: 2.03s
+2025-06-03 22:07:46,084 - INFO - Epoch 65 EVAL  Summary: Avg Loss: 2.3207, Avg Acc: 51.42%, Duration: 0.44s
+2025-06-03 22:07:46,591 - INFO - Epoch 66/300 | Batch 0/24 | Loss: 2.6460 | Acc: 42.19% | LR: 8.89e-02
+2025-06-03 22:07:48,087 - INFO - Epoch 66 TRAIN Summary: Avg Loss: 2.7885, Avg Acc: 42.71%, Duration: 2.00s
+2025-06-03 22:07:48,516 - INFO - Epoch 66 EVAL  Summary: Avg Loss: 2.4432, Avg Acc: 48.61%, Duration: 0.43s
+2025-06-03 22:07:49,017 - INFO - Epoch 67/300 | Batch 0/24 | Loss: 2.4585 | Acc: 49.47% | LR: 8.85e-02
+2025-06-03 22:07:50,588 - INFO - Epoch 67 TRAIN Summary: Avg Loss: 2.7939, Avg Acc: 41.72%, Duration: 2.07s
+2025-06-03 22:07:51,004 - INFO - Epoch 67 EVAL  Summary: Avg Loss: 2.4298, Avg Acc: 48.89%, Duration: 0.41s
+2025-06-03 22:07:51,495 - INFO - Epoch 68/300 | Batch 0/24 | Loss: 2.6173 | Acc: 45.46% | LR: 8.82e-02
+2025-06-03 22:07:53,163 - INFO - Epoch 68 TRAIN Summary: Avg Loss: 2.8027, Avg Acc: 41.26%, Duration: 2.16s
+2025-06-03 22:07:53,594 - INFO - Epoch 68 EVAL  Summary: Avg Loss: 2.2752, Avg Acc: 53.04%, Duration: 0.43s
+2025-06-03 22:07:54,087 - INFO - Epoch 69/300 | Batch 0/24 | Loss: 2.5356 | Acc: 46.48% | LR: 8.78e-02
+2025-06-03 22:07:55,684 - INFO - Epoch 69 TRAIN Summary: Avg Loss: 2.8159, Avg Acc: 41.42%, Duration: 2.09s
+2025-06-03 22:07:56,117 - INFO - Epoch 69 EVAL  Summary: Avg Loss: 2.3247, Avg Acc: 52.21%, Duration: 0.43s
+2025-06-03 22:07:56,609 - INFO - Epoch 70/300 | Batch 0/24 | Loss: 2.5295 | Acc: 46.15% | LR: 8.75e-02
+2025-06-03 22:07:58,218 - INFO - Epoch 70 TRAIN Summary: Avg Loss: 2.7478, Avg Acc: 42.54%, Duration: 2.10s
+2025-06-03 22:07:58,650 - INFO - Epoch 70 EVAL  Summary: Avg Loss: 2.2340, Avg Acc: 54.57%, Duration: 0.43s
+2025-06-03 22:07:58,690 - INFO - Epoch 70: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:07:58,690 - INFO - Epoch 70: 新的最佳准确率: 54.57% (已保存至 best_model.pth)
+2025-06-03 22:07:59,140 - INFO - Epoch 71/300 | Batch 0/24 | Loss: 2.4807 | Acc: 49.20% | LR: 8.72e-02
+2025-06-03 22:08:00,745 - INFO - Epoch 71 TRAIN Summary: Avg Loss: 2.8297, Avg Acc: 42.09%, Duration: 2.05s
+2025-06-03 22:08:01,191 - INFO - Epoch 71 EVAL  Summary: Avg Loss: 2.2975, Avg Acc: 52.24%, Duration: 0.45s
+2025-06-03 22:08:01,710 - INFO - Epoch 72/300 | Batch 0/24 | Loss: 2.4835 | Acc: 48.05% | LR: 8.68e-02
+2025-06-03 22:08:03,344 - INFO - Epoch 72 TRAIN Summary: Avg Loss: 2.6825, Avg Acc: 43.76%, Duration: 2.15s
+2025-06-03 22:08:03,790 - INFO - Epoch 72 EVAL  Summary: Avg Loss: 2.2811, Avg Acc: 52.65%, Duration: 0.44s
+2025-06-03 22:08:04,266 - INFO - Epoch 73/300 | Batch 0/24 | Loss: 2.4769 | Acc: 50.37% | LR: 8.64e-02
+2025-06-03 22:08:05,800 - INFO - Epoch 73 TRAIN Summary: Avg Loss: 2.6264, Avg Acc: 45.37%, Duration: 2.01s
+2025-06-03 22:08:06,232 - INFO - Epoch 73 EVAL  Summary: Avg Loss: 2.2699, Avg Acc: 53.14%, Duration: 0.43s
+2025-06-03 22:08:06,729 - INFO - Epoch 74/300 | Batch 0/24 | Loss: 2.4751 | Acc: 47.27% | LR: 8.61e-02
+2025-06-03 22:08:08,264 - INFO - Epoch 74 TRAIN Summary: Avg Loss: 2.8217, Avg Acc: 40.85%, Duration: 2.03s
+2025-06-03 22:08:08,706 - INFO - Epoch 74 EVAL  Summary: Avg Loss: 2.3154, Avg Acc: 52.03%, Duration: 0.44s
+2025-06-03 22:08:09,189 - INFO - Epoch 75/300 | Batch 0/24 | Loss: 2.5365 | Acc: 46.43% | LR: 8.57e-02
+2025-06-03 22:08:10,798 - INFO - Epoch 75 TRAIN Summary: Avg Loss: 2.7061, Avg Acc: 44.36%, Duration: 2.09s
+2025-06-03 22:08:11,210 - INFO - Epoch 75 EVAL  Summary: Avg Loss: 2.1855, Avg Acc: 55.69%, Duration: 0.41s
+2025-06-03 22:08:11,238 - INFO - Epoch 75: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:08:11,238 - INFO - Epoch 75: 新的最佳准确率: 55.69% (已保存至 best_model.pth)
+2025-06-03 22:08:11,716 - INFO - Epoch 76/300 | Batch 0/24 | Loss: 2.5742 | Acc: 44.78% | LR: 8.54e-02
+2025-06-03 22:08:13,253 - INFO - Epoch 76 TRAIN Summary: Avg Loss: 2.8416, Avg Acc: 42.34%, Duration: 2.01s
+2025-06-03 22:08:13,672 - INFO - Epoch 76 EVAL  Summary: Avg Loss: 2.2796, Avg Acc: 53.26%, Duration: 0.42s
+2025-06-03 22:08:14,192 - INFO - Epoch 77/300 | Batch 0/24 | Loss: 3.2909 | Acc: 33.85% | LR: 8.50e-02
+2025-06-03 22:08:15,743 - INFO - Epoch 77 TRAIN Summary: Avg Loss: 2.6934, Avg Acc: 43.99%, Duration: 2.07s
+2025-06-03 22:08:16,178 - INFO - Epoch 77 EVAL  Summary: Avg Loss: 2.3337, Avg Acc: 51.37%, Duration: 0.43s
+2025-06-03 22:08:16,661 - INFO - Epoch 78/300 | Batch 0/24 | Loss: 3.8407 | Acc: 23.31% | LR: 8.46e-02
+2025-06-03 22:08:18,176 - INFO - Epoch 78 TRAIN Summary: Avg Loss: 2.8028, Avg Acc: 42.30%, Duration: 2.00s
+2025-06-03 22:08:18,612 - INFO - Epoch 78 EVAL  Summary: Avg Loss: 2.3424, Avg Acc: 51.85%, Duration: 0.43s
+2025-06-03 22:08:19,091 - INFO - Epoch 79/300 | Batch 0/24 | Loss: 2.3903 | Acc: 51.56% | LR: 8.42e-02
+2025-06-03 22:08:20,757 - INFO - Epoch 79 TRAIN Summary: Avg Loss: 2.6864, Avg Acc: 44.37%, Duration: 2.14s
+2025-06-03 22:08:21,187 - INFO - Epoch 79 EVAL  Summary: Avg Loss: 2.2792, Avg Acc: 53.14%, Duration: 0.43s
+2025-06-03 22:08:21,669 - INFO - Epoch 80/300 | Batch 0/24 | Loss: 2.5714 | Acc: 43.31% | LR: 8.38e-02
+2025-06-03 22:08:23,189 - INFO - Epoch 80 TRAIN Summary: Avg Loss: 2.5955, Avg Acc: 46.43%, Duration: 2.00s
+2025-06-03 22:08:23,633 - INFO - Epoch 80 EVAL  Summary: Avg Loss: 2.3196, Avg Acc: 51.82%, Duration: 0.44s
+2025-06-03 22:08:23,661 - INFO - Epoch 80: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_80.pth
+2025-06-03 22:08:24,133 - INFO - Epoch 81/300 | Batch 0/24 | Loss: 2.3278 | Acc: 52.73% | LR: 8.35e-02
+2025-06-03 22:08:25,839 - INFO - Epoch 81 TRAIN Summary: Avg Loss: 2.8115, Avg Acc: 42.59%, Duration: 2.18s
+2025-06-03 22:08:26,265 - INFO - Epoch 81 EVAL  Summary: Avg Loss: 2.3252, Avg Acc: 51.51%, Duration: 0.43s
+2025-06-03 22:08:26,750 - INFO - Epoch 82/300 | Batch 0/24 | Loss: 2.6365 | Acc: 42.19% | LR: 8.31e-02
+2025-06-03 22:08:28,283 - INFO - Epoch 82 TRAIN Summary: Avg Loss: 2.7476, Avg Acc: 43.09%, Duration: 2.02s
+2025-06-03 22:08:28,733 - INFO - Epoch 82 EVAL  Summary: Avg Loss: 2.2781, Avg Acc: 53.32%, Duration: 0.45s
+2025-06-03 22:08:29,229 - INFO - Epoch 83/300 | Batch 0/24 | Loss: 2.3354 | Acc: 53.52% | LR: 8.27e-02
+2025-06-03 22:08:30,828 - INFO - Epoch 83 TRAIN Summary: Avg Loss: 2.7713, Avg Acc: 42.78%, Duration: 2.09s
+2025-06-03 22:08:31,250 - INFO - Epoch 83 EVAL  Summary: Avg Loss: 2.2805, Avg Acc: 53.29%, Duration: 0.42s
+2025-06-03 22:08:31,730 - INFO - Epoch 84/300 | Batch 0/24 | Loss: 3.8138 | Acc: 21.02% | LR: 8.23e-02
+2025-06-03 22:08:33,294 - INFO - Epoch 84 TRAIN Summary: Avg Loss: 2.7514, Avg Acc: 43.28%, Duration: 2.04s
+2025-06-03 22:08:33,732 - INFO - Epoch 84 EVAL  Summary: Avg Loss: 2.2115, Avg Acc: 54.95%, Duration: 0.44s
+2025-06-03 22:08:34,234 - INFO - Epoch 85/300 | Batch 0/24 | Loss: 2.3409 | Acc: 53.91% | LR: 8.19e-02
+2025-06-03 22:08:35,951 - INFO - Epoch 85 TRAIN Summary: Avg Loss: 2.7363, Avg Acc: 43.59%, Duration: 2.22s
+2025-06-03 22:08:36,401 - INFO - Epoch 85 EVAL  Summary: Avg Loss: 2.2457, Avg Acc: 53.83%, Duration: 0.45s
+2025-06-03 22:08:36,889 - INFO - Epoch 86/300 | Batch 0/24 | Loss: 2.4965 | Acc: 47.86% | LR: 8.15e-02
+2025-06-03 22:08:38,453 - INFO - Epoch 86 TRAIN Summary: Avg Loss: 2.6772, Avg Acc: 45.17%, Duration: 2.05s
+2025-06-03 22:08:38,897 - INFO - Epoch 86 EVAL  Summary: Avg Loss: 2.2351, Avg Acc: 53.87%, Duration: 0.44s
+2025-06-03 22:08:39,382 - INFO - Epoch 87/300 | Batch 0/24 | Loss: 2.5066 | Acc: 50.78% | LR: 8.11e-02
+2025-06-03 22:08:40,921 - INFO - Epoch 87 TRAIN Summary: Avg Loss: 2.8208, Avg Acc: 42.07%, Duration: 2.02s
+2025-06-03 22:08:41,367 - INFO - Epoch 87 EVAL  Summary: Avg Loss: 2.2568, Avg Acc: 53.25%, Duration: 0.44s
+2025-06-03 22:08:41,867 - INFO - Epoch 88/300 | Batch 0/24 | Loss: 3.7597 | Acc: 26.06% | LR: 8.06e-02
+2025-06-03 22:08:43,508 - INFO - Epoch 88 TRAIN Summary: Avg Loss: 2.6728, Avg Acc: 45.00%, Duration: 2.14s
+2025-06-03 22:08:43,922 - INFO - Epoch 88 EVAL  Summary: Avg Loss: 2.2734, Avg Acc: 53.82%, Duration: 0.41s
+2025-06-03 22:08:44,409 - INFO - Epoch 89/300 | Batch 0/24 | Loss: 2.4384 | Acc: 47.64% | LR: 8.02e-02
+2025-06-03 22:08:46,056 - INFO - Epoch 89 TRAIN Summary: Avg Loss: 2.7003, Avg Acc: 44.49%, Duration: 2.13s
+2025-06-03 22:08:46,467 - INFO - Epoch 89 EVAL  Summary: Avg Loss: 2.3097, Avg Acc: 52.16%, Duration: 0.41s
+2025-06-03 22:08:46,955 - INFO - Epoch 90/300 | Batch 0/24 | Loss: 2.5253 | Acc: 46.48% | LR: 7.98e-02
+2025-06-03 22:08:48,511 - INFO - Epoch 90 TRAIN Summary: Avg Loss: 2.7963, Avg Acc: 42.50%, Duration: 2.04s
+2025-06-03 22:08:48,940 - INFO - Epoch 90 EVAL  Summary: Avg Loss: 2.2693, Avg Acc: 53.58%, Duration: 0.43s
+2025-06-03 22:08:49,457 - INFO - Epoch 91/300 | Batch 0/24 | Loss: 2.7957 | Acc: 42.49% | LR: 7.94e-02
+2025-06-03 22:08:50,956 - INFO - Epoch 91 TRAIN Summary: Avg Loss: 2.6748, Avg Acc: 44.46%, Duration: 2.01s
+2025-06-03 22:08:51,400 - INFO - Epoch 91 EVAL  Summary: Avg Loss: 2.3967, Avg Acc: 50.04%, Duration: 0.44s
+2025-06-03 22:08:51,885 - INFO - Epoch 92/300 | Batch 0/24 | Loss: 2.3577 | Acc: 49.22% | LR: 7.90e-02
+2025-06-03 22:08:53,510 - INFO - Epoch 92 TRAIN Summary: Avg Loss: 2.6173, Avg Acc: 46.23%, Duration: 2.11s
+2025-06-03 22:08:53,927 - INFO - Epoch 92 EVAL  Summary: Avg Loss: 2.2276, Avg Acc: 54.33%, Duration: 0.41s
+2025-06-03 22:08:54,402 - INFO - Epoch 93/300 | Batch 0/24 | Loss: 2.7087 | Acc: 49.58% | LR: 7.85e-02
+2025-06-03 22:08:56,039 - INFO - Epoch 93 TRAIN Summary: Avg Loss: 2.7467, Avg Acc: 43.95%, Duration: 2.11s
+2025-06-03 22:08:56,475 - INFO - Epoch 93 EVAL  Summary: Avg Loss: 2.2338, Avg Acc: 54.72%, Duration: 0.43s
+2025-06-03 22:08:56,964 - INFO - Epoch 94/300 | Batch 0/24 | Loss: 3.2443 | Acc: 36.51% | LR: 7.81e-02
+2025-06-03 22:08:58,621 - INFO - Epoch 94 TRAIN Summary: Avg Loss: 2.6165, Avg Acc: 46.31%, Duration: 2.15s
+2025-06-03 22:08:59,058 - INFO - Epoch 94 EVAL  Summary: Avg Loss: 2.2840, Avg Acc: 52.91%, Duration: 0.44s
+2025-06-03 22:08:59,566 - INFO - Epoch 95/300 | Batch 0/24 | Loss: 2.3848 | Acc: 51.17% | LR: 7.77e-02
+2025-06-03 22:09:01,277 - INFO - Epoch 95 TRAIN Summary: Avg Loss: 2.7086, Avg Acc: 44.70%, Duration: 2.22s
+2025-06-03 22:09:01,713 - INFO - Epoch 95 EVAL  Summary: Avg Loss: 2.2315, Avg Acc: 54.60%, Duration: 0.43s
+2025-06-03 22:09:02,192 - INFO - Epoch 96/300 | Batch 0/24 | Loss: 2.5955 | Acc: 47.96% | LR: 7.72e-02
+2025-06-03 22:09:03,799 - INFO - Epoch 96 TRAIN Summary: Avg Loss: 2.6659, Avg Acc: 45.76%, Duration: 2.09s
+2025-06-03 22:09:04,223 - INFO - Epoch 96 EVAL  Summary: Avg Loss: 2.1676, Avg Acc: 56.62%, Duration: 0.42s
+2025-06-03 22:09:04,259 - INFO - Epoch 96: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:09:04,259 - INFO - Epoch 96: 新的最佳准确率: 56.62% (已保存至 best_model.pth)
+2025-06-03 22:09:04,725 - INFO - Epoch 97/300 | Batch 0/24 | Loss: 2.5681 | Acc: 43.31% | LR: 7.68e-02
+2025-06-03 22:09:06,347 - INFO - Epoch 97 TRAIN Summary: Avg Loss: 2.5926, Avg Acc: 47.14%, Duration: 2.09s
+2025-06-03 22:09:06,781 - INFO - Epoch 97 EVAL  Summary: Avg Loss: 2.2164, Avg Acc: 54.59%, Duration: 0.43s
+2025-06-03 22:09:07,272 - INFO - Epoch 98/300 | Batch 0/24 | Loss: 2.6034 | Acc: 45.31% | LR: 7.63e-02
+2025-06-03 22:09:08,852 - INFO - Epoch 98 TRAIN Summary: Avg Loss: 2.8687, Avg Acc: 41.43%, Duration: 2.07s
+2025-06-03 22:09:09,284 - INFO - Epoch 98 EVAL  Summary: Avg Loss: 2.2435, Avg Acc: 54.09%, Duration: 0.43s
+2025-06-03 22:09:09,780 - INFO - Epoch 99/300 | Batch 0/24 | Loss: 2.3235 | Acc: 48.83% | LR: 7.59e-02
+2025-06-03 22:09:11,437 - INFO - Epoch 99 TRAIN Summary: Avg Loss: 2.7467, Avg Acc: 44.20%, Duration: 2.15s
+2025-06-03 22:09:11,886 - INFO - Epoch 99 EVAL  Summary: Avg Loss: 2.1994, Avg Acc: 55.37%, Duration: 0.45s
+2025-06-03 22:09:12,376 - INFO - Epoch 100/300 | Batch 0/24 | Loss: 2.5167 | Acc: 47.27% | LR: 7.55e-02
+2025-06-03 22:09:13,924 - INFO - Epoch 100 TRAIN Summary: Avg Loss: 2.6322, Avg Acc: 46.00%, Duration: 2.04s
+2025-06-03 22:09:14,343 - INFO - Epoch 100 EVAL  Summary: Avg Loss: 2.1639, Avg Acc: 56.66%, Duration: 0.42s
+2025-06-03 22:09:14,372 - INFO - Epoch 100: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:09:14,373 - INFO - Epoch 100: 新的最佳准确率: 56.66% (已保存至 best_model.pth)
+2025-06-03 22:09:14,399 - INFO - Epoch 100: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_100.pth
+2025-06-03 22:09:14,881 - INFO - Epoch 101/300 | Batch 0/24 | Loss: 2.5196 | Acc: 49.61% | LR: 7.50e-02
+2025-06-03 22:09:16,379 - INFO - Epoch 101 TRAIN Summary: Avg Loss: 2.6430, Avg Acc: 45.80%, Duration: 1.98s
+2025-06-03 22:09:16,819 - INFO - Epoch 101 EVAL  Summary: Avg Loss: 2.2520, Avg Acc: 53.90%, Duration: 0.44s
+2025-06-03 22:09:17,300 - INFO - Epoch 102/300 | Batch 0/24 | Loss: 2.5257 | Acc: 52.97% | LR: 7.45e-02
+2025-06-03 22:09:18,831 - INFO - Epoch 102 TRAIN Summary: Avg Loss: 2.6710, Avg Acc: 45.23%, Duration: 2.01s
+2025-06-03 22:09:19,263 - INFO - Epoch 102 EVAL  Summary: Avg Loss: 2.1451, Avg Acc: 56.83%, Duration: 0.43s
+2025-06-03 22:09:19,290 - INFO - Epoch 102: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:09:19,291 - INFO - Epoch 102: 新的最佳准确率: 56.83% (已保存至 best_model.pth)
+2025-06-03 22:09:19,778 - INFO - Epoch 103/300 | Batch 0/24 | Loss: 2.4264 | Acc: 50.34% | LR: 7.41e-02
+2025-06-03 22:09:21,320 - INFO - Epoch 103 TRAIN Summary: Avg Loss: 2.5924, Avg Acc: 47.18%, Duration: 2.03s
+2025-06-03 22:09:21,748 - INFO - Epoch 103 EVAL  Summary: Avg Loss: 2.2455, Avg Acc: 53.47%, Duration: 0.43s
+2025-06-03 22:09:22,239 - INFO - Epoch 104/300 | Batch 0/24 | Loss: 3.3658 | Acc: 31.52% | LR: 7.36e-02
+2025-06-03 22:09:23,774 - INFO - Epoch 104 TRAIN Summary: Avg Loss: 2.6567, Avg Acc: 44.96%, Duration: 2.03s
+2025-06-03 22:09:24,209 - INFO - Epoch 104 EVAL  Summary: Avg Loss: 2.1612, Avg Acc: 57.15%, Duration: 0.43s
+2025-06-03 22:09:24,250 - INFO - Epoch 104: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:09:24,251 - INFO - Epoch 104: 新的最佳准确率: 57.15% (已保存至 best_model.pth)
+2025-06-03 22:09:24,742 - INFO - Epoch 105/300 | Batch 0/24 | Loss: 4.0084 | Acc: 17.84% | LR: 7.32e-02
+2025-06-03 22:09:26,348 - INFO - Epoch 105 TRAIN Summary: Avg Loss: 2.8071, Avg Acc: 42.38%, Duration: 2.10s
+2025-06-03 22:09:26,762 - INFO - Epoch 105 EVAL  Summary: Avg Loss: 2.3650, Avg Acc: 51.08%, Duration: 0.41s
+2025-06-03 22:09:27,239 - INFO - Epoch 106/300 | Batch 0/24 | Loss: 2.5296 | Acc: 47.05% | LR: 7.27e-02
+2025-06-03 22:09:28,788 - INFO - Epoch 106 TRAIN Summary: Avg Loss: 2.7148, Avg Acc: 45.49%, Duration: 2.03s
+2025-06-03 22:09:29,210 - INFO - Epoch 106 EVAL  Summary: Avg Loss: 2.2128, Avg Acc: 55.63%, Duration: 0.42s
+2025-06-03 22:09:29,684 - INFO - Epoch 107/300 | Batch 0/24 | Loss: 2.3592 | Acc: 51.33% | LR: 7.22e-02
+2025-06-03 22:09:31,294 - INFO - Epoch 107 TRAIN Summary: Avg Loss: 2.5800, Avg Acc: 47.07%, Duration: 2.08s
+2025-06-03 22:09:31,731 - INFO - Epoch 107 EVAL  Summary: Avg Loss: 2.1022, Avg Acc: 58.31%, Duration: 0.44s
+2025-06-03 22:09:31,759 - INFO - Epoch 107: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:09:31,759 - INFO - Epoch 107: 新的最佳准确率: 58.31% (已保存至 best_model.pth)
+2025-06-03 22:09:32,272 - INFO - Epoch 108/300 | Batch 0/24 | Loss: 3.9281 | Acc: 20.27% | LR: 7.18e-02
+2025-06-03 22:09:33,870 - INFO - Epoch 108 TRAIN Summary: Avg Loss: 2.6657, Avg Acc: 45.78%, Duration: 2.11s
+2025-06-03 22:09:34,274 - INFO - Epoch 108 EVAL  Summary: Avg Loss: 2.1756, Avg Acc: 56.15%, Duration: 0.40s
+2025-06-03 22:09:34,770 - INFO - Epoch 109/300 | Batch 0/24 | Loss: 2.3378 | Acc: 53.91% | LR: 7.13e-02
+2025-06-03 22:09:36,362 - INFO - Epoch 109 TRAIN Summary: Avg Loss: 2.6286, Avg Acc: 46.70%, Duration: 2.09s
+2025-06-03 22:09:36,793 - INFO - Epoch 109 EVAL  Summary: Avg Loss: 2.1931, Avg Acc: 55.75%, Duration: 0.43s
+2025-06-03 22:09:37,279 - INFO - Epoch 110/300 | Batch 0/24 | Loss: 2.3386 | Acc: 52.73% | LR: 7.08e-02
+2025-06-03 22:09:38,953 - INFO - Epoch 110 TRAIN Summary: Avg Loss: 2.8296, Avg Acc: 41.81%, Duration: 2.16s
+2025-06-03 22:09:39,379 - INFO - Epoch 110 EVAL  Summary: Avg Loss: 2.2195, Avg Acc: 54.48%, Duration: 0.42s
+2025-06-03 22:09:39,845 - INFO - Epoch 111/300 | Batch 0/24 | Loss: 2.4041 | Acc: 51.17% | LR: 7.03e-02
+2025-06-03 22:09:41,391 - INFO - Epoch 111 TRAIN Summary: Avg Loss: 2.5874, Avg Acc: 47.74%, Duration: 2.01s
+2025-06-03 22:09:41,852 - INFO - Epoch 111 EVAL  Summary: Avg Loss: 2.0819, Avg Acc: 58.21%, Duration: 0.46s
+2025-06-03 22:09:42,350 - INFO - Epoch 112/300 | Batch 0/24 | Loss: 2.3662 | Acc: 52.16% | LR: 6.99e-02
+2025-06-03 22:09:43,942 - INFO - Epoch 112 TRAIN Summary: Avg Loss: 2.7820, Avg Acc: 43.15%, Duration: 2.09s
+2025-06-03 22:09:44,332 - INFO - Epoch 112 EVAL  Summary: Avg Loss: 2.1248, Avg Acc: 57.25%, Duration: 0.39s
+2025-06-03 22:09:44,817 - INFO - Epoch 113/300 | Batch 0/24 | Loss: 2.5149 | Acc: 48.05% | LR: 6.94e-02
+2025-06-03 22:09:46,415 - INFO - Epoch 113 TRAIN Summary: Avg Loss: 2.5975, Avg Acc: 46.87%, Duration: 2.08s
+2025-06-03 22:09:46,860 - INFO - Epoch 113 EVAL  Summary: Avg Loss: 2.1623, Avg Acc: 56.70%, Duration: 0.44s
+2025-06-03 22:09:47,360 - INFO - Epoch 114/300 | Batch 0/24 | Loss: 2.8750 | Acc: 44.63% | LR: 6.89e-02
+2025-06-03 22:09:49,001 - INFO - Epoch 114 TRAIN Summary: Avg Loss: 2.5896, Avg Acc: 48.24%, Duration: 2.14s
+2025-06-03 22:09:49,442 - INFO - Epoch 114 EVAL  Summary: Avg Loss: 2.1967, Avg Acc: 55.22%, Duration: 0.44s
+2025-06-03 22:09:49,932 - INFO - Epoch 115/300 | Batch 0/24 | Loss: 2.4033 | Acc: 50.78% | LR: 6.84e-02
+2025-06-03 22:09:51,560 - INFO - Epoch 115 TRAIN Summary: Avg Loss: 2.8070, Avg Acc: 43.96%, Duration: 2.12s
+2025-06-03 22:09:51,977 - INFO - Epoch 115 EVAL  Summary: Avg Loss: 2.2573, Avg Acc: 53.70%, Duration: 0.42s
+2025-06-03 22:09:52,478 - INFO - Epoch 116/300 | Batch 0/24 | Loss: 2.5413 | Acc: 48.43% | LR: 6.79e-02
+2025-06-03 22:09:54,030 - INFO - Epoch 116 TRAIN Summary: Avg Loss: 2.6137, Avg Acc: 47.35%, Duration: 2.05s
+2025-06-03 22:09:54,447 - INFO - Epoch 116 EVAL  Summary: Avg Loss: 2.1648, Avg Acc: 56.34%, Duration: 0.42s
+2025-06-03 22:09:54,941 - INFO - Epoch 117/300 | Batch 0/24 | Loss: 2.3786 | Acc: 44.92% | LR: 6.74e-02
+2025-06-03 22:09:56,443 - INFO - Epoch 117 TRAIN Summary: Avg Loss: 2.5170, Avg Acc: 48.89%, Duration: 1.99s
+2025-06-03 22:09:56,883 - INFO - Epoch 117 EVAL  Summary: Avg Loss: 2.1477, Avg Acc: 56.95%, Duration: 0.44s
+2025-06-03 22:09:57,383 - INFO - Epoch 118/300 | Batch 0/24 | Loss: 2.3809 | Acc: 51.56% | LR: 6.69e-02
+2025-06-03 22:09:59,008 - INFO - Epoch 118 TRAIN Summary: Avg Loss: 2.7119, Avg Acc: 45.26%, Duration: 2.12s
+2025-06-03 22:09:59,433 - INFO - Epoch 118 EVAL  Summary: Avg Loss: 2.2106, Avg Acc: 55.84%, Duration: 0.42s
+2025-06-03 22:09:59,941 - INFO - Epoch 119/300 | Batch 0/24 | Loss: 3.6398 | Acc: 28.35% | LR: 6.64e-02
+2025-06-03 22:10:01,580 - INFO - Epoch 119 TRAIN Summary: Avg Loss: 2.6039, Avg Acc: 46.90%, Duration: 2.15s
+2025-06-03 22:10:02,017 - INFO - Epoch 119 EVAL  Summary: Avg Loss: 2.1219, Avg Acc: 57.90%, Duration: 0.43s
+2025-06-03 22:10:02,507 - INFO - Epoch 120/300 | Batch 0/24 | Loss: 3.8725 | Acc: 21.12% | LR: 6.59e-02
+2025-06-03 22:10:04,094 - INFO - Epoch 120 TRAIN Summary: Avg Loss: 2.6797, Avg Acc: 45.06%, Duration: 2.08s
+2025-06-03 22:10:04,533 - INFO - Epoch 120 EVAL  Summary: Avg Loss: 2.1652, Avg Acc: 56.78%, Duration: 0.44s
+2025-06-03 22:10:04,560 - INFO - Epoch 120: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_120.pth
+2025-06-03 22:10:05,028 - INFO - Epoch 121/300 | Batch 0/24 | Loss: 3.2766 | Acc: 38.07% | LR: 6.55e-02
+2025-06-03 22:10:06,652 - INFO - Epoch 121 TRAIN Summary: Avg Loss: 2.5915, Avg Acc: 48.09%, Duration: 2.09s
+2025-06-03 22:10:07,086 - INFO - Epoch 121 EVAL  Summary: Avg Loss: 2.3173, Avg Acc: 52.02%, Duration: 0.43s
+2025-06-03 22:10:07,558 - INFO - Epoch 122/300 | Batch 0/24 | Loss: 2.5358 | Acc: 46.88% | LR: 6.50e-02
+2025-06-03 22:10:09,173 - INFO - Epoch 122 TRAIN Summary: Avg Loss: 2.6687, Avg Acc: 45.83%, Duration: 2.09s
+2025-06-03 22:10:09,615 - INFO - Epoch 122 EVAL  Summary: Avg Loss: 2.2095, Avg Acc: 55.03%, Duration: 0.44s
+2025-06-03 22:10:10,136 - INFO - Epoch 123/300 | Batch 0/24 | Loss: 2.3080 | Acc: 53.12% | LR: 6.45e-02
+2025-06-03 22:10:11,729 - INFO - Epoch 123 TRAIN Summary: Avg Loss: 2.6724, Avg Acc: 46.30%, Duration: 2.11s
+2025-06-03 22:10:12,166 - INFO - Epoch 123 EVAL  Summary: Avg Loss: 2.1687, Avg Acc: 56.41%, Duration: 0.44s
+2025-06-03 22:10:12,662 - INFO - Epoch 124/300 | Batch 0/24 | Loss: 2.5880 | Acc: 45.89% | LR: 6.39e-02
+2025-06-03 22:10:14,370 - INFO - Epoch 124 TRAIN Summary: Avg Loss: 2.7044, Avg Acc: 44.96%, Duration: 2.20s
+2025-06-03 22:10:14,818 - INFO - Epoch 124 EVAL  Summary: Avg Loss: 2.3923, Avg Acc: 51.33%, Duration: 0.45s
+2025-06-03 22:10:15,320 - INFO - Epoch 125/300 | Batch 0/24 | Loss: 2.3724 | Acc: 54.30% | LR: 6.34e-02
+2025-06-03 22:10:16,867 - INFO - Epoch 125 TRAIN Summary: Avg Loss: 2.5904, Avg Acc: 47.95%, Duration: 2.05s
+2025-06-03 22:10:17,309 - INFO - Epoch 125 EVAL  Summary: Avg Loss: 2.1151, Avg Acc: 57.79%, Duration: 0.44s
+2025-06-03 22:10:17,804 - INFO - Epoch 126/300 | Batch 0/24 | Loss: 2.4436 | Acc: 49.22% | LR: 6.29e-02
+2025-06-03 22:10:19,424 - INFO - Epoch 126 TRAIN Summary: Avg Loss: 2.6086, Avg Acc: 47.64%, Duration: 2.11s
+2025-06-03 22:10:19,868 - INFO - Epoch 126 EVAL  Summary: Avg Loss: 2.0650, Avg Acc: 59.66%, Duration: 0.44s
+2025-06-03 22:10:19,898 - INFO - Epoch 126: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:10:19,898 - INFO - Epoch 126: 新的最佳准确率: 59.66% (已保存至 best_model.pth)
+2025-06-03 22:10:20,369 - INFO - Epoch 127/300 | Batch 0/24 | Loss: 2.4433 | Acc: 49.46% | LR: 6.24e-02
+2025-06-03 22:10:21,943 - INFO - Epoch 127 TRAIN Summary: Avg Loss: 2.5998, Avg Acc: 47.25%, Duration: 2.04s
+2025-06-03 22:10:22,370 - INFO - Epoch 127 EVAL  Summary: Avg Loss: 2.0759, Avg Acc: 59.26%, Duration: 0.42s
+2025-06-03 22:10:22,851 - INFO - Epoch 128/300 | Batch 0/24 | Loss: 2.3972 | Acc: 51.52% | LR: 6.19e-02
+2025-06-03 22:10:24,532 - INFO - Epoch 128 TRAIN Summary: Avg Loss: 2.5525, Avg Acc: 47.80%, Duration: 2.16s
+2025-06-03 22:10:24,962 - INFO - Epoch 128 EVAL  Summary: Avg Loss: 2.2031, Avg Acc: 55.27%, Duration: 0.43s
+2025-06-03 22:10:25,465 - INFO - Epoch 129/300 | Batch 0/24 | Loss: 3.5804 | Acc: 29.83% | LR: 6.14e-02
+2025-06-03 22:10:27,013 - INFO - Epoch 129 TRAIN Summary: Avg Loss: 2.7129, Avg Acc: 45.37%, Duration: 2.05s
+2025-06-03 22:10:27,457 - INFO - Epoch 129 EVAL  Summary: Avg Loss: 2.1013, Avg Acc: 58.07%, Duration: 0.44s
+2025-06-03 22:10:27,955 - INFO - Epoch 130/300 | Batch 0/24 | Loss: 3.9286 | Acc: 21.08% | LR: 6.09e-02
+2025-06-03 22:10:29,628 - INFO - Epoch 130 TRAIN Summary: Avg Loss: 2.7639, Avg Acc: 44.53%, Duration: 2.17s
+2025-06-03 22:10:30,054 - INFO - Epoch 130 EVAL  Summary: Avg Loss: 2.1235, Avg Acc: 57.79%, Duration: 0.42s
+2025-06-03 22:10:30,535 - INFO - Epoch 131/300 | Batch 0/24 | Loss: 2.3911 | Acc: 55.86% | LR: 6.04e-02
+2025-06-03 22:10:32,083 - INFO - Epoch 131 TRAIN Summary: Avg Loss: 2.6006, Avg Acc: 46.96%, Duration: 2.03s
+2025-06-03 22:10:32,506 - INFO - Epoch 131 EVAL  Summary: Avg Loss: 2.0594, Avg Acc: 59.88%, Duration: 0.42s
+2025-06-03 22:10:32,548 - INFO - Epoch 131: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:10:32,548 - INFO - Epoch 131: 新的最佳准确率: 59.88% (已保存至 best_model.pth)
+2025-06-03 22:10:32,995 - INFO - Epoch 132/300 | Batch 0/24 | Loss: 3.3017 | Acc: 33.17% | LR: 5.99e-02
+2025-06-03 22:10:34,533 - INFO - Epoch 132 TRAIN Summary: Avg Loss: 2.5546, Avg Acc: 48.05%, Duration: 1.98s
+2025-06-03 22:10:34,963 - INFO - Epoch 132 EVAL  Summary: Avg Loss: 2.0981, Avg Acc: 58.06%, Duration: 0.43s
+2025-06-03 22:10:35,450 - INFO - Epoch 133/300 | Batch 0/24 | Loss: 2.3110 | Acc: 55.08% | LR: 5.94e-02
+2025-06-03 22:10:37,011 - INFO - Epoch 133 TRAIN Summary: Avg Loss: 2.6118, Avg Acc: 46.59%, Duration: 2.05s
+2025-06-03 22:10:37,450 - INFO - Epoch 133 EVAL  Summary: Avg Loss: 2.1001, Avg Acc: 58.50%, Duration: 0.44s
+2025-06-03 22:10:37,951 - INFO - Epoch 134/300 | Batch 0/24 | Loss: 2.4012 | Acc: 50.00% | LR: 5.89e-02
+2025-06-03 22:10:39,575 - INFO - Epoch 134 TRAIN Summary: Avg Loss: 2.5523, Avg Acc: 48.09%, Duration: 2.12s
+2025-06-03 22:10:40,006 - INFO - Epoch 134 EVAL  Summary: Avg Loss: 2.0912, Avg Acc: 58.07%, Duration: 0.43s
+2025-06-03 22:10:40,527 - INFO - Epoch 135/300 | Batch 0/24 | Loss: 2.1928 | Acc: 55.86% | LR: 5.83e-02
+2025-06-03 22:10:42,074 - INFO - Epoch 135 TRAIN Summary: Avg Loss: 2.5221, Avg Acc: 49.02%, Duration: 2.07s
+2025-06-03 22:10:42,498 - INFO - Epoch 135 EVAL  Summary: Avg Loss: 2.0650, Avg Acc: 59.32%, Duration: 0.42s
+2025-06-03 22:10:42,995 - INFO - Epoch 136/300 | Batch 0/24 | Loss: 2.3387 | Acc: 50.39% | LR: 5.78e-02
+2025-06-03 22:10:44,522 - INFO - Epoch 136 TRAIN Summary: Avg Loss: 2.6501, Avg Acc: 46.32%, Duration: 2.02s
+2025-06-03 22:10:44,974 - INFO - Epoch 136 EVAL  Summary: Avg Loss: 2.0375, Avg Acc: 60.14%, Duration: 0.45s
+2025-06-03 22:10:45,007 - INFO - Epoch 136: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:10:45,007 - INFO - Epoch 136: 新的最佳准确率: 60.14% (已保存至 best_model.pth)
+2025-06-03 22:10:45,461 - INFO - Epoch 137/300 | Batch 0/24 | Loss: 2.2687 | Acc: 54.30% | LR: 5.73e-02
+2025-06-03 22:10:47,044 - INFO - Epoch 137 TRAIN Summary: Avg Loss: 2.6446, Avg Acc: 47.10%, Duration: 2.04s
+2025-06-03 22:10:47,494 - INFO - Epoch 137 EVAL  Summary: Avg Loss: 2.1012, Avg Acc: 58.01%, Duration: 0.45s
+2025-06-03 22:10:47,982 - INFO - Epoch 138/300 | Batch 0/24 | Loss: 2.4565 | Acc: 52.63% | LR: 5.68e-02
+2025-06-03 22:10:49,577 - INFO - Epoch 138 TRAIN Summary: Avg Loss: 2.6892, Avg Acc: 46.57%, Duration: 2.08s
+2025-06-03 22:10:50,023 - INFO - Epoch 138 EVAL  Summary: Avg Loss: 2.1784, Avg Acc: 56.47%, Duration: 0.44s
+2025-06-03 22:10:50,506 - INFO - Epoch 139/300 | Batch 0/24 | Loss: 3.1076 | Acc: 38.15% | LR: 5.63e-02
+2025-06-03 22:10:52,073 - INFO - Epoch 139 TRAIN Summary: Avg Loss: 2.8193, Avg Acc: 42.99%, Duration: 2.05s
+2025-06-03 22:10:52,501 - INFO - Epoch 139 EVAL  Summary: Avg Loss: 2.1306, Avg Acc: 58.41%, Duration: 0.43s
+2025-06-03 22:10:52,998 - INFO - Epoch 140/300 | Batch 0/24 | Loss: 2.3461 | Acc: 49.95% | LR: 5.57e-02
+2025-06-03 22:10:54,576 - INFO - Epoch 140 TRAIN Summary: Avg Loss: 2.7351, Avg Acc: 45.26%, Duration: 2.07s
+2025-06-03 22:10:55,019 - INFO - Epoch 140 EVAL  Summary: Avg Loss: 2.1611, Avg Acc: 56.57%, Duration: 0.44s
+2025-06-03 22:10:55,044 - INFO - Epoch 140: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_140.pth
+2025-06-03 22:10:55,508 - INFO - Epoch 141/300 | Batch 0/24 | Loss: 2.4680 | Acc: 51.17% | LR: 5.52e-02
+2025-06-03 22:10:57,103 - INFO - Epoch 141 TRAIN Summary: Avg Loss: 2.5803, Avg Acc: 48.67%, Duration: 2.06s
+2025-06-03 22:10:57,514 - INFO - Epoch 141 EVAL  Summary: Avg Loss: 2.1020, Avg Acc: 58.40%, Duration: 0.41s
+2025-06-03 22:10:58,010 - INFO - Epoch 142/300 | Batch 0/24 | Loss: 3.4430 | Acc: 32.93% | LR: 5.47e-02
+2025-06-03 22:10:59,663 - INFO - Epoch 142 TRAIN Summary: Avg Loss: 2.5563, Avg Acc: 48.06%, Duration: 2.15s
+2025-06-03 22:11:00,118 - INFO - Epoch 142 EVAL  Summary: Avg Loss: 2.1384, Avg Acc: 56.86%, Duration: 0.45s
+2025-06-03 22:11:00,614 - INFO - Epoch 143/300 | Batch 0/24 | Loss: 2.3859 | Acc: 54.88% | LR: 5.42e-02
+2025-06-03 22:11:02,257 - INFO - Epoch 143 TRAIN Summary: Avg Loss: 2.4364, Avg Acc: 51.49%, Duration: 2.14s
+2025-06-03 22:11:02,713 - INFO - Epoch 143 EVAL  Summary: Avg Loss: 2.0324, Avg Acc: 60.16%, Duration: 0.45s
+2025-06-03 22:11:02,741 - INFO - Epoch 143: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:11:02,741 - INFO - Epoch 143: 新的最佳准确率: 60.16% (已保存至 best_model.pth)
+2025-06-03 22:11:03,240 - INFO - Epoch 144/300 | Batch 0/24 | Loss: 2.3017 | Acc: 52.73% | LR: 5.37e-02
+2025-06-03 22:11:04,729 - INFO - Epoch 144 TRAIN Summary: Avg Loss: 2.5764, Avg Acc: 48.23%, Duration: 1.99s
+2025-06-03 22:11:05,182 - INFO - Epoch 144 EVAL  Summary: Avg Loss: 2.0862, Avg Acc: 58.13%, Duration: 0.45s
+2025-06-03 22:11:05,680 - INFO - Epoch 145/300 | Batch 0/24 | Loss: 2.4257 | Acc: 51.17% | LR: 5.31e-02
+2025-06-03 22:11:07,354 - INFO - Epoch 145 TRAIN Summary: Avg Loss: 2.5164, Avg Acc: 49.45%, Duration: 2.17s
+2025-06-03 22:11:07,792 - INFO - Epoch 145 EVAL  Summary: Avg Loss: 2.1095, Avg Acc: 58.32%, Duration: 0.43s
+2025-06-03 22:11:08,269 - INFO - Epoch 146/300 | Batch 0/24 | Loss: 2.5769 | Acc: 45.19% | LR: 5.26e-02
+2025-06-03 22:11:09,915 - INFO - Epoch 146 TRAIN Summary: Avg Loss: 2.6539, Avg Acc: 46.19%, Duration: 2.12s
+2025-06-03 22:11:10,331 - INFO - Epoch 146 EVAL  Summary: Avg Loss: 2.0759, Avg Acc: 59.31%, Duration: 0.42s
+2025-06-03 22:11:10,823 - INFO - Epoch 147/300 | Batch 0/24 | Loss: 2.3020 | Acc: 55.46% | LR: 5.21e-02
+2025-06-03 22:11:12,561 - INFO - Epoch 147 TRAIN Summary: Avg Loss: 2.5971, Avg Acc: 47.94%, Duration: 2.23s
+2025-06-03 22:11:12,993 - INFO - Epoch 147 EVAL  Summary: Avg Loss: 2.0568, Avg Acc: 59.57%, Duration: 0.43s
+2025-06-03 22:11:13,487 - INFO - Epoch 148/300 | Batch 0/24 | Loss: 2.2543 | Acc: 51.95% | LR: 5.16e-02
+2025-06-03 22:11:15,052 - INFO - Epoch 148 TRAIN Summary: Avg Loss: 2.5997, Avg Acc: 47.01%, Duration: 2.06s
+2025-06-03 22:11:15,486 - INFO - Epoch 148 EVAL  Summary: Avg Loss: 2.0617, Avg Acc: 59.44%, Duration: 0.43s
+2025-06-03 22:11:15,988 - INFO - Epoch 149/300 | Batch 0/24 | Loss: 3.9567 | Acc: 20.94% | LR: 5.10e-02
+2025-06-03 22:11:17,561 - INFO - Epoch 149 TRAIN Summary: Avg Loss: 2.6396, Avg Acc: 47.16%, Duration: 2.07s
+2025-06-03 22:11:18,004 - INFO - Epoch 149 EVAL  Summary: Avg Loss: 2.0452, Avg Acc: 59.73%, Duration: 0.44s
+2025-06-03 22:11:18,486 - INFO - Epoch 150/300 | Batch 0/24 | Loss: 2.2411 | Acc: 58.98% | LR: 5.05e-02
+2025-06-03 22:11:20,023 - INFO - Epoch 150 TRAIN Summary: Avg Loss: 2.4108, Avg Acc: 51.64%, Duration: 2.02s
+2025-06-03 22:11:20,457 - INFO - Epoch 150 EVAL  Summary: Avg Loss: 2.0995, Avg Acc: 58.05%, Duration: 0.43s
+2025-06-03 22:11:20,948 - INFO - Epoch 151/300 | Batch 0/24 | Loss: 2.3298 | Acc: 54.69% | LR: 5.00e-02
+2025-06-03 22:11:22,489 - INFO - Epoch 151 TRAIN Summary: Avg Loss: 2.4150, Avg Acc: 51.66%, Duration: 2.03s
+2025-06-03 22:11:22,934 - INFO - Epoch 151 EVAL  Summary: Avg Loss: 2.0823, Avg Acc: 59.08%, Duration: 0.44s
+2025-06-03 22:11:23,426 - INFO - Epoch 152/300 | Batch 0/24 | Loss: 2.3613 | Acc: 50.39% | LR: 4.95e-02
+2025-06-03 22:11:25,080 - INFO - Epoch 152 TRAIN Summary: Avg Loss: 2.7504, Avg Acc: 44.55%, Duration: 2.14s
+2025-06-03 22:11:25,515 - INFO - Epoch 152 EVAL  Summary: Avg Loss: 2.0678, Avg Acc: 58.83%, Duration: 0.43s
+2025-06-03 22:11:26,005 - INFO - Epoch 153/300 | Batch 0/24 | Loss: 2.3422 | Acc: 54.69% | LR: 4.90e-02
+2025-06-03 22:11:27,564 - INFO - Epoch 153 TRAIN Summary: Avg Loss: 2.7804, Avg Acc: 44.86%, Duration: 2.05s
+2025-06-03 22:11:28,002 - INFO - Epoch 153 EVAL  Summary: Avg Loss: 2.0343, Avg Acc: 60.04%, Duration: 0.44s
+2025-06-03 22:11:28,489 - INFO - Epoch 154/300 | Batch 0/24 | Loss: 2.3049 | Acc: 54.68% | LR: 4.84e-02
+2025-06-03 22:11:30,069 - INFO - Epoch 154 TRAIN Summary: Avg Loss: 2.6151, Avg Acc: 48.01%, Duration: 2.07s
+2025-06-03 22:11:30,495 - INFO - Epoch 154 EVAL  Summary: Avg Loss: 2.0609, Avg Acc: 59.59%, Duration: 0.42s
+2025-06-03 22:11:30,989 - INFO - Epoch 155/300 | Batch 0/24 | Loss: 3.6404 | Acc: 30.05% | LR: 4.79e-02
+2025-06-03 22:11:32,536 - INFO - Epoch 155 TRAIN Summary: Avg Loss: 2.5486, Avg Acc: 48.59%, Duration: 2.04s
+2025-06-03 22:11:32,954 - INFO - Epoch 155 EVAL  Summary: Avg Loss: 2.0252, Avg Acc: 60.72%, Duration: 0.42s
+2025-06-03 22:11:33,001 - INFO - Epoch 155: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:11:33,001 - INFO - Epoch 155: 新的最佳准确率: 60.72% (已保存至 best_model.pth)
+2025-06-03 22:11:33,483 - INFO - Epoch 156/300 | Batch 0/24 | Loss: 2.3700 | Acc: 53.12% | LR: 4.74e-02
+2025-06-03 22:11:35,099 - INFO - Epoch 156 TRAIN Summary: Avg Loss: 2.6721, Avg Acc: 47.30%, Duration: 2.10s
+2025-06-03 22:11:35,549 - INFO - Epoch 156 EVAL  Summary: Avg Loss: 2.0140, Avg Acc: 61.23%, Duration: 0.45s
+2025-06-03 22:11:35,579 - INFO - Epoch 156: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:11:35,579 - INFO - Epoch 156: 新的最佳准确率: 61.23% (已保存至 best_model.pth)
+2025-06-03 22:11:36,049 - INFO - Epoch 157/300 | Batch 0/24 | Loss: 2.3268 | Acc: 55.47% | LR: 4.69e-02
+2025-06-03 22:11:37,571 - INFO - Epoch 157 TRAIN Summary: Avg Loss: 2.4795, Avg Acc: 49.95%, Duration: 1.99s
+2025-06-03 22:11:38,009 - INFO - Epoch 157 EVAL  Summary: Avg Loss: 2.0262, Avg Acc: 60.43%, Duration: 0.44s
+2025-06-03 22:11:38,493 - INFO - Epoch 158/300 | Batch 0/24 | Loss: 2.3268 | Acc: 50.78% | LR: 4.63e-02
+2025-06-03 22:11:39,983 - INFO - Epoch 158 TRAIN Summary: Avg Loss: 2.5185, Avg Acc: 48.90%, Duration: 1.97s
+2025-06-03 22:11:40,441 - INFO - Epoch 158 EVAL  Summary: Avg Loss: 2.1982, Avg Acc: 56.04%, Duration: 0.46s
+2025-06-03 22:11:40,931 - INFO - Epoch 159/300 | Batch 0/24 | Loss: 2.1739 | Acc: 53.91% | LR: 4.58e-02
+2025-06-03 22:11:42,615 - INFO - Epoch 159 TRAIN Summary: Avg Loss: 2.6575, Avg Acc: 47.34%, Duration: 2.17s
+2025-06-03 22:11:43,055 - INFO - Epoch 159 EVAL  Summary: Avg Loss: 2.0554, Avg Acc: 59.27%, Duration: 0.44s
+2025-06-03 22:11:43,556 - INFO - Epoch 160/300 | Batch 0/24 | Loss: 3.4331 | Acc: 33.43% | LR: 4.53e-02
+2025-06-03 22:11:45,227 - INFO - Epoch 160 TRAIN Summary: Avg Loss: 2.4638, Avg Acc: 50.86%, Duration: 2.17s
+2025-06-03 22:11:45,676 - INFO - Epoch 160 EVAL  Summary: Avg Loss: 2.0752, Avg Acc: 58.70%, Duration: 0.45s
+2025-06-03 22:11:45,716 - INFO - Epoch 160: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_160.pth
+2025-06-03 22:11:46,171 - INFO - Epoch 161/300 | Batch 0/24 | Loss: 2.3511 | Acc: 53.52% | LR: 4.48e-02
+2025-06-03 22:11:47,767 - INFO - Epoch 161 TRAIN Summary: Avg Loss: 2.4541, Avg Acc: 50.98%, Duration: 2.05s
+2025-06-03 22:11:48,209 - INFO - Epoch 161 EVAL  Summary: Avg Loss: 2.0440, Avg Acc: 59.80%, Duration: 0.44s
+2025-06-03 22:11:48,705 - INFO - Epoch 162/300 | Batch 0/24 | Loss: 2.4068 | Acc: 52.64% | LR: 4.43e-02
+2025-06-03 22:11:50,254 - INFO - Epoch 162 TRAIN Summary: Avg Loss: 2.4054, Avg Acc: 51.74%, Duration: 2.04s
+2025-06-03 22:11:50,700 - INFO - Epoch 162 EVAL  Summary: Avg Loss: 2.1793, Avg Acc: 56.78%, Duration: 0.44s
+2025-06-03 22:11:51,191 - INFO - Epoch 163/300 | Batch 0/24 | Loss: 2.7963 | Acc: 46.49% | LR: 4.37e-02
+2025-06-03 22:11:52,888 - INFO - Epoch 163 TRAIN Summary: Avg Loss: 2.5507, Avg Acc: 48.63%, Duration: 2.19s
+2025-06-03 22:11:53,316 - INFO - Epoch 163 EVAL  Summary: Avg Loss: 2.0276, Avg Acc: 60.60%, Duration: 0.43s
+2025-06-03 22:11:53,808 - INFO - Epoch 164/300 | Batch 0/24 | Loss: 2.3900 | Acc: 52.73% | LR: 4.32e-02
+2025-06-03 22:11:55,493 - INFO - Epoch 164 TRAIN Summary: Avg Loss: 2.5242, Avg Acc: 49.15%, Duration: 2.17s
+2025-06-03 22:11:55,933 - INFO - Epoch 164 EVAL  Summary: Avg Loss: 2.0730, Avg Acc: 59.43%, Duration: 0.44s
+2025-06-03 22:11:56,429 - INFO - Epoch 165/300 | Batch 0/24 | Loss: 2.2636 | Acc: 58.20% | LR: 4.27e-02
+2025-06-03 22:11:58,114 - INFO - Epoch 165 TRAIN Summary: Avg Loss: 2.4741, Avg Acc: 50.90%, Duration: 2.18s
+2025-06-03 22:11:58,559 - INFO - Epoch 165 EVAL  Summary: Avg Loss: 2.1369, Avg Acc: 57.15%, Duration: 0.44s
+2025-06-03 22:11:59,055 - INFO - Epoch 166/300 | Batch 0/24 | Loss: 2.3519 | Acc: 53.53% | LR: 4.22e-02
+2025-06-03 22:12:00,570 - INFO - Epoch 166 TRAIN Summary: Avg Loss: 2.5865, Avg Acc: 48.63%, Duration: 2.01s
+2025-06-03 22:12:01,014 - INFO - Epoch 166 EVAL  Summary: Avg Loss: 2.0532, Avg Acc: 59.81%, Duration: 0.44s
+2025-06-03 22:12:01,516 - INFO - Epoch 167/300 | Batch 0/24 | Loss: 2.3517 | Acc: 53.58% | LR: 4.17e-02
+2025-06-03 22:12:03,108 - INFO - Epoch 167 TRAIN Summary: Avg Loss: 2.4829, Avg Acc: 51.19%, Duration: 2.09s
+2025-06-03 22:12:03,512 - INFO - Epoch 167 EVAL  Summary: Avg Loss: 2.1070, Avg Acc: 58.02%, Duration: 0.40s
+2025-06-03 22:12:03,993 - INFO - Epoch 168/300 | Batch 0/24 | Loss: 2.3759 | Acc: 49.61% | LR: 4.11e-02
+2025-06-03 22:12:05,517 - INFO - Epoch 168 TRAIN Summary: Avg Loss: 2.6579, Avg Acc: 46.46%, Duration: 2.00s
+2025-06-03 22:12:05,960 - INFO - Epoch 168 EVAL  Summary: Avg Loss: 2.0451, Avg Acc: 60.10%, Duration: 0.44s
+2025-06-03 22:12:06,455 - INFO - Epoch 169/300 | Batch 0/24 | Loss: 2.2115 | Acc: 56.25% | LR: 4.06e-02
+2025-06-03 22:12:08,144 - INFO - Epoch 169 TRAIN Summary: Avg Loss: 2.4631, Avg Acc: 50.83%, Duration: 2.18s
+2025-06-03 22:12:08,581 - INFO - Epoch 169 EVAL  Summary: Avg Loss: 2.0194, Avg Acc: 60.96%, Duration: 0.44s
+2025-06-03 22:12:09,080 - INFO - Epoch 170/300 | Batch 0/24 | Loss: 2.2817 | Acc: 55.47% | LR: 4.01e-02
+2025-06-03 22:12:10,797 - INFO - Epoch 170 TRAIN Summary: Avg Loss: 2.4584, Avg Acc: 51.33%, Duration: 2.21s
+2025-06-03 22:12:11,229 - INFO - Epoch 170 EVAL  Summary: Avg Loss: 2.0545, Avg Acc: 59.32%, Duration: 0.43s
+2025-06-03 22:12:11,719 - INFO - Epoch 171/300 | Batch 0/24 | Loss: 3.7954 | Acc: 25.73% | LR: 3.96e-02
+2025-06-03 22:12:13,202 - INFO - Epoch 171 TRAIN Summary: Avg Loss: 2.4545, Avg Acc: 51.85%, Duration: 1.97s
+2025-06-03 22:12:13,640 - INFO - Epoch 171 EVAL  Summary: Avg Loss: 1.9941, Avg Acc: 61.50%, Duration: 0.44s
+2025-06-03 22:12:13,675 - INFO - Epoch 171: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:12:13,675 - INFO - Epoch 171: 新的最佳准确率: 61.50% (已保存至 best_model.pth)
+2025-06-03 22:12:14,147 - INFO - Epoch 172/300 | Batch 0/24 | Loss: 2.3349 | Acc: 53.52% | LR: 3.91e-02
+2025-06-03 22:12:15,632 - INFO - Epoch 172 TRAIN Summary: Avg Loss: 2.5344, Avg Acc: 49.79%, Duration: 1.96s
+2025-06-03 22:12:16,071 - INFO - Epoch 172 EVAL  Summary: Avg Loss: 2.1214, Avg Acc: 57.33%, Duration: 0.44s
+2025-06-03 22:12:16,563 - INFO - Epoch 173/300 | Batch 0/24 | Loss: 2.1592 | Acc: 58.36% | LR: 3.86e-02
+2025-06-03 22:12:18,106 - INFO - Epoch 173 TRAIN Summary: Avg Loss: 2.4894, Avg Acc: 49.99%, Duration: 2.03s
+2025-06-03 22:12:18,531 - INFO - Epoch 173 EVAL  Summary: Avg Loss: 2.0181, Avg Acc: 60.55%, Duration: 0.42s
+2025-06-03 22:12:19,027 - INFO - Epoch 174/300 | Batch 0/24 | Loss: 2.2461 | Acc: 56.64% | LR: 3.81e-02
+2025-06-03 22:12:20,623 - INFO - Epoch 174 TRAIN Summary: Avg Loss: 2.4243, Avg Acc: 52.00%, Duration: 2.09s
+2025-06-03 22:12:21,063 - INFO - Epoch 174 EVAL  Summary: Avg Loss: 2.0128, Avg Acc: 61.16%, Duration: 0.44s
+2025-06-03 22:12:21,545 - INFO - Epoch 175/300 | Batch 0/24 | Loss: 2.2856 | Acc: 57.42% | LR: 3.76e-02
+2025-06-03 22:12:23,168 - INFO - Epoch 175 TRAIN Summary: Avg Loss: 2.4669, Avg Acc: 51.27%, Duration: 2.10s
+2025-06-03 22:12:23,600 - INFO - Epoch 175 EVAL  Summary: Avg Loss: 2.0456, Avg Acc: 59.82%, Duration: 0.43s
+2025-06-03 22:12:24,089 - INFO - Epoch 176/300 | Batch 0/24 | Loss: 2.3772 | Acc: 54.69% | LR: 3.71e-02
+2025-06-03 22:12:25,787 - INFO - Epoch 176 TRAIN Summary: Avg Loss: 2.4862, Avg Acc: 50.44%, Duration: 2.19s
+2025-06-03 22:12:26,203 - INFO - Epoch 176 EVAL  Summary: Avg Loss: 1.9986, Avg Acc: 61.20%, Duration: 0.41s
+2025-06-03 22:12:26,692 - INFO - Epoch 177/300 | Batch 0/24 | Loss: 2.2310 | Acc: 54.30% | LR: 3.66e-02
+2025-06-03 22:12:28,270 - INFO - Epoch 177 TRAIN Summary: Avg Loss: 2.4762, Avg Acc: 51.21%, Duration: 2.07s
+2025-06-03 22:12:28,689 - INFO - Epoch 177 EVAL  Summary: Avg Loss: 2.0277, Avg Acc: 60.63%, Duration: 0.42s
+2025-06-03 22:12:29,207 - INFO - Epoch 178/300 | Batch 0/24 | Loss: 2.3806 | Acc: 55.05% | LR: 3.61e-02
+2025-06-03 22:12:30,896 - INFO - Epoch 178 TRAIN Summary: Avg Loss: 2.6158, Avg Acc: 48.98%, Duration: 2.20s
+2025-06-03 22:12:31,301 - INFO - Epoch 178 EVAL  Summary: Avg Loss: 2.0102, Avg Acc: 61.50%, Duration: 0.40s
+2025-06-03 22:12:31,794 - INFO - Epoch 179/300 | Batch 0/24 | Loss: 2.2222 | Acc: 57.03% | LR: 3.55e-02
+2025-06-03 22:12:33,379 - INFO - Epoch 179 TRAIN Summary: Avg Loss: 2.5751, Avg Acc: 47.96%, Duration: 2.08s
+2025-06-03 22:12:33,783 - INFO - Epoch 179 EVAL  Summary: Avg Loss: 2.0271, Avg Acc: 60.39%, Duration: 0.40s
+2025-06-03 22:12:34,278 - INFO - Epoch 180/300 | Batch 0/24 | Loss: 3.4575 | Acc: 32.37% | LR: 3.50e-02
+2025-06-03 22:12:35,789 - INFO - Epoch 180 TRAIN Summary: Avg Loss: 2.5407, Avg Acc: 49.70%, Duration: 2.00s
+2025-06-03 22:12:36,222 - INFO - Epoch 180 EVAL  Summary: Avg Loss: 1.9933, Avg Acc: 61.79%, Duration: 0.43s
+2025-06-03 22:12:36,255 - INFO - Epoch 180: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:12:36,255 - INFO - Epoch 180: 新的最佳准确率: 61.79% (已保存至 best_model.pth)
+2025-06-03 22:12:36,284 - INFO - Epoch 180: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_180.pth
+2025-06-03 22:12:36,728 - INFO - Epoch 181/300 | Batch 0/24 | Loss: 3.2836 | Acc: 34.11% | LR: 3.45e-02
+2025-06-03 22:12:38,280 - INFO - Epoch 181 TRAIN Summary: Avg Loss: 2.5722, Avg Acc: 49.18%, Duration: 2.00s
+2025-06-03 22:12:38,722 - INFO - Epoch 181 EVAL  Summary: Avg Loss: 2.0246, Avg Acc: 60.65%, Duration: 0.44s
+2025-06-03 22:12:39,210 - INFO - Epoch 182/300 | Batch 0/24 | Loss: 2.5426 | Acc: 47.24% | LR: 3.41e-02
+2025-06-03 22:12:40,912 - INFO - Epoch 182 TRAIN Summary: Avg Loss: 2.6918, Avg Acc: 47.10%, Duration: 2.19s
+2025-06-03 22:12:41,357 - INFO - Epoch 182 EVAL  Summary: Avg Loss: 2.0297, Avg Acc: 60.38%, Duration: 0.44s
+2025-06-03 22:12:41,843 - INFO - Epoch 183/300 | Batch 0/24 | Loss: 2.1832 | Acc: 57.03% | LR: 3.36e-02
+2025-06-03 22:12:43,548 - INFO - Epoch 183 TRAIN Summary: Avg Loss: 2.4752, Avg Acc: 51.15%, Duration: 2.19s
+2025-06-03 22:12:43,962 - INFO - Epoch 183 EVAL  Summary: Avg Loss: 2.0312, Avg Acc: 60.58%, Duration: 0.41s
+2025-06-03 22:12:44,431 - INFO - Epoch 184/300 | Batch 0/24 | Loss: 2.2479 | Acc: 53.52% | LR: 3.31e-02
+2025-06-03 22:12:45,968 - INFO - Epoch 184 TRAIN Summary: Avg Loss: 2.4585, Avg Acc: 51.19%, Duration: 2.01s
+2025-06-03 22:12:46,395 - INFO - Epoch 184 EVAL  Summary: Avg Loss: 2.0020, Avg Acc: 61.67%, Duration: 0.43s
+2025-06-03 22:12:46,893 - INFO - Epoch 185/300 | Batch 0/24 | Loss: 2.1240 | Acc: 62.11% | LR: 3.26e-02
+2025-06-03 22:12:48,444 - INFO - Epoch 185 TRAIN Summary: Avg Loss: 2.3692, Avg Acc: 53.11%, Duration: 2.05s
+2025-06-03 22:12:48,872 - INFO - Epoch 185 EVAL  Summary: Avg Loss: 1.9639, Avg Acc: 62.40%, Duration: 0.43s
+2025-06-03 22:12:48,906 - INFO - Epoch 185: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:12:48,906 - INFO - Epoch 185: 新的最佳准确率: 62.40% (已保存至 best_model.pth)
+2025-06-03 22:12:49,381 - INFO - Epoch 186/300 | Batch 0/24 | Loss: 2.3262 | Acc: 55.86% | LR: 3.21e-02
+2025-06-03 22:12:50,941 - INFO - Epoch 186 TRAIN Summary: Avg Loss: 2.5086, Avg Acc: 49.88%, Duration: 2.03s
+2025-06-03 22:12:51,384 - INFO - Epoch 186 EVAL  Summary: Avg Loss: 2.0305, Avg Acc: 60.78%, Duration: 0.44s
+2025-06-03 22:12:51,875 - INFO - Epoch 187/300 | Batch 0/24 | Loss: 2.3516 | Acc: 55.08% | LR: 3.16e-02
+2025-06-03 22:12:53,422 - INFO - Epoch 187 TRAIN Summary: Avg Loss: 2.5838, Avg Acc: 49.24%, Duration: 2.04s
+2025-06-03 22:12:53,828 - INFO - Epoch 187 EVAL  Summary: Avg Loss: 2.0000, Avg Acc: 62.01%, Duration: 0.40s
+2025-06-03 22:12:54,321 - INFO - Epoch 188/300 | Batch 0/24 | Loss: 2.3265 | Acc: 51.95% | LR: 3.11e-02
+2025-06-03 22:12:55,918 - INFO - Epoch 188 TRAIN Summary: Avg Loss: 2.3697, Avg Acc: 53.39%, Duration: 2.09s
+2025-06-03 22:12:56,345 - INFO - Epoch 188 EVAL  Summary: Avg Loss: 1.9854, Avg Acc: 61.37%, Duration: 0.43s
+2025-06-03 22:12:56,842 - INFO - Epoch 189/300 | Batch 0/24 | Loss: 2.1539 | Acc: 55.86% | LR: 3.06e-02
+2025-06-03 22:12:58,418 - INFO - Epoch 189 TRAIN Summary: Avg Loss: 2.3895, Avg Acc: 52.75%, Duration: 2.07s
+2025-06-03 22:12:58,866 - INFO - Epoch 189 EVAL  Summary: Avg Loss: 2.0184, Avg Acc: 60.65%, Duration: 0.45s
+2025-06-03 22:12:59,360 - INFO - Epoch 190/300 | Batch 0/24 | Loss: 2.3384 | Acc: 50.78% | LR: 3.01e-02
+2025-06-03 22:13:00,889 - INFO - Epoch 190 TRAIN Summary: Avg Loss: 2.5322, Avg Acc: 50.27%, Duration: 2.02s
+2025-06-03 22:13:01,313 - INFO - Epoch 190 EVAL  Summary: Avg Loss: 1.9682, Avg Acc: 62.13%, Duration: 0.42s
+2025-06-03 22:13:01,808 - INFO - Epoch 191/300 | Batch 0/24 | Loss: 2.2311 | Acc: 56.64% | LR: 2.97e-02
+2025-06-03 22:13:03,338 - INFO - Epoch 191 TRAIN Summary: Avg Loss: 2.5482, Avg Acc: 49.45%, Duration: 2.02s
+2025-06-03 22:13:03,768 - INFO - Epoch 191 EVAL  Summary: Avg Loss: 1.9608, Avg Acc: 62.28%, Duration: 0.43s
+2025-06-03 22:13:04,265 - INFO - Epoch 192/300 | Batch 0/24 | Loss: 2.2580 | Acc: 55.18% | LR: 2.92e-02
+2025-06-03 22:13:05,848 - INFO - Epoch 192 TRAIN Summary: Avg Loss: 2.3866, Avg Acc: 53.34%, Duration: 2.08s
+2025-06-03 22:13:06,299 - INFO - Epoch 192 EVAL  Summary: Avg Loss: 2.1005, Avg Acc: 58.87%, Duration: 0.45s
+2025-06-03 22:13:06,794 - INFO - Epoch 193/300 | Batch 0/24 | Loss: 2.2988 | Acc: 50.73% | LR: 2.87e-02
+2025-06-03 22:13:08,430 - INFO - Epoch 193 TRAIN Summary: Avg Loss: 2.4940, Avg Acc: 50.36%, Duration: 2.13s
+2025-06-03 22:13:08,881 - INFO - Epoch 193 EVAL  Summary: Avg Loss: 2.0330, Avg Acc: 60.62%, Duration: 0.45s
+2025-06-03 22:13:09,374 - INFO - Epoch 194/300 | Batch 0/24 | Loss: 3.9274 | Acc: 17.77% | LR: 2.82e-02
+2025-06-03 22:13:10,929 - INFO - Epoch 194 TRAIN Summary: Avg Loss: 2.4469, Avg Acc: 51.24%, Duration: 2.05s
+2025-06-03 22:13:11,347 - INFO - Epoch 194 EVAL  Summary: Avg Loss: 1.9852, Avg Acc: 61.65%, Duration: 0.42s
+2025-06-03 22:13:11,844 - INFO - Epoch 195/300 | Batch 0/24 | Loss: 2.3537 | Acc: 52.73% | LR: 2.78e-02
+2025-06-03 22:13:13,428 - INFO - Epoch 195 TRAIN Summary: Avg Loss: 2.4392, Avg Acc: 52.10%, Duration: 2.08s
+2025-06-03 22:13:13,834 - INFO - Epoch 195 EVAL  Summary: Avg Loss: 2.0210, Avg Acc: 60.69%, Duration: 0.40s
+2025-06-03 22:13:14,318 - INFO - Epoch 196/300 | Batch 0/24 | Loss: 2.2520 | Acc: 55.08% | LR: 2.73e-02
+2025-06-03 22:13:16,060 - INFO - Epoch 196 TRAIN Summary: Avg Loss: 2.4742, Avg Acc: 51.23%, Duration: 2.22s
+2025-06-03 22:13:16,497 - INFO - Epoch 196 EVAL  Summary: Avg Loss: 1.9876, Avg Acc: 61.75%, Duration: 0.44s
+2025-06-03 22:13:16,994 - INFO - Epoch 197/300 | Batch 0/24 | Loss: 2.3540 | Acc: 51.94% | LR: 2.68e-02
+2025-06-03 22:13:18,534 - INFO - Epoch 197 TRAIN Summary: Avg Loss: 2.6554, Avg Acc: 47.52%, Duration: 2.04s
+2025-06-03 22:13:18,986 - INFO - Epoch 197 EVAL  Summary: Avg Loss: 1.9662, Avg Acc: 63.24%, Duration: 0.45s
+2025-06-03 22:13:19,014 - INFO - Epoch 197: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:13:19,015 - INFO - Epoch 197: 新的最佳准确率: 63.24% (已保存至 best_model.pth)
+2025-06-03 22:13:19,474 - INFO - Epoch 198/300 | Batch 0/24 | Loss: 3.2422 | Acc: 37.65% | LR: 2.64e-02
+2025-06-03 22:13:21,078 - INFO - Epoch 198 TRAIN Summary: Avg Loss: 2.5536, Avg Acc: 49.24%, Duration: 2.06s
+2025-06-03 22:13:21,504 - INFO - Epoch 198 EVAL  Summary: Avg Loss: 2.0102, Avg Acc: 61.49%, Duration: 0.42s
+2025-06-03 22:13:21,996 - INFO - Epoch 199/300 | Batch 0/24 | Loss: 3.1884 | Acc: 38.85% | LR: 2.59e-02
+2025-06-03 22:13:23,623 - INFO - Epoch 199 TRAIN Summary: Avg Loss: 2.4794, Avg Acc: 51.13%, Duration: 2.12s
+2025-06-03 22:13:24,066 - INFO - Epoch 199 EVAL  Summary: Avg Loss: 1.9970, Avg Acc: 62.12%, Duration: 0.44s
+2025-06-03 22:13:24,555 - INFO - Epoch 200/300 | Batch 0/24 | Loss: 2.1690 | Acc: 61.33% | LR: 2.55e-02
+2025-06-03 22:13:26,091 - INFO - Epoch 200 TRAIN Summary: Avg Loss: 2.6105, Avg Acc: 47.53%, Duration: 2.02s
+2025-06-03 22:13:26,498 - INFO - Epoch 200 EVAL  Summary: Avg Loss: 1.9758, Avg Acc: 61.80%, Duration: 0.41s
+2025-06-03 22:13:26,525 - INFO - Epoch 200: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_200.pth
+2025-06-03 22:13:26,994 - INFO - Epoch 201/300 | Batch 0/24 | Loss: 2.2898 | Acc: 53.52% | LR: 2.50e-02
+2025-06-03 22:13:28,644 - INFO - Epoch 201 TRAIN Summary: Avg Loss: 2.5701, Avg Acc: 48.86%, Duration: 2.12s
+2025-06-03 22:13:29,081 - INFO - Epoch 201 EVAL  Summary: Avg Loss: 1.9816, Avg Acc: 62.13%, Duration: 0.43s
+2025-06-03 22:13:29,599 - INFO - Epoch 202/300 | Batch 0/24 | Loss: 2.2588 | Acc: 55.08% | LR: 2.45e-02
+2025-06-03 22:13:31,209 - INFO - Epoch 202 TRAIN Summary: Avg Loss: 2.4313, Avg Acc: 52.47%, Duration: 2.13s
+2025-06-03 22:13:31,607 - INFO - Epoch 202 EVAL  Summary: Avg Loss: 1.9392, Avg Acc: 63.42%, Duration: 0.40s
+2025-06-03 22:13:31,641 - INFO - Epoch 202: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:13:31,641 - INFO - Epoch 202: 新的最佳准确率: 63.42% (已保存至 best_model.pth)
+2025-06-03 22:13:32,095 - INFO - Epoch 203/300 | Batch 0/24 | Loss: 2.7224 | Acc: 47.36% | LR: 2.41e-02
+2025-06-03 22:13:33,722 - INFO - Epoch 203 TRAIN Summary: Avg Loss: 2.4723, Avg Acc: 52.27%, Duration: 2.08s
+2025-06-03 22:13:34,164 - INFO - Epoch 203 EVAL  Summary: Avg Loss: 1.9498, Avg Acc: 63.00%, Duration: 0.44s
+2025-06-03 22:13:34,653 - INFO - Epoch 204/300 | Batch 0/24 | Loss: 2.2758 | Acc: 53.12% | LR: 2.37e-02
+2025-06-03 22:13:36,194 - INFO - Epoch 204 TRAIN Summary: Avg Loss: 2.3298, Avg Acc: 54.69%, Duration: 2.03s
+2025-06-03 22:13:36,633 - INFO - Epoch 204 EVAL  Summary: Avg Loss: 1.9413, Avg Acc: 63.19%, Duration: 0.44s
+2025-06-03 22:13:37,122 - INFO - Epoch 205/300 | Batch 0/24 | Loss: 2.2782 | Acc: 54.95% | LR: 2.32e-02
+2025-06-03 22:13:38,849 - INFO - Epoch 205 TRAIN Summary: Avg Loss: 2.4584, Avg Acc: 51.10%, Duration: 2.21s
+2025-06-03 22:13:39,284 - INFO - Epoch 205 EVAL  Summary: Avg Loss: 2.0270, Avg Acc: 60.56%, Duration: 0.43s
+2025-06-03 22:13:39,796 - INFO - Epoch 206/300 | Batch 0/24 | Loss: 3.1345 | Acc: 38.57% | LR: 2.28e-02
+2025-06-03 22:13:41,409 - INFO - Epoch 206 TRAIN Summary: Avg Loss: 2.6763, Avg Acc: 47.08%, Duration: 2.12s
+2025-06-03 22:13:41,851 - INFO - Epoch 206 EVAL  Summary: Avg Loss: 1.9468, Avg Acc: 63.28%, Duration: 0.44s
+2025-06-03 22:13:42,359 - INFO - Epoch 207/300 | Batch 0/24 | Loss: 2.2073 | Acc: 56.64% | LR: 2.23e-02
+2025-06-03 22:13:43,897 - INFO - Epoch 207 TRAIN Summary: Avg Loss: 2.4133, Avg Acc: 53.12%, Duration: 2.04s
+2025-06-03 22:13:44,343 - INFO - Epoch 207 EVAL  Summary: Avg Loss: 1.9241, Avg Acc: 63.65%, Duration: 0.44s
+2025-06-03 22:13:44,374 - INFO - Epoch 207: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:13:44,374 - INFO - Epoch 207: 新的最佳准确率: 63.65% (已保存至 best_model.pth)
+2025-06-03 22:13:44,836 - INFO - Epoch 208/300 | Batch 0/24 | Loss: 2.1860 | Acc: 57.42% | LR: 2.19e-02
+2025-06-03 22:13:46,476 - INFO - Epoch 208 TRAIN Summary: Avg Loss: 2.3145, Avg Acc: 54.18%, Duration: 2.10s
+2025-06-03 22:13:46,903 - INFO - Epoch 208 EVAL  Summary: Avg Loss: 1.9191, Avg Acc: 63.73%, Duration: 0.43s
+2025-06-03 22:13:46,940 - INFO - Epoch 208: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:13:46,940 - INFO - Epoch 208: 新的最佳准确率: 63.73% (已保存至 best_model.pth)
+2025-06-03 22:13:47,432 - INFO - Epoch 209/300 | Batch 0/24 | Loss: 2.4547 | Acc: 55.68% | LR: 2.15e-02
+2025-06-03 22:13:48,986 - INFO - Epoch 209 TRAIN Summary: Avg Loss: 2.3958, Avg Acc: 53.04%, Duration: 2.04s
+2025-06-03 22:13:49,422 - INFO - Epoch 209 EVAL  Summary: Avg Loss: 1.9280, Avg Acc: 63.59%, Duration: 0.44s
+2025-06-03 22:13:49,915 - INFO - Epoch 210/300 | Batch 0/24 | Loss: 2.3728 | Acc: 50.39% | LR: 2.10e-02
+2025-06-03 22:13:51,617 - INFO - Epoch 210 TRAIN Summary: Avg Loss: 2.4561, Avg Acc: 52.12%, Duration: 2.19s
+2025-06-03 22:13:52,050 - INFO - Epoch 210 EVAL  Summary: Avg Loss: 1.9316, Avg Acc: 63.67%, Duration: 0.43s
+2025-06-03 22:13:52,547 - INFO - Epoch 211/300 | Batch 0/24 | Loss: 2.2102 | Acc: 57.42% | LR: 2.06e-02
+2025-06-03 22:13:54,234 - INFO - Epoch 211 TRAIN Summary: Avg Loss: 2.5210, Avg Acc: 50.74%, Duration: 2.18s
+2025-06-03 22:13:54,680 - INFO - Epoch 211 EVAL  Summary: Avg Loss: 1.9247, Avg Acc: 63.58%, Duration: 0.44s
+2025-06-03 22:13:55,180 - INFO - Epoch 212/300 | Batch 0/24 | Loss: 2.2801 | Acc: 54.30% | LR: 2.02e-02
+2025-06-03 22:13:56,866 - INFO - Epoch 212 TRAIN Summary: Avg Loss: 2.5123, Avg Acc: 50.43%, Duration: 2.19s
+2025-06-03 22:13:57,283 - INFO - Epoch 212 EVAL  Summary: Avg Loss: 1.9172, Avg Acc: 63.88%, Duration: 0.42s
+2025-06-03 22:13:57,321 - INFO - Epoch 212: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:13:57,321 - INFO - Epoch 212: 新的最佳准确率: 63.88% (已保存至 best_model.pth)
+2025-06-03 22:13:57,769 - INFO - Epoch 213/300 | Batch 0/24 | Loss: 2.1976 | Acc: 59.38% | LR: 1.98e-02
+2025-06-03 22:13:59,480 - INFO - Epoch 213 TRAIN Summary: Avg Loss: 2.2875, Avg Acc: 54.86%, Duration: 2.16s
+2025-06-03 22:13:59,920 - INFO - Epoch 213 EVAL  Summary: Avg Loss: 1.9499, Avg Acc: 63.03%, Duration: 0.44s
+2025-06-03 22:14:00,415 - INFO - Epoch 214/300 | Batch 0/24 | Loss: 2.2262 | Acc: 56.32% | LR: 1.94e-02
+2025-06-03 22:14:01,995 - INFO - Epoch 214 TRAIN Summary: Avg Loss: 2.3051, Avg Acc: 54.44%, Duration: 2.07s
+2025-06-03 22:14:02,413 - INFO - Epoch 214 EVAL  Summary: Avg Loss: 1.9540, Avg Acc: 62.45%, Duration: 0.42s
+2025-06-03 22:14:02,897 - INFO - Epoch 215/300 | Batch 0/24 | Loss: 2.3277 | Acc: 53.12% | LR: 1.89e-02
+2025-06-03 22:14:04,490 - INFO - Epoch 215 TRAIN Summary: Avg Loss: 2.6406, Avg Acc: 47.72%, Duration: 2.08s
+2025-06-03 22:14:04,893 - INFO - Epoch 215 EVAL  Summary: Avg Loss: 1.9354, Avg Acc: 63.12%, Duration: 0.40s
+2025-06-03 22:14:05,384 - INFO - Epoch 216/300 | Batch 0/24 | Loss: 2.3577 | Acc: 52.73% | LR: 1.85e-02
+2025-06-03 22:14:07,002 - INFO - Epoch 216 TRAIN Summary: Avg Loss: 2.4256, Avg Acc: 52.57%, Duration: 2.11s
+2025-06-03 22:14:07,459 - INFO - Epoch 216 EVAL  Summary: Avg Loss: 1.9203, Avg Acc: 63.86%, Duration: 0.45s
+2025-06-03 22:14:07,945 - INFO - Epoch 217/300 | Batch 0/24 | Loss: 4.0180 | Acc: 22.00% | LR: 1.81e-02
+2025-06-03 22:14:09,707 - INFO - Epoch 217 TRAIN Summary: Avg Loss: 2.5071, Avg Acc: 50.99%, Duration: 2.25s
+2025-06-03 22:14:10,127 - INFO - Epoch 217 EVAL  Summary: Avg Loss: 1.9493, Avg Acc: 63.16%, Duration: 0.42s
+2025-06-03 22:14:10,633 - INFO - Epoch 218/300 | Batch 0/24 | Loss: 2.2648 | Acc: 53.12% | LR: 1.77e-02
+2025-06-03 22:14:12,182 - INFO - Epoch 218 TRAIN Summary: Avg Loss: 2.3958, Avg Acc: 52.69%, Duration: 2.05s
+2025-06-03 22:14:12,620 - INFO - Epoch 218 EVAL  Summary: Avg Loss: 1.9376, Avg Acc: 62.64%, Duration: 0.44s
+2025-06-03 22:14:13,117 - INFO - Epoch 219/300 | Batch 0/24 | Loss: 2.2196 | Acc: 55.85% | LR: 1.73e-02
+2025-06-03 22:14:14,826 - INFO - Epoch 219 TRAIN Summary: Avg Loss: 2.4468, Avg Acc: 52.28%, Duration: 2.20s
+2025-06-03 22:14:15,270 - INFO - Epoch 219 EVAL  Summary: Avg Loss: 1.9220, Avg Acc: 63.88%, Duration: 0.44s
+2025-06-03 22:14:15,775 - INFO - Epoch 220/300 | Batch 0/24 | Loss: 2.3056 | Acc: 56.25% | LR: 1.69e-02
+2025-06-03 22:14:17,343 - INFO - Epoch 220 TRAIN Summary: Avg Loss: 2.3724, Avg Acc: 53.93%, Duration: 2.07s
+2025-06-03 22:14:17,773 - INFO - Epoch 220 EVAL  Summary: Avg Loss: 1.9242, Avg Acc: 64.02%, Duration: 0.43s
+2025-06-03 22:14:17,811 - INFO - Epoch 220: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:14:17,811 - INFO - Epoch 220: 新的最佳准确率: 64.02% (已保存至 best_model.pth)
+2025-06-03 22:14:17,842 - INFO - Epoch 220: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_220.pth
+2025-06-03 22:14:18,309 - INFO - Epoch 221/300 | Batch 0/24 | Loss: 2.2365 | Acc: 54.69% | LR: 1.65e-02
+2025-06-03 22:14:19,857 - INFO - Epoch 221 TRAIN Summary: Avg Loss: 2.3456, Avg Acc: 53.85%, Duration: 2.01s
+2025-06-03 22:14:20,239 - INFO - Epoch 221 EVAL  Summary: Avg Loss: 1.9083, Avg Acc: 64.40%, Duration: 0.38s
+2025-06-03 22:14:20,273 - INFO - Epoch 221: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:14:20,274 - INFO - Epoch 221: 新的最佳准确率: 64.40% (已保存至 best_model.pth)
+2025-06-03 22:14:20,750 - INFO - Epoch 222/300 | Batch 0/24 | Loss: 2.6378 | Acc: 51.10% | LR: 1.62e-02
+2025-06-03 22:14:22,283 - INFO - Epoch 222 TRAIN Summary: Avg Loss: 2.6071, Avg Acc: 48.95%, Duration: 2.01s
+2025-06-03 22:14:22,699 - INFO - Epoch 222 EVAL  Summary: Avg Loss: 1.9371, Avg Acc: 63.31%, Duration: 0.41s
+2025-06-03 22:14:23,178 - INFO - Epoch 223/300 | Batch 0/24 | Loss: 2.1662 | Acc: 56.25% | LR: 1.58e-02
+2025-06-03 22:14:24,818 - INFO - Epoch 223 TRAIN Summary: Avg Loss: 2.3198, Avg Acc: 54.59%, Duration: 2.12s
+2025-06-03 22:14:25,240 - INFO - Epoch 223 EVAL  Summary: Avg Loss: 1.9149, Avg Acc: 63.38%, Duration: 0.42s
+2025-06-03 22:14:25,747 - INFO - Epoch 224/300 | Batch 0/24 | Loss: 2.1544 | Acc: 57.03% | LR: 1.54e-02
+2025-06-03 22:14:27,451 - INFO - Epoch 224 TRAIN Summary: Avg Loss: 2.4319, Avg Acc: 52.58%, Duration: 2.21s
+2025-06-03 22:14:27,880 - INFO - Epoch 224 EVAL  Summary: Avg Loss: 1.9035, Avg Acc: 64.15%, Duration: 0.43s
+2025-06-03 22:14:28,389 - INFO - Epoch 225/300 | Batch 0/24 | Loss: 2.2340 | Acc: 56.46% | LR: 1.50e-02
+2025-06-03 22:14:29,948 - INFO - Epoch 225 TRAIN Summary: Avg Loss: 2.4496, Avg Acc: 52.23%, Duration: 2.07s
+2025-06-03 22:14:30,390 - INFO - Epoch 225 EVAL  Summary: Avg Loss: 1.8966, Avg Acc: 64.76%, Duration: 0.44s
+2025-06-03 22:14:30,423 - INFO - Epoch 225: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:14:30,423 - INFO - Epoch 225: 新的最佳准确率: 64.76% (已保存至 best_model.pth)
+2025-06-03 22:14:30,874 - INFO - Epoch 226/300 | Batch 0/24 | Loss: 3.9026 | Acc: 21.21% | LR: 1.46e-02
+2025-06-03 22:14:32,485 - INFO - Epoch 226 TRAIN Summary: Avg Loss: 2.4745, Avg Acc: 51.43%, Duration: 2.06s
+2025-06-03 22:14:32,899 - INFO - Epoch 226 EVAL  Summary: Avg Loss: 1.9396, Avg Acc: 63.38%, Duration: 0.41s
+2025-06-03 22:14:33,387 - INFO - Epoch 227/300 | Batch 0/24 | Loss: 2.2947 | Acc: 53.75% | LR: 1.43e-02
+2025-06-03 22:14:35,048 - INFO - Epoch 227 TRAIN Summary: Avg Loss: 2.6531, Avg Acc: 48.32%, Duration: 2.15s
+2025-06-03 22:14:35,481 - INFO - Epoch 227 EVAL  Summary: Avg Loss: 1.9223, Avg Acc: 64.00%, Duration: 0.43s
+2025-06-03 22:14:35,974 - INFO - Epoch 228/300 | Batch 0/24 | Loss: 2.1913 | Acc: 57.96% | LR: 1.39e-02
+2025-06-03 22:14:37,564 - INFO - Epoch 228 TRAIN Summary: Avg Loss: 2.4201, Avg Acc: 52.57%, Duration: 2.08s
+2025-06-03 22:14:37,989 - INFO - Epoch 228 EVAL  Summary: Avg Loss: 1.9145, Avg Acc: 64.33%, Duration: 0.42s
+2025-06-03 22:14:38,478 - INFO - Epoch 229/300 | Batch 0/24 | Loss: 2.1694 | Acc: 57.81% | LR: 1.36e-02
+2025-06-03 22:14:40,105 - INFO - Epoch 229 TRAIN Summary: Avg Loss: 2.4598, Avg Acc: 52.15%, Duration: 2.12s
+2025-06-03 22:14:40,552 - INFO - Epoch 229 EVAL  Summary: Avg Loss: 1.8958, Avg Acc: 64.69%, Duration: 0.44s
+2025-06-03 22:14:41,033 - INFO - Epoch 230/300 | Batch 0/24 | Loss: 3.0581 | Acc: 42.01% | LR: 1.32e-02
+2025-06-03 22:14:42,593 - INFO - Epoch 230 TRAIN Summary: Avg Loss: 2.5099, Avg Acc: 50.93%, Duration: 2.04s
+2025-06-03 22:14:43,000 - INFO - Epoch 230 EVAL  Summary: Avg Loss: 1.9027, Avg Acc: 64.27%, Duration: 0.41s
+2025-06-03 22:14:43,486 - INFO - Epoch 231/300 | Batch 0/24 | Loss: 3.6337 | Acc: 26.93% | LR: 1.28e-02
+2025-06-03 22:14:45,055 - INFO - Epoch 231 TRAIN Summary: Avg Loss: 2.3958, Avg Acc: 53.52%, Duration: 2.05s
+2025-06-03 22:14:45,497 - INFO - Epoch 231 EVAL  Summary: Avg Loss: 1.8820, Avg Acc: 65.17%, Duration: 0.44s
+2025-06-03 22:14:45,525 - INFO - Epoch 231: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:14:45,526 - INFO - Epoch 231: 新的最佳准确率: 65.17% (已保存至 best_model.pth)
+2025-06-03 22:14:45,979 - INFO - Epoch 232/300 | Batch 0/24 | Loss: 2.2888 | Acc: 51.95% | LR: 1.25e-02
+2025-06-03 22:14:47,702 - INFO - Epoch 232 TRAIN Summary: Avg Loss: 2.2383, Avg Acc: 56.30%, Duration: 2.18s
+2025-06-03 22:14:48,123 - INFO - Epoch 232 EVAL  Summary: Avg Loss: 1.8837, Avg Acc: 65.28%, Duration: 0.42s
+2025-06-03 22:14:48,163 - INFO - Epoch 232: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:14:48,164 - INFO - Epoch 232: 新的最佳准确率: 65.28% (已保存至 best_model.pth)
+2025-06-03 22:14:48,632 - INFO - Epoch 233/300 | Batch 0/24 | Loss: 3.3067 | Acc: 37.19% | LR: 1.22e-02
+2025-06-03 22:14:50,176 - INFO - Epoch 233 TRAIN Summary: Avg Loss: 2.3995, Avg Acc: 53.39%, Duration: 2.01s
+2025-06-03 22:14:50,609 - INFO - Epoch 233 EVAL  Summary: Avg Loss: 1.8865, Avg Acc: 64.54%, Duration: 0.43s
+2025-06-03 22:14:51,097 - INFO - Epoch 234/300 | Batch 0/24 | Loss: 2.1859 | Acc: 57.81% | LR: 1.18e-02
+2025-06-03 22:14:52,643 - INFO - Epoch 234 TRAIN Summary: Avg Loss: 2.3857, Avg Acc: 54.18%, Duration: 2.03s
+2025-06-03 22:14:53,083 - INFO - Epoch 234 EVAL  Summary: Avg Loss: 1.8820, Avg Acc: 65.45%, Duration: 0.44s
+2025-06-03 22:14:53,112 - INFO - Epoch 234: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:14:53,112 - INFO - Epoch 234: 新的最佳准确率: 65.45% (已保存至 best_model.pth)
+2025-06-03 22:14:53,576 - INFO - Epoch 235/300 | Batch 0/24 | Loss: 2.7082 | Acc: 48.46% | LR: 1.15e-02
+2025-06-03 22:14:55,149 - INFO - Epoch 235 TRAIN Summary: Avg Loss: 2.5614, Avg Acc: 49.81%, Duration: 2.04s
+2025-06-03 22:14:55,570 - INFO - Epoch 235 EVAL  Summary: Avg Loss: 1.9094, Avg Acc: 64.04%, Duration: 0.42s
+2025-06-03 22:14:56,088 - INFO - Epoch 236/300 | Batch 0/24 | Loss: 2.2978 | Acc: 53.12% | LR: 1.11e-02
+2025-06-03 22:14:57,648 - INFO - Epoch 236 TRAIN Summary: Avg Loss: 2.4644, Avg Acc: 51.46%, Duration: 2.08s
+2025-06-03 22:14:58,079 - INFO - Epoch 236 EVAL  Summary: Avg Loss: 1.8778, Avg Acc: 64.86%, Duration: 0.43s
+2025-06-03 22:14:58,583 - INFO - Epoch 237/300 | Batch 0/24 | Loss: 3.5663 | Acc: 28.25% | LR: 1.08e-02
+2025-06-03 22:15:00,173 - INFO - Epoch 237 TRAIN Summary: Avg Loss: 2.5594, Avg Acc: 49.66%, Duration: 2.09s
+2025-06-03 22:15:00,584 - INFO - Epoch 237 EVAL  Summary: Avg Loss: 1.8866, Avg Acc: 65.26%, Duration: 0.41s
+2025-06-03 22:15:01,087 - INFO - Epoch 238/300 | Batch 0/24 | Loss: 2.1306 | Acc: 61.96% | LR: 1.05e-02
+2025-06-03 22:15:02,744 - INFO - Epoch 238 TRAIN Summary: Avg Loss: 2.4016, Avg Acc: 52.95%, Duration: 2.16s
+2025-06-03 22:15:03,183 - INFO - Epoch 238 EVAL  Summary: Avg Loss: 1.8829, Avg Acc: 65.02%, Duration: 0.44s
+2025-06-03 22:15:03,661 - INFO - Epoch 239/300 | Batch 0/24 | Loss: 2.2459 | Acc: 53.91% | LR: 1.02e-02
+2025-06-03 22:15:05,203 - INFO - Epoch 239 TRAIN Summary: Avg Loss: 2.3545, Avg Acc: 53.62%, Duration: 2.02s
+2025-06-03 22:15:05,614 - INFO - Epoch 239 EVAL  Summary: Avg Loss: 1.8719, Avg Acc: 65.46%, Duration: 0.41s
+2025-06-03 22:15:05,643 - INFO - Epoch 239: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:15:05,644 - INFO - Epoch 239: 新的最佳准确率: 65.46% (已保存至 best_model.pth)
+2025-06-03 22:15:06,092 - INFO - Epoch 240/300 | Batch 0/24 | Loss: 2.1738 | Acc: 57.29% | LR: 9.86e-03
+2025-06-03 22:15:07,632 - INFO - Epoch 240 TRAIN Summary: Avg Loss: 2.4572, Avg Acc: 51.81%, Duration: 1.99s
+2025-06-03 22:15:08,069 - INFO - Epoch 240 EVAL  Summary: Avg Loss: 1.8849, Avg Acc: 65.02%, Duration: 0.43s
+2025-06-03 22:15:08,094 - INFO - Epoch 240: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_240.pth
+2025-06-03 22:15:08,561 - INFO - Epoch 241/300 | Batch 0/24 | Loss: 2.3055 | Acc: 56.65% | LR: 9.55e-03
+2025-06-03 22:15:10,130 - INFO - Epoch 241 TRAIN Summary: Avg Loss: 2.4875, Avg Acc: 52.38%, Duration: 2.04s
+2025-06-03 22:15:10,580 - INFO - Epoch 241 EVAL  Summary: Avg Loss: 1.8732, Avg Acc: 65.48%, Duration: 0.45s
+2025-06-03 22:15:10,606 - INFO - Epoch 241: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:15:10,607 - INFO - Epoch 241: 新的最佳准确率: 65.48% (已保存至 best_model.pth)
+2025-06-03 22:15:11,060 - INFO - Epoch 242/300 | Batch 0/24 | Loss: 3.2259 | Acc: 37.89% | LR: 9.24e-03
+2025-06-03 22:15:12,672 - INFO - Epoch 242 TRAIN Summary: Avg Loss: 2.5937, Avg Acc: 49.21%, Duration: 2.06s
+2025-06-03 22:15:13,074 - INFO - Epoch 242 EVAL  Summary: Avg Loss: 1.8842, Avg Acc: 65.16%, Duration: 0.40s
+2025-06-03 22:15:13,549 - INFO - Epoch 243/300 | Batch 0/24 | Loss: 2.2297 | Acc: 56.64% | LR: 8.94e-03
+2025-06-03 22:15:15,106 - INFO - Epoch 243 TRAIN Summary: Avg Loss: 2.3127, Avg Acc: 55.01%, Duration: 2.03s
+2025-06-03 22:15:15,550 - INFO - Epoch 243 EVAL  Summary: Avg Loss: 1.8673, Avg Acc: 65.70%, Duration: 0.44s
+2025-06-03 22:15:15,577 - INFO - Epoch 243: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:15:15,577 - INFO - Epoch 243: 新的最佳准确率: 65.70% (已保存至 best_model.pth)
+2025-06-03 22:15:16,048 - INFO - Epoch 244/300 | Batch 0/24 | Loss: 2.2492 | Acc: 57.03% | LR: 8.65e-03
+2025-06-03 22:15:17,635 - INFO - Epoch 244 TRAIN Summary: Avg Loss: 2.5069, Avg Acc: 51.04%, Duration: 2.06s
+2025-06-03 22:15:18,077 - INFO - Epoch 244 EVAL  Summary: Avg Loss: 1.8907, Avg Acc: 64.89%, Duration: 0.44s
+2025-06-03 22:15:18,578 - INFO - Epoch 245/300 | Batch 0/24 | Loss: 2.0815 | Acc: 60.16% | LR: 8.35e-03
+2025-06-03 22:15:20,139 - INFO - Epoch 245 TRAIN Summary: Avg Loss: 2.3960, Avg Acc: 53.06%, Duration: 2.06s
+2025-06-03 22:15:20,580 - INFO - Epoch 245 EVAL  Summary: Avg Loss: 1.8920, Avg Acc: 64.71%, Duration: 0.44s
+2025-06-03 22:15:21,060 - INFO - Epoch 246/300 | Batch 0/24 | Loss: 2.1016 | Acc: 61.33% | LR: 8.07e-03
+2025-06-03 22:15:22,635 - INFO - Epoch 246 TRAIN Summary: Avg Loss: 2.3593, Avg Acc: 55.09%, Duration: 2.05s
+2025-06-03 22:15:23,074 - INFO - Epoch 246 EVAL  Summary: Avg Loss: 1.8770, Avg Acc: 65.30%, Duration: 0.44s
+2025-06-03 22:15:23,567 - INFO - Epoch 247/300 | Batch 0/24 | Loss: 2.2973 | Acc: 54.69% | LR: 7.78e-03
+2025-06-03 22:15:25,072 - INFO - Epoch 247 TRAIN Summary: Avg Loss: 2.3133, Avg Acc: 54.85%, Duration: 2.00s
+2025-06-03 22:15:25,512 - INFO - Epoch 247 EVAL  Summary: Avg Loss: 1.8715, Avg Acc: 65.13%, Duration: 0.44s
+2025-06-03 22:15:26,008 - INFO - Epoch 248/300 | Batch 0/24 | Loss: 2.3032 | Acc: 54.69% | LR: 7.51e-03
+2025-06-03 22:15:27,542 - INFO - Epoch 248 TRAIN Summary: Avg Loss: 2.5327, Avg Acc: 51.10%, Duration: 2.03s
+2025-06-03 22:15:27,981 - INFO - Epoch 248 EVAL  Summary: Avg Loss: 1.8834, Avg Acc: 65.10%, Duration: 0.44s
+2025-06-03 22:15:28,469 - INFO - Epoch 249/300 | Batch 0/24 | Loss: 2.0510 | Acc: 62.89% | LR: 7.23e-03
+2025-06-03 22:15:30,179 - INFO - Epoch 249 TRAIN Summary: Avg Loss: 2.4083, Avg Acc: 53.46%, Duration: 2.20s
+2025-06-03 22:15:30,614 - INFO - Epoch 249 EVAL  Summary: Avg Loss: 1.8779, Avg Acc: 65.22%, Duration: 0.43s
+2025-06-03 22:15:31,093 - INFO - Epoch 250/300 | Batch 0/24 | Loss: 2.1037 | Acc: 64.84% | LR: 6.96e-03
+2025-06-03 22:15:32,691 - INFO - Epoch 250 TRAIN Summary: Avg Loss: 2.3411, Avg Acc: 55.22%, Duration: 2.08s
+2025-06-03 22:15:33,123 - INFO - Epoch 250 EVAL  Summary: Avg Loss: 1.8694, Avg Acc: 65.35%, Duration: 0.43s
+2025-06-03 22:15:33,631 - INFO - Epoch 251/300 | Batch 0/24 | Loss: 3.3529 | Acc: 35.27% | LR: 6.70e-03
+2025-06-03 22:15:35,202 - INFO - Epoch 251 TRAIN Summary: Avg Loss: 2.4930, Avg Acc: 51.65%, Duration: 2.08s
+2025-06-03 22:15:35,644 - INFO - Epoch 251 EVAL  Summary: Avg Loss: 1.8637, Avg Acc: 66.30%, Duration: 0.44s
+2025-06-03 22:15:35,670 - INFO - Epoch 251: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:15:35,671 - INFO - Epoch 251: 新的最佳准确率: 66.30% (已保存至 best_model.pth)
+2025-06-03 22:15:36,148 - INFO - Epoch 252/300 | Batch 0/24 | Loss: 2.0864 | Acc: 60.42% | LR: 6.44e-03
+2025-06-03 22:15:37,664 - INFO - Epoch 252 TRAIN Summary: Avg Loss: 2.4485, Avg Acc: 52.63%, Duration: 1.99s
+2025-06-03 22:15:38,103 - INFO - Epoch 252 EVAL  Summary: Avg Loss: 1.8535, Avg Acc: 66.09%, Duration: 0.44s
+2025-06-03 22:15:38,594 - INFO - Epoch 253/300 | Batch 0/24 | Loss: 2.1799 | Acc: 57.42% | LR: 6.19e-03
+2025-06-03 22:15:40,134 - INFO - Epoch 253 TRAIN Summary: Avg Loss: 2.5483, Avg Acc: 50.88%, Duration: 2.03s
+2025-06-03 22:15:40,572 - INFO - Epoch 253 EVAL  Summary: Avg Loss: 1.8697, Avg Acc: 65.67%, Duration: 0.44s
+2025-06-03 22:15:41,061 - INFO - Epoch 254/300 | Batch 0/24 | Loss: 2.1760 | Acc: 58.98% | LR: 5.94e-03
+2025-06-03 22:15:42,601 - INFO - Epoch 254 TRAIN Summary: Avg Loss: 2.3863, Avg Acc: 53.89%, Duration: 2.03s
+2025-06-03 22:15:43,024 - INFO - Epoch 254 EVAL  Summary: Avg Loss: 1.8552, Avg Acc: 66.48%, Duration: 0.42s
+2025-06-03 22:15:43,053 - INFO - Epoch 254: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:15:43,053 - INFO - Epoch 254: 新的最佳准确率: 66.48% (已保存至 best_model.pth)
+2025-06-03 22:15:43,518 - INFO - Epoch 255/300 | Batch 0/24 | Loss: 2.2447 | Acc: 55.08% | LR: 5.69e-03
+2025-06-03 22:15:45,072 - INFO - Epoch 255 TRAIN Summary: Avg Loss: 2.4548, Avg Acc: 52.15%, Duration: 2.02s
+2025-06-03 22:15:45,532 - INFO - Epoch 255 EVAL  Summary: Avg Loss: 1.8543, Avg Acc: 66.09%, Duration: 0.46s
+2025-06-03 22:15:46,030 - INFO - Epoch 256/300 | Batch 0/24 | Loss: 2.1025 | Acc: 61.33% | LR: 5.45e-03
+2025-06-03 22:15:47,684 - INFO - Epoch 256 TRAIN Summary: Avg Loss: 2.5315, Avg Acc: 50.36%, Duration: 2.15s
+2025-06-03 22:15:48,126 - INFO - Epoch 256 EVAL  Summary: Avg Loss: 1.8537, Avg Acc: 65.90%, Duration: 0.44s
+2025-06-03 22:15:48,612 - INFO - Epoch 257/300 | Batch 0/24 | Loss: 2.0503 | Acc: 61.72% | LR: 5.22e-03
+2025-06-03 22:15:50,174 - INFO - Epoch 257 TRAIN Summary: Avg Loss: 2.4623, Avg Acc: 52.96%, Duration: 2.05s
+2025-06-03 22:15:50,608 - INFO - Epoch 257 EVAL  Summary: Avg Loss: 1.8550, Avg Acc: 65.95%, Duration: 0.43s
+2025-06-03 22:15:51,098 - INFO - Epoch 258/300 | Batch 0/24 | Loss: 2.1279 | Acc: 60.55% | LR: 4.99e-03
+2025-06-03 22:15:52,656 - INFO - Epoch 258 TRAIN Summary: Avg Loss: 2.3896, Avg Acc: 53.94%, Duration: 2.05s
+2025-06-03 22:15:53,098 - INFO - Epoch 258 EVAL  Summary: Avg Loss: 1.8460, Avg Acc: 66.20%, Duration: 0.44s
+2025-06-03 22:15:53,579 - INFO - Epoch 259/300 | Batch 0/24 | Loss: 2.0654 | Acc: 61.60% | LR: 4.76e-03
+2025-06-03 22:15:55,199 - INFO - Epoch 259 TRAIN Summary: Avg Loss: 2.3335, Avg Acc: 54.89%, Duration: 2.10s
+2025-06-03 22:15:55,622 - INFO - Epoch 259 EVAL  Summary: Avg Loss: 1.8438, Avg Acc: 65.84%, Duration: 0.42s
+2025-06-03 22:15:56,106 - INFO - Epoch 260/300 | Batch 0/24 | Loss: 2.1016 | Acc: 62.50% | LR: 4.54e-03
+2025-06-03 22:15:57,632 - INFO - Epoch 260 TRAIN Summary: Avg Loss: 2.3023, Avg Acc: 55.03%, Duration: 2.01s
+2025-06-03 22:15:58,074 - INFO - Epoch 260 EVAL  Summary: Avg Loss: 1.8449, Avg Acc: 66.39%, Duration: 0.44s
+2025-06-03 22:15:58,103 - INFO - Epoch 260: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_260.pth
+2025-06-03 22:15:58,571 - INFO - Epoch 261/300 | Batch 0/24 | Loss: 2.0571 | Acc: 61.33% | LR: 4.32e-03
+2025-06-03 22:16:00,142 - INFO - Epoch 261 TRAIN Summary: Avg Loss: 2.2755, Avg Acc: 56.32%, Duration: 2.04s
+2025-06-03 22:16:00,592 - INFO - Epoch 261 EVAL  Summary: Avg Loss: 1.8467, Avg Acc: 66.36%, Duration: 0.45s
+2025-06-03 22:16:01,075 - INFO - Epoch 262/300 | Batch 0/24 | Loss: 2.1609 | Acc: 56.64% | LR: 4.11e-03
+2025-06-03 22:16:02,772 - INFO - Epoch 262 TRAIN Summary: Avg Loss: 2.2719, Avg Acc: 57.05%, Duration: 2.18s
+2025-06-03 22:16:03,185 - INFO - Epoch 262 EVAL  Summary: Avg Loss: 1.8569, Avg Acc: 65.74%, Duration: 0.41s
+2025-06-03 22:16:03,674 - INFO - Epoch 263/300 | Batch 0/24 | Loss: 2.3489 | Acc: 55.93% | LR: 3.91e-03
+2025-06-03 22:16:05,172 - INFO - Epoch 263 TRAIN Summary: Avg Loss: 2.2698, Avg Acc: 56.21%, Duration: 1.99s
+2025-06-03 22:16:05,607 - INFO - Epoch 263 EVAL  Summary: Avg Loss: 1.8390, Avg Acc: 66.57%, Duration: 0.43s
+2025-06-03 22:16:05,634 - INFO - Epoch 263: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:16:05,634 - INFO - Epoch 263: 新的最佳准确率: 66.57% (已保存至 best_model.pth)
+2025-06-03 22:16:06,113 - INFO - Epoch 264/300 | Batch 0/24 | Loss: 2.1889 | Acc: 59.38% | LR: 3.71e-03
+2025-06-03 22:16:07,626 - INFO - Epoch 264 TRAIN Summary: Avg Loss: 2.4237, Avg Acc: 52.86%, Duration: 1.99s
+2025-06-03 22:16:08,097 - INFO - Epoch 264 EVAL  Summary: Avg Loss: 1.8441, Avg Acc: 66.41%, Duration: 0.47s
+2025-06-03 22:16:08,585 - INFO - Epoch 265/300 | Batch 0/24 | Loss: 2.2124 | Acc: 55.86% | LR: 3.51e-03
+2025-06-03 22:16:10,153 - INFO - Epoch 265 TRAIN Summary: Avg Loss: 2.3804, Avg Acc: 54.09%, Duration: 2.06s
+2025-06-03 22:16:10,566 - INFO - Epoch 265 EVAL  Summary: Avg Loss: 1.8455, Avg Acc: 66.17%, Duration: 0.41s
+2025-06-03 22:16:11,060 - INFO - Epoch 266/300 | Batch 0/24 | Loss: 2.2030 | Acc: 57.42% | LR: 3.32e-03
+2025-06-03 22:16:12,790 - INFO - Epoch 266 TRAIN Summary: Avg Loss: 2.2835, Avg Acc: 55.15%, Duration: 2.22s
+2025-06-03 22:16:13,206 - INFO - Epoch 266 EVAL  Summary: Avg Loss: 1.8408, Avg Acc: 66.45%, Duration: 0.42s
+2025-06-03 22:16:13,704 - INFO - Epoch 267/300 | Batch 0/24 | Loss: 3.1359 | Acc: 43.06% | LR: 3.14e-03
+2025-06-03 22:16:15,284 - INFO - Epoch 267 TRAIN Summary: Avg Loss: 2.3501, Avg Acc: 55.03%, Duration: 2.08s
+2025-06-03 22:16:15,709 - INFO - Epoch 267 EVAL  Summary: Avg Loss: 1.8413, Avg Acc: 66.58%, Duration: 0.42s
+2025-06-03 22:16:15,738 - INFO - Epoch 267: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:16:15,738 - INFO - Epoch 267: 新的最佳准确率: 66.58% (已保存至 best_model.pth)
+2025-06-03 22:16:16,197 - INFO - Epoch 268/300 | Batch 0/24 | Loss: 2.3828 | Acc: 50.39% | LR: 2.96e-03
+2025-06-03 22:16:17,724 - INFO - Epoch 268 TRAIN Summary: Avg Loss: 2.3424, Avg Acc: 55.44%, Duration: 1.98s
+2025-06-03 22:16:18,158 - INFO - Epoch 268 EVAL  Summary: Avg Loss: 1.8342, Avg Acc: 66.85%, Duration: 0.43s
+2025-06-03 22:16:18,187 - INFO - Epoch 268: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:16:18,187 - INFO - Epoch 268: 新的最佳准确率: 66.85% (已保存至 best_model.pth)
+2025-06-03 22:16:18,652 - INFO - Epoch 269/300 | Batch 0/24 | Loss: 2.1487 | Acc: 57.03% | LR: 2.78e-03
+2025-06-03 22:16:20,261 - INFO - Epoch 269 TRAIN Summary: Avg Loss: 2.4422, Avg Acc: 52.77%, Duration: 2.07s
+2025-06-03 22:16:20,667 - INFO - Epoch 269 EVAL  Summary: Avg Loss: 1.8446, Avg Acc: 66.53%, Duration: 0.40s
+2025-06-03 22:16:21,164 - INFO - Epoch 270/300 | Batch 0/24 | Loss: 3.2643 | Acc: 37.59% | LR: 2.61e-03
+2025-06-03 22:16:22,815 - INFO - Epoch 270 TRAIN Summary: Avg Loss: 2.5868, Avg Acc: 49.34%, Duration: 2.15s
+2025-06-03 22:16:23,253 - INFO - Epoch 270 EVAL  Summary: Avg Loss: 1.8477, Avg Acc: 66.23%, Duration: 0.44s
+2025-06-03 22:16:23,752 - INFO - Epoch 271/300 | Batch 0/24 | Loss: 2.2402 | Acc: 55.08% | LR: 2.45e-03
+2025-06-03 22:16:25,310 - INFO - Epoch 271 TRAIN Summary: Avg Loss: 2.3117, Avg Acc: 54.85%, Duration: 2.06s
+2025-06-03 22:16:25,746 - INFO - Epoch 271 EVAL  Summary: Avg Loss: 1.8331, Avg Acc: 66.76%, Duration: 0.44s
+2025-06-03 22:16:26,299 - INFO - Epoch 272/300 | Batch 0/24 | Loss: 2.1416 | Acc: 55.08% | LR: 2.29e-03
+2025-06-03 22:16:27,799 - INFO - Epoch 272 TRAIN Summary: Avg Loss: 2.2857, Avg Acc: 55.84%, Duration: 2.05s
+2025-06-03 22:16:28,242 - INFO - Epoch 272 EVAL  Summary: Avg Loss: 1.8351, Avg Acc: 66.74%, Duration: 0.44s
+2025-06-03 22:16:28,754 - INFO - Epoch 273/300 | Batch 0/24 | Loss: 2.1875 | Acc: 55.86% | LR: 2.14e-03
+2025-06-03 22:16:30,287 - INFO - Epoch 273 TRAIN Summary: Avg Loss: 2.4578, Avg Acc: 52.27%, Duration: 2.04s
+2025-06-03 22:16:30,721 - INFO - Epoch 273 EVAL  Summary: Avg Loss: 1.8355, Avg Acc: 66.87%, Duration: 0.43s
+2025-06-03 22:16:30,750 - INFO - Epoch 273: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:16:30,750 - INFO - Epoch 273: 新的最佳准确率: 66.87% (已保存至 best_model.pth)
+2025-06-03 22:16:31,212 - INFO - Epoch 274/300 | Batch 0/24 | Loss: 2.2958 | Acc: 56.25% | LR: 1.99e-03
+2025-06-03 22:16:32,826 - INFO - Epoch 274 TRAIN Summary: Avg Loss: 2.3192, Avg Acc: 54.89%, Duration: 2.08s
+2025-06-03 22:16:33,256 - INFO - Epoch 274 EVAL  Summary: Avg Loss: 1.8348, Avg Acc: 66.59%, Duration: 0.43s
+2025-06-03 22:16:33,751 - INFO - Epoch 275/300 | Batch 0/24 | Loss: 2.3621 | Acc: 53.44% | LR: 1.84e-03
+2025-06-03 22:16:35,419 - INFO - Epoch 275 TRAIN Summary: Avg Loss: 2.3736, Avg Acc: 53.52%, Duration: 2.16s
+2025-06-03 22:16:35,842 - INFO - Epoch 275 EVAL  Summary: Avg Loss: 1.8297, Avg Acc: 66.98%, Duration: 0.42s
+2025-06-03 22:16:35,873 - INFO - Epoch 275: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:16:35,873 - INFO - Epoch 275: 新的最佳准确率: 66.98% (已保存至 best_model.pth)
+2025-06-03 22:16:36,343 - INFO - Epoch 276/300 | Batch 0/24 | Loss: 2.1922 | Acc: 60.55% | LR: 1.70e-03
+2025-06-03 22:16:37,878 - INFO - Epoch 276 TRAIN Summary: Avg Loss: 2.2728, Avg Acc: 56.52%, Duration: 2.00s
+2025-06-03 22:16:38,282 - INFO - Epoch 276 EVAL  Summary: Avg Loss: 1.8318, Avg Acc: 66.65%, Duration: 0.40s
+2025-06-03 22:16:38,778 - INFO - Epoch 277/300 | Batch 0/24 | Loss: 2.3586 | Acc: 54.76% | LR: 1.57e-03
+2025-06-03 22:16:40,471 - INFO - Epoch 277 TRAIN Summary: Avg Loss: 2.5359, Avg Acc: 51.21%, Duration: 2.19s
+2025-06-03 22:16:40,902 - INFO - Epoch 277 EVAL  Summary: Avg Loss: 1.8404, Avg Acc: 66.44%, Duration: 0.43s
+2025-06-03 22:16:41,396 - INFO - Epoch 278/300 | Batch 0/24 | Loss: 2.3450 | Acc: 50.00% | LR: 1.44e-03
+2025-06-03 22:16:42,948 - INFO - Epoch 278 TRAIN Summary: Avg Loss: 2.4077, Avg Acc: 52.96%, Duration: 2.04s
+2025-06-03 22:16:43,402 - INFO - Epoch 278 EVAL  Summary: Avg Loss: 1.8309, Avg Acc: 66.80%, Duration: 0.45s
+2025-06-03 22:16:43,893 - INFO - Epoch 279/300 | Batch 0/24 | Loss: 2.1551 | Acc: 55.21% | LR: 1.32e-03
+2025-06-03 22:16:45,463 - INFO - Epoch 279 TRAIN Summary: Avg Loss: 2.4176, Avg Acc: 53.94%, Duration: 2.06s
+2025-06-03 22:16:45,888 - INFO - Epoch 279 EVAL  Summary: Avg Loss: 1.8269, Avg Acc: 66.64%, Duration: 0.42s
+2025-06-03 22:16:46,407 - INFO - Epoch 280/300 | Batch 0/24 | Loss: 3.7822 | Acc: 23.94% | LR: 1.21e-03
+2025-06-03 22:16:48,126 - INFO - Epoch 280 TRAIN Summary: Avg Loss: 2.4191, Avg Acc: 53.26%, Duration: 2.24s
+2025-06-03 22:16:48,570 - INFO - Epoch 280 EVAL  Summary: Avg Loss: 1.8280, Avg Acc: 66.77%, Duration: 0.44s
+2025-06-03 22:16:48,597 - INFO - Epoch 280: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_280.pth
+2025-06-03 22:16:49,073 - INFO - Epoch 281/300 | Batch 0/24 | Loss: 2.0904 | Acc: 62.11% | LR: 1.09e-03
+2025-06-03 22:16:50,777 - INFO - Epoch 281 TRAIN Summary: Avg Loss: 2.3880, Avg Acc: 53.73%, Duration: 2.18s
+2025-06-03 22:16:51,254 - INFO - Epoch 281 EVAL  Summary: Avg Loss: 1.8302, Avg Acc: 66.55%, Duration: 0.48s
+2025-06-03 22:16:51,752 - INFO - Epoch 282/300 | Batch 0/24 | Loss: 3.6834 | Acc: 25.94% | LR: 9.87e-04
+2025-06-03 22:16:53,418 - INFO - Epoch 282 TRAIN Summary: Avg Loss: 2.3193, Avg Acc: 55.64%, Duration: 2.16s
+2025-06-03 22:16:53,859 - INFO - Epoch 282 EVAL  Summary: Avg Loss: 1.8264, Avg Acc: 66.79%, Duration: 0.44s
+2025-06-03 22:16:54,349 - INFO - Epoch 283/300 | Batch 0/24 | Loss: 2.2615 | Acc: 54.95% | LR: 8.87e-04
+2025-06-03 22:16:56,004 - INFO - Epoch 283 TRAIN Summary: Avg Loss: 2.5441, Avg Acc: 50.93%, Duration: 2.14s
+2025-06-03 22:16:56,399 - INFO - Epoch 283 EVAL  Summary: Avg Loss: 1.8361, Avg Acc: 66.53%, Duration: 0.39s
+2025-06-03 22:16:56,941 - INFO - Epoch 284/300 | Batch 0/24 | Loss: 2.2190 | Acc: 57.81% | LR: 7.91e-04
+2025-06-03 22:16:58,567 - INFO - Epoch 284 TRAIN Summary: Avg Loss: 2.4174, Avg Acc: 53.43%, Duration: 2.17s
+2025-06-03 22:16:58,993 - INFO - Epoch 284 EVAL  Summary: Avg Loss: 1.8333, Avg Acc: 66.74%, Duration: 0.42s
+2025-06-03 22:16:59,479 - INFO - Epoch 285/300 | Batch 0/24 | Loss: 2.3226 | Acc: 52.70% | LR: 7.01e-04
+2025-06-03 22:17:01,110 - INFO - Epoch 285 TRAIN Summary: Avg Loss: 2.3332, Avg Acc: 55.60%, Duration: 2.12s
+2025-06-03 22:17:01,516 - INFO - Epoch 285 EVAL  Summary: Avg Loss: 1.8259, Avg Acc: 67.03%, Duration: 0.41s
+2025-06-03 22:17:01,550 - INFO - Epoch 285: 最佳模型已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/best_model.pth
+2025-06-03 22:17:01,550 - INFO - Epoch 285: 新的最佳准确率: 67.03% (已保存至 best_model.pth)
+2025-06-03 22:17:01,998 - INFO - Epoch 286/300 | Batch 0/24 | Loss: 2.2427 | Acc: 57.42% | LR: 6.17e-04
+2025-06-03 22:17:03,528 - INFO - Epoch 286 TRAIN Summary: Avg Loss: 2.5390, Avg Acc: 50.88%, Duration: 1.98s
+2025-06-03 22:17:03,956 - INFO - Epoch 286 EVAL  Summary: Avg Loss: 1.8372, Avg Acc: 66.66%, Duration: 0.43s
+2025-06-03 22:17:04,479 - INFO - Epoch 287/300 | Batch 0/24 | Loss: 2.2121 | Acc: 60.93% | LR: 5.37e-04
+2025-06-03 22:17:06,163 - INFO - Epoch 287 TRAIN Summary: Avg Loss: 2.2605, Avg Acc: 56.53%, Duration: 2.21s
+2025-06-03 22:17:06,613 - INFO - Epoch 287 EVAL  Summary: Avg Loss: 1.8285, Avg Acc: 66.86%, Duration: 0.45s
+2025-06-03 22:17:07,143 - INFO - Epoch 288/300 | Batch 0/24 | Loss: 2.1518 | Acc: 58.98% | LR: 4.64e-04
+2025-06-03 22:17:08,649 - INFO - Epoch 288 TRAIN Summary: Avg Loss: 2.5874, Avg Acc: 50.16%, Duration: 2.04s
+2025-06-03 22:17:09,079 - INFO - Epoch 288 EVAL  Summary: Avg Loss: 1.8433, Avg Acc: 66.34%, Duration: 0.43s
+2025-06-03 22:17:09,568 - INFO - Epoch 289/300 | Batch 0/24 | Loss: 2.1465 | Acc: 56.25% | LR: 3.95e-04
+2025-06-03 22:17:11,146 - INFO - Epoch 289 TRAIN Summary: Avg Loss: 2.3925, Avg Acc: 53.64%, Duration: 2.07s
+2025-06-03 22:17:11,568 - INFO - Epoch 289 EVAL  Summary: Avg Loss: 1.8302, Avg Acc: 66.82%, Duration: 0.42s
+2025-06-03 22:17:12,066 - INFO - Epoch 290/300 | Batch 0/24 | Loss: 2.1872 | Acc: 57.03% | LR: 3.32e-04
+2025-06-03 22:17:13,547 - INFO - Epoch 290 TRAIN Summary: Avg Loss: 2.2273, Avg Acc: 57.35%, Duration: 1.98s
+2025-06-03 22:17:13,976 - INFO - Epoch 290 EVAL  Summary: Avg Loss: 1.8241, Avg Acc: 66.95%, Duration: 0.43s
+2025-06-03 22:17:14,470 - INFO - Epoch 291/300 | Batch 0/24 | Loss: 2.1540 | Acc: 57.81% | LR: 2.75e-04
+2025-06-03 22:17:16,074 - INFO - Epoch 291 TRAIN Summary: Avg Loss: 2.3944, Avg Acc: 53.70%, Duration: 2.10s
+2025-06-03 22:17:16,505 - INFO - Epoch 291 EVAL  Summary: Avg Loss: 1.8312, Avg Acc: 66.61%, Duration: 0.43s
+2025-06-03 22:17:16,994 - INFO - Epoch 292/300 | Batch 0/24 | Loss: 2.2654 | Acc: 54.24% | LR: 2.23e-04
+2025-06-03 22:17:18,627 - INFO - Epoch 292 TRAIN Summary: Avg Loss: 2.4780, Avg Acc: 51.96%, Duration: 2.12s
+2025-06-03 22:17:19,064 - INFO - Epoch 292 EVAL  Summary: Avg Loss: 1.8305, Avg Acc: 66.67%, Duration: 0.44s
+2025-06-03 22:17:19,548 - INFO - Epoch 293/300 | Batch 0/24 | Loss: 3.6124 | Acc: 26.65% | LR: 1.76e-04
+2025-06-03 22:17:21,172 - INFO - Epoch 293 TRAIN Summary: Avg Loss: 2.5731, Avg Acc: 50.79%, Duration: 2.11s
+2025-06-03 22:17:21,604 - INFO - Epoch 293 EVAL  Summary: Avg Loss: 1.8327, Avg Acc: 66.65%, Duration: 0.43s
+2025-06-03 22:17:22,084 - INFO - Epoch 294/300 | Batch 0/24 | Loss: 3.6913 | Acc: 29.23% | LR: 1.35e-04
+2025-06-03 22:17:23,600 - INFO - Epoch 294 TRAIN Summary: Avg Loss: 2.4707, Avg Acc: 51.74%, Duration: 2.00s
+2025-06-03 22:17:24,029 - INFO - Epoch 294 EVAL  Summary: Avg Loss: 1.8276, Avg Acc: 66.80%, Duration: 0.43s
+2025-06-03 22:17:24,520 - INFO - Epoch 295/300 | Batch 0/24 | Loss: 2.1643 | Acc: 57.81% | LR: 9.97e-05
+2025-06-03 22:17:26,164 - INFO - Epoch 295 TRAIN Summary: Avg Loss: 2.4907, Avg Acc: 51.94%, Duration: 2.13s
+2025-06-03 22:17:26,579 - INFO - Epoch 295 EVAL  Summary: Avg Loss: 1.8291, Avg Acc: 66.76%, Duration: 0.41s
+2025-06-03 22:17:27,071 - INFO - Epoch 296/300 | Batch 0/24 | Loss: 2.1944 | Acc: 58.98% | LR: 6.95e-05
+2025-06-03 22:17:28,645 - INFO - Epoch 296 TRAIN Summary: Avg Loss: 2.4398, Avg Acc: 53.30%, Duration: 2.06s
+2025-06-03 22:17:29,066 - INFO - Epoch 296 EVAL  Summary: Avg Loss: 1.8351, Avg Acc: 66.56%, Duration: 0.42s
+2025-06-03 22:17:29,546 - INFO - Epoch 297/300 | Batch 0/24 | Loss: 2.1853 | Acc: 60.60% | LR: 4.49e-05
+2025-06-03 22:17:31,306 - INFO - Epoch 297 TRAIN Summary: Avg Loss: 2.4489, Avg Acc: 52.37%, Duration: 2.24s
+2025-06-03 22:17:31,713 - INFO - Epoch 297 EVAL  Summary: Avg Loss: 1.8282, Avg Acc: 66.71%, Duration: 0.41s
+2025-06-03 22:17:32,193 - INFO - Epoch 298/300 | Batch 0/24 | Loss: 3.7879 | Acc: 25.53% | LR: 2.57e-05
+2025-06-03 22:17:33,852 - INFO - Epoch 298 TRAIN Summary: Avg Loss: 2.5119, Avg Acc: 51.96%, Duration: 2.14s
+2025-06-03 22:17:34,264 - INFO - Epoch 298 EVAL  Summary: Avg Loss: 1.8305, Avg Acc: 66.77%, Duration: 0.41s
+2025-06-03 22:17:34,742 - INFO - Epoch 299/300 | Batch 0/24 | Loss: 2.1888 | Acc: 55.47% | LR: 1.20e-05
+2025-06-03 22:17:36,334 - INFO - Epoch 299 TRAIN Summary: Avg Loss: 2.3845, Avg Acc: 53.49%, Duration: 2.07s
+2025-06-03 22:17:36,781 - INFO - Epoch 299 EVAL  Summary: Avg Loss: 1.8270, Avg Acc: 66.75%, Duration: 0.45s
+2025-06-03 22:17:37,259 - INFO - Epoch 300/300 | Batch 0/24 | Loss: 2.1361 | Acc: 60.16% | LR: 3.74e-06
+2025-06-03 22:17:38,971 - INFO - Epoch 300 TRAIN Summary: Avg Loss: 2.3602, Avg Acc: 54.54%, Duration: 2.19s
+2025-06-03 22:17:39,407 - INFO - Epoch 300 EVAL  Summary: Avg Loss: 1.8285, Avg Acc: 66.78%, Duration: 0.43s
+2025-06-03 22:17:39,432 - INFO - Epoch 300: 检查点已保存至 ./logs/eca_resnet_20/Attention_Position_Ablation_ECA_ResNet20_Pos2_Default_k3/checkpoint_epoch_300.pth
+2025-06-03 22:17:39,432 - INFO - 训练完成! 总用时: 0.21 小时。最佳测试准确率: 67.03%

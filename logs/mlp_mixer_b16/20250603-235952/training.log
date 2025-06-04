@@ -1,0 +1,51 @@
+2025-06-03 23:59:52,201 - INFO - ==================================================
+2025-06-03 23:59:52,202 - INFO - CIFAR-100 训练开始
+2025-06-03 23:59:52,202 - INFO - ==================================================
+2025-06-03 23:59:52,202 - INFO - 所有输出将保存到: ./logs/mlp_mixer_b16/20250603-235952
+2025-06-03 23:59:52,202 - INFO - PyTorch版本: 2.7.0+cu126
+2025-06-03 23:59:52,203 - INFO - CUDA版本: 12.6
+2025-06-03 23:59:52,203 - INFO - 可用GPU数量: 8
+2025-06-03 23:59:52,203 - INFO - 当前设备: 0
+2025-06-03 23:59:52,203 - INFO - GPU内存: 15.8 GB
+2025-06-03 23:59:52,204 - INFO - TrainingArguments: {
+  "output_dir": "./logs",
+  "overwrite_output_dir": false,
+  "num_train_epochs": 300,
+  "per_device_train_batch_size": 256,
+  "per_device_eval_batch_size": 512,
+  "learning_rate": 0.001,
+  "weight_decay": 0.05,
+  "adam_epsilon": 1e-08,
+  "max_grad_norm": 1.0,
+  "warmup_epochs": 10,
+  "lr_scheduler_type": "cosine_annealing",
+  "logging_steps": 50,
+  "eval_strategy": "epoch",
+  "save_strategy": "epoch",
+  "save_steps": 20,
+  "dataloader_num_workers": 4,
+  "dataloader_pin_memory": true,
+  "dataloader_drop_last": true,
+  "label_smoothing_factor": 0.1,
+  "use_mixup": true,
+  "mixup_alpha": 0.2,
+  "optimizer_type": "adamw",
+  "use_imagenet_norm": false,
+  "model_constructor_params": {},
+  "resume_from_checkpoint": null,
+  "model_name_for_log": "mlp_mixer_b16",
+  "run_name": null,
+  "checkpoint_filename_best": "best_model.pth",
+  "checkpoint_filename_epoch": "checkpoint_epoch_{epoch}.pth",
+  "evaluation_filename": "evaluation_summary.json",
+  "plot_filename": "training_curves.png"
+}
+2025-06-03 23:59:52,204 - INFO - 分布式训练 (DDP): True, Rank: 0, World Size: 8
+2025-06-03 23:59:52,204 - INFO - 使用设备: cuda:0
+2025-06-03 23:59:52,258 - INFO - ***** 开始训练 *****
+2025-06-03 23:59:52,258 - INFO -   训练模型: mlp_mixer_b16, 运行: 20250603-235952
+2025-06-03 23:59:52,258 - INFO -   训练样本数 = 50000, 每轮步骤数 = 24
+2025-06-03 23:59:52,258 - INFO -   总轮数 = 300
+2025-06-03 23:59:52,258 - INFO -   每设备批次大小 = 256
+2025-06-03 23:59:52,259 - INFO -   总批次大小 (所有GPU) = 2048
+2025-06-03 23:59:52,259 - INFO -   初始学习率 = 1.00e-03

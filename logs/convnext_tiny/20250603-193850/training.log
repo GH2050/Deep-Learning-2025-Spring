@@ -1,0 +1,1109 @@
+2025-06-03 19:38:50,240 - INFO - ==================================================
+2025-06-03 19:38:50,240 - INFO - CIFAR-100 训练开始
+2025-06-03 19:38:50,241 - INFO - ==================================================
+2025-06-03 19:38:50,241 - INFO - 所有输出将保存到: ./logs/convnext_tiny/20250603-193850
+2025-06-03 19:38:50,241 - INFO - PyTorch版本: 2.7.0+cu126
+2025-06-03 19:38:50,241 - INFO - CUDA版本: 12.6
+2025-06-03 19:38:50,241 - INFO - 可用GPU数量: 8
+2025-06-03 19:38:50,242 - INFO - 当前设备: 0
+2025-06-03 19:38:50,242 - INFO - GPU内存: 15.8 GB
+2025-06-03 19:38:50,242 - INFO - TrainingArguments: {
+  "output_dir": "./logs",
+  "overwrite_output_dir": false,
+  "num_train_epochs": 300,
+  "per_device_train_batch_size": 256,
+  "per_device_eval_batch_size": 512,
+  "learning_rate": 0.004,
+  "weight_decay": 0.05,
+  "adam_epsilon": 1e-08,
+  "max_grad_norm": 1.0,
+  "warmup_epochs": 20,
+  "lr_scheduler_type": "cosine_annealing",
+  "logging_steps": 50,
+  "eval_strategy": "epoch",
+  "save_strategy": "epoch",
+  "save_steps": 20,
+  "dataloader_num_workers": 4,
+  "dataloader_pin_memory": true,
+  "dataloader_drop_last": true,
+  "label_smoothing_factor": 0.1,
+  "use_mixup": true,
+  "mixup_alpha": 0.2,
+  "optimizer_type": "adamw",
+  "use_imagenet_norm": false,
+  "model_constructor_params": {},
+  "resume_from_checkpoint": null,
+  "model_name_for_log": "convnext_tiny",
+  "run_name": null,
+  "checkpoint_filename_best": "best_model.pth",
+  "checkpoint_filename_epoch": "checkpoint_epoch_{epoch}.pth",
+  "evaluation_filename": "evaluation_summary.json",
+  "plot_filename": "training_curves.png"
+}
+2025-06-03 19:38:50,242 - INFO - 分布式训练: True, Rank: 0, World Size: 8
+2025-06-03 19:38:50,242 - INFO - 使用设备: cuda:0
+2025-06-03 19:38:50,323 - INFO - ***** 开始训练 *****
+2025-06-03 19:38:50,323 - INFO -   训练模型: convnext_tiny, 运行: 20250603-193850
+2025-06-03 19:38:50,323 - INFO -   训练样本数 = 50000, 每轮步骤数 = 24
+2025-06-03 19:38:50,323 - INFO -   总轮数 = 300
+2025-06-03 19:38:50,323 - INFO -   每设备批次大小 = 256
+2025-06-03 19:38:50,323 - INFO -   总批次大小 (所有GPU) = 2048
+2025-06-03 19:38:50,323 - INFO -   初始学习率 = 4.00e-03
+2025-06-03 19:38:52,072 - INFO - Epoch 1/300 | Batch 0/24 | Loss: 4.7835 | Acc: 0.78% | LR: 4.00e-03
+2025-06-03 19:38:53,942 - INFO - Epoch 1 TRAIN Summary: Avg Loss: 4.7205, Avg Acc: 2.85%, Duration: 3.62s
+2025-06-03 19:38:54,383 - INFO - Epoch 1 EVAL  Summary: Avg Loss: 4.2573, Avg Acc: 6.82%, Duration: 0.44s
+2025-06-03 19:38:55,059 - INFO - Epoch 1: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:38:55,059 - INFO - Epoch 1: 新的最佳准确率: 6.82% (已保存至 best_model.pth)
+2025-06-03 19:38:55,478 - INFO - Epoch 2/300 | Batch 0/24 | Loss: 4.4466 | Acc: 4.69% | LR: 4.00e-03
+2025-06-03 19:38:57,336 - INFO - Epoch 2 TRAIN Summary: Avg Loss: 4.3977, Avg Acc: 5.02%, Duration: 2.28s
+2025-06-03 19:38:57,755 - INFO - Epoch 2 EVAL  Summary: Avg Loss: 4.1145, Avg Acc: 9.14%, Duration: 0.42s
+2025-06-03 19:38:58,616 - INFO - Epoch 2: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:38:58,617 - INFO - Epoch 2: 新的最佳准确率: 9.14% (已保存至 best_model.pth)
+2025-06-03 19:38:59,025 - INFO - Epoch 3/300 | Batch 0/24 | Loss: 4.3703 | Acc: 4.69% | LR: 4.00e-03
+2025-06-03 19:39:00,850 - INFO - Epoch 3 TRAIN Summary: Avg Loss: 4.3567, Avg Acc: 5.75%, Duration: 2.23s
+2025-06-03 19:39:01,258 - INFO - Epoch 3 EVAL  Summary: Avg Loss: 4.0119, Avg Acc: 10.24%, Duration: 0.41s
+2025-06-03 19:39:02,148 - INFO - Epoch 3: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:02,148 - INFO - Epoch 3: 新的最佳准确率: 10.24% (已保存至 best_model.pth)
+2025-06-03 19:39:02,591 - INFO - Epoch 4/300 | Batch 0/24 | Loss: 4.3508 | Acc: 5.74% | LR: 4.00e-03
+2025-06-03 19:39:04,433 - INFO - Epoch 4 TRAIN Summary: Avg Loss: 4.2505, Avg Acc: 6.85%, Duration: 2.28s
+2025-06-03 19:39:04,842 - INFO - Epoch 4 EVAL  Summary: Avg Loss: 3.9046, Avg Acc: 12.74%, Duration: 0.41s
+2025-06-03 19:39:05,685 - INFO - Epoch 4: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:05,685 - INFO - Epoch 4: 新的最佳准确率: 12.74% (已保存至 best_model.pth)
+2025-06-03 19:39:06,100 - INFO - Epoch 5/300 | Batch 0/24 | Loss: 4.4226 | Acc: 6.34% | LR: 4.00e-03
+2025-06-03 19:39:07,914 - INFO - Epoch 5 TRAIN Summary: Avg Loss: 4.1881, Avg Acc: 8.60%, Duration: 2.23s
+2025-06-03 19:39:08,326 - INFO - Epoch 5 EVAL  Summary: Avg Loss: 3.7855, Avg Acc: 15.57%, Duration: 0.41s
+2025-06-03 19:39:09,146 - INFO - Epoch 5: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:09,147 - INFO - Epoch 5: 新的最佳准确率: 15.57% (已保存至 best_model.pth)
+2025-06-03 19:39:09,591 - INFO - Epoch 6/300 | Batch 0/24 | Loss: 4.2083 | Acc: 10.55% | LR: 4.00e-03
+2025-06-03 19:39:11,435 - INFO - Epoch 6 TRAIN Summary: Avg Loss: 4.1455, Avg Acc: 9.76%, Duration: 2.29s
+2025-06-03 19:39:11,861 - INFO - Epoch 6 EVAL  Summary: Avg Loss: 3.7212, Avg Acc: 16.37%, Duration: 0.42s
+2025-06-03 19:39:12,764 - INFO - Epoch 6: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:12,764 - INFO - Epoch 6: 新的最佳准确率: 16.37% (已保存至 best_model.pth)
+2025-06-03 19:39:13,174 - INFO - Epoch 7/300 | Batch 0/24 | Loss: 4.1363 | Acc: 7.03% | LR: 4.00e-03
+2025-06-03 19:39:15,001 - INFO - Epoch 7 TRAIN Summary: Avg Loss: 4.0400, Avg Acc: 10.98%, Duration: 2.24s
+2025-06-03 19:39:15,426 - INFO - Epoch 7 EVAL  Summary: Avg Loss: 3.6241, Avg Acc: 18.73%, Duration: 0.42s
+2025-06-03 19:39:16,296 - INFO - Epoch 7: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:16,296 - INFO - Epoch 7: 新的最佳准确率: 18.73% (已保存至 best_model.pth)
+2025-06-03 19:39:16,700 - INFO - Epoch 8/300 | Batch 0/24 | Loss: 4.2016 | Acc: 9.46% | LR: 3.99e-03
+2025-06-03 19:39:18,546 - INFO - Epoch 8 TRAIN Summary: Avg Loss: 3.9573, Avg Acc: 12.18%, Duration: 2.25s
+2025-06-03 19:39:19,014 - INFO - Epoch 8 EVAL  Summary: Avg Loss: 3.5659, Avg Acc: 20.56%, Duration: 0.47s
+2025-06-03 19:39:19,901 - INFO - Epoch 8: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:19,901 - INFO - Epoch 8: 新的最佳准确率: 20.56% (已保存至 best_model.pth)
+2025-06-03 19:39:20,366 - INFO - Epoch 9/300 | Batch 0/24 | Loss: 3.9463 | Acc: 12.50% | LR: 3.99e-03
+2025-06-03 19:39:22,246 - INFO - Epoch 9 TRAIN Summary: Avg Loss: 3.9279, Avg Acc: 13.67%, Duration: 2.34s
+2025-06-03 19:39:22,667 - INFO - Epoch 9 EVAL  Summary: Avg Loss: 3.5024, Avg Acc: 21.75%, Duration: 0.42s
+2025-06-03 19:39:23,449 - INFO - Epoch 9: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:23,449 - INFO - Epoch 9: 新的最佳准确率: 21.75% (已保存至 best_model.pth)
+2025-06-03 19:39:23,861 - INFO - Epoch 10/300 | Batch 0/24 | Loss: 3.9497 | Acc: 10.16% | LR: 3.99e-03
+2025-06-03 19:39:25,722 - INFO - Epoch 10 TRAIN Summary: Avg Loss: 3.9566, Avg Acc: 13.44%, Duration: 2.27s
+2025-06-03 19:39:26,126 - INFO - Epoch 10 EVAL  Summary: Avg Loss: 3.4417, Avg Acc: 22.49%, Duration: 0.40s
+2025-06-03 19:39:27,039 - INFO - Epoch 10: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:27,040 - INFO - Epoch 10: 新的最佳准确率: 22.49% (已保存至 best_model.pth)
+2025-06-03 19:39:27,443 - INFO - Epoch 11/300 | Batch 0/24 | Loss: 3.6727 | Acc: 16.80% | LR: 3.99e-03
+2025-06-03 19:39:29,254 - INFO - Epoch 11 TRAIN Summary: Avg Loss: 3.7992, Avg Acc: 15.81%, Duration: 2.21s
+2025-06-03 19:39:29,657 - INFO - Epoch 11 EVAL  Summary: Avg Loss: 3.3752, Avg Acc: 24.01%, Duration: 0.40s
+2025-06-03 19:39:30,549 - INFO - Epoch 11: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:30,549 - INFO - Epoch 11: 新的最佳准确率: 24.01% (已保存至 best_model.pth)
+2025-06-03 19:39:30,954 - INFO - Epoch 12/300 | Batch 0/24 | Loss: 3.7984 | Acc: 16.41% | LR: 3.99e-03
+2025-06-03 19:39:32,801 - INFO - Epoch 12 TRAIN Summary: Avg Loss: 3.8228, Avg Acc: 15.78%, Duration: 2.25s
+2025-06-03 19:39:33,220 - INFO - Epoch 12 EVAL  Summary: Avg Loss: 3.3505, Avg Acc: 25.23%, Duration: 0.42s
+2025-06-03 19:39:34,127 - INFO - Epoch 12: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:34,128 - INFO - Epoch 12: 新的最佳准确率: 25.23% (已保存至 best_model.pth)
+2025-06-03 19:39:34,574 - INFO - Epoch 13/300 | Batch 0/24 | Loss: 4.3013 | Acc: 7.60% | LR: 3.98e-03
+2025-06-03 19:39:36,408 - INFO - Epoch 13 TRAIN Summary: Avg Loss: 3.7683, Avg Acc: 18.02%, Duration: 2.28s
+2025-06-03 19:39:36,820 - INFO - Epoch 13 EVAL  Summary: Avg Loss: 3.3072, Avg Acc: 26.59%, Duration: 0.41s
+2025-06-03 19:39:37,619 - INFO - Epoch 13: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:37,619 - INFO - Epoch 13: 新的最佳准确率: 26.59% (已保存至 best_model.pth)
+2025-06-03 19:39:38,020 - INFO - Epoch 14/300 | Batch 0/24 | Loss: 4.2363 | Acc: 9.64% | LR: 3.98e-03
+2025-06-03 19:39:39,849 - INFO - Epoch 14 TRAIN Summary: Avg Loss: 3.7522, Avg Acc: 17.50%, Duration: 2.23s
+2025-06-03 19:39:40,247 - INFO - Epoch 14 EVAL  Summary: Avg Loss: 3.2390, Avg Acc: 27.59%, Duration: 0.40s
+2025-06-03 19:39:41,096 - INFO - Epoch 14: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:41,097 - INFO - Epoch 14: 新的最佳准确率: 27.59% (已保存至 best_model.pth)
+2025-06-03 19:39:41,508 - INFO - Epoch 15/300 | Batch 0/24 | Loss: 3.6707 | Acc: 16.41% | LR: 3.98e-03
+2025-06-03 19:39:43,373 - INFO - Epoch 15 TRAIN Summary: Avg Loss: 3.8237, Avg Acc: 16.88%, Duration: 2.28s
+2025-06-03 19:39:43,802 - INFO - Epoch 15 EVAL  Summary: Avg Loss: 3.2370, Avg Acc: 28.45%, Duration: 0.43s
+2025-06-03 19:39:44,523 - INFO - Epoch 15: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:44,524 - INFO - Epoch 15: 新的最佳准确率: 28.45% (已保存至 best_model.pth)
+2025-06-03 19:39:44,995 - INFO - Epoch 16/300 | Batch 0/24 | Loss: 3.6292 | Acc: 17.58% | LR: 3.98e-03
+2025-06-03 19:39:46,834 - INFO - Epoch 16 TRAIN Summary: Avg Loss: 3.6390, Avg Acc: 19.34%, Duration: 2.31s
+2025-06-03 19:39:47,250 - INFO - Epoch 16 EVAL  Summary: Avg Loss: 3.1474, Avg Acc: 29.60%, Duration: 0.41s
+2025-06-03 19:39:48,099 - INFO - Epoch 16: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:48,100 - INFO - Epoch 16: 新的最佳准确率: 29.60% (已保存至 best_model.pth)
+2025-06-03 19:39:48,505 - INFO - Epoch 17/300 | Batch 0/24 | Loss: 3.5634 | Acc: 22.27% | LR: 3.97e-03
+2025-06-03 19:39:50,320 - INFO - Epoch 17 TRAIN Summary: Avg Loss: 3.5960, Avg Acc: 20.71%, Duration: 2.22s
+2025-06-03 19:39:50,734 - INFO - Epoch 17 EVAL  Summary: Avg Loss: 3.0917, Avg Acc: 31.33%, Duration: 0.41s
+2025-06-03 19:39:51,503 - INFO - Epoch 17: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:51,504 - INFO - Epoch 17: 新的最佳准确率: 31.33% (已保存至 best_model.pth)
+2025-06-03 19:39:51,930 - INFO - Epoch 18/300 | Batch 0/24 | Loss: 3.5145 | Acc: 25.78% | LR: 3.97e-03
+2025-06-03 19:39:53,781 - INFO - Epoch 18 TRAIN Summary: Avg Loss: 3.5798, Avg Acc: 20.95%, Duration: 2.28s
+2025-06-03 19:39:54,216 - INFO - Epoch 18 EVAL  Summary: Avg Loss: 3.1057, Avg Acc: 31.31%, Duration: 0.43s
+2025-06-03 19:39:54,757 - INFO - Epoch 19/300 | Batch 0/24 | Loss: 3.7245 | Acc: 20.84% | LR: 3.96e-03
+2025-06-03 19:39:56,627 - INFO - Epoch 19 TRAIN Summary: Avg Loss: 3.6517, Avg Acc: 20.52%, Duration: 2.41s
+2025-06-03 19:39:57,029 - INFO - Epoch 19 EVAL  Summary: Avg Loss: 3.0628, Avg Acc: 32.94%, Duration: 0.40s
+2025-06-03 19:39:57,869 - INFO - Epoch 19: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:39:57,870 - INFO - Epoch 19: 新的最佳准确率: 32.94% (已保存至 best_model.pth)
+2025-06-03 19:39:58,282 - INFO - Epoch 20/300 | Batch 0/24 | Loss: 3.3273 | Acc: 25.78% | LR: 3.96e-03
+2025-06-03 19:40:00,123 - INFO - Epoch 20 TRAIN Summary: Avg Loss: 3.4888, Avg Acc: 22.84%, Duration: 2.25s
+2025-06-03 19:40:00,551 - INFO - Epoch 20 EVAL  Summary: Avg Loss: 2.9971, Avg Acc: 34.28%, Duration: 0.42s
+2025-06-03 19:40:01,399 - INFO - Epoch 20: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:01,399 - INFO - Epoch 20: 新的最佳准确率: 34.28% (已保存至 best_model.pth)
+2025-06-03 19:40:01,845 - INFO - Epoch 20: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_20.pth
+2025-06-03 19:40:02,256 - INFO - Epoch 21/300 | Batch 0/24 | Loss: 3.4227 | Acc: 25.00% | LR: 3.96e-03
+2025-06-03 19:40:04,085 - INFO - Epoch 21 TRAIN Summary: Avg Loss: 3.5687, Avg Acc: 22.26%, Duration: 2.24s
+2025-06-03 19:40:04,486 - INFO - Epoch 21 EVAL  Summary: Avg Loss: 2.9661, Avg Acc: 35.03%, Duration: 0.40s
+2025-06-03 19:40:05,309 - INFO - Epoch 21: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:05,310 - INFO - Epoch 21: 新的最佳准确率: 35.03% (已保存至 best_model.pth)
+2025-06-03 19:40:05,752 - INFO - Epoch 22/300 | Batch 0/24 | Loss: 3.4124 | Acc: 26.16% | LR: 3.95e-03
+2025-06-03 19:40:07,591 - INFO - Epoch 22 TRAIN Summary: Avg Loss: 3.4842, Avg Acc: 23.59%, Duration: 2.28s
+2025-06-03 19:40:07,990 - INFO - Epoch 22 EVAL  Summary: Avg Loss: 2.9081, Avg Acc: 36.36%, Duration: 0.40s
+2025-06-03 19:40:08,806 - INFO - Epoch 22: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:08,807 - INFO - Epoch 22: 新的最佳准确率: 36.36% (已保存至 best_model.pth)
+2025-06-03 19:40:09,239 - INFO - Epoch 23/300 | Batch 0/24 | Loss: 3.3180 | Acc: 25.78% | LR: 3.95e-03
+2025-06-03 19:40:11,116 - INFO - Epoch 23 TRAIN Summary: Avg Loss: 3.4805, Avg Acc: 23.51%, Duration: 2.31s
+2025-06-03 19:40:11,534 - INFO - Epoch 23 EVAL  Summary: Avg Loss: 2.9298, Avg Acc: 35.28%, Duration: 0.42s
+2025-06-03 19:40:12,074 - INFO - Epoch 24/300 | Batch 0/24 | Loss: 3.4436 | Acc: 24.17% | LR: 3.94e-03
+2025-06-03 19:40:13,957 - INFO - Epoch 24 TRAIN Summary: Avg Loss: 3.4201, Avg Acc: 25.43%, Duration: 2.42s
+2025-06-03 19:40:14,361 - INFO - Epoch 24 EVAL  Summary: Avg Loss: 2.8286, Avg Acc: 38.36%, Duration: 0.40s
+2025-06-03 19:40:15,265 - INFO - Epoch 24: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:15,266 - INFO - Epoch 24: 新的最佳准确率: 38.36% (已保存至 best_model.pth)
+2025-06-03 19:40:15,677 - INFO - Epoch 25/300 | Batch 0/24 | Loss: 3.3092 | Acc: 25.97% | LR: 3.94e-03
+2025-06-03 19:40:17,532 - INFO - Epoch 25 TRAIN Summary: Avg Loss: 3.3133, Avg Acc: 27.10%, Duration: 2.26s
+2025-06-03 19:40:17,950 - INFO - Epoch 25 EVAL  Summary: Avg Loss: 2.8092, Avg Acc: 38.70%, Duration: 0.42s
+2025-06-03 19:40:18,893 - INFO - Epoch 25: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:18,894 - INFO - Epoch 25: 新的最佳准确率: 38.70% (已保存至 best_model.pth)
+2025-06-03 19:40:19,295 - INFO - Epoch 26/300 | Batch 0/24 | Loss: 3.2986 | Acc: 26.95% | LR: 3.93e-03
+2025-06-03 19:40:21,124 - INFO - Epoch 26 TRAIN Summary: Avg Loss: 3.3132, Avg Acc: 27.29%, Duration: 2.23s
+2025-06-03 19:40:21,543 - INFO - Epoch 26 EVAL  Summary: Avg Loss: 2.7636, Avg Acc: 39.59%, Duration: 0.42s
+2025-06-03 19:40:22,414 - INFO - Epoch 26: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:22,414 - INFO - Epoch 26: 新的最佳准确率: 39.59% (已保存至 best_model.pth)
+2025-06-03 19:40:22,816 - INFO - Epoch 27/300 | Batch 0/24 | Loss: 3.2157 | Acc: 28.12% | LR: 3.93e-03
+2025-06-03 19:40:24,654 - INFO - Epoch 27 TRAIN Summary: Avg Loss: 3.2561, Avg Acc: 27.98%, Duration: 2.24s
+2025-06-03 19:40:25,069 - INFO - Epoch 27 EVAL  Summary: Avg Loss: 2.7703, Avg Acc: 39.28%, Duration: 0.41s
+2025-06-03 19:40:25,621 - INFO - Epoch 28/300 | Batch 0/24 | Loss: 3.1645 | Acc: 30.86% | LR: 3.92e-03
+2025-06-03 19:40:27,471 - INFO - Epoch 28 TRAIN Summary: Avg Loss: 3.3598, Avg Acc: 27.39%, Duration: 2.40s
+2025-06-03 19:40:27,879 - INFO - Epoch 28 EVAL  Summary: Avg Loss: 2.7435, Avg Acc: 40.60%, Duration: 0.41s
+2025-06-03 19:40:28,713 - INFO - Epoch 28: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:28,714 - INFO - Epoch 28: 新的最佳准确率: 40.60% (已保存至 best_model.pth)
+2025-06-03 19:40:29,134 - INFO - Epoch 29/300 | Batch 0/24 | Loss: 4.2770 | Acc: 10.91% | LR: 3.91e-03
+2025-06-03 19:40:31,001 - INFO - Epoch 29 TRAIN Summary: Avg Loss: 3.3535, Avg Acc: 27.32%, Duration: 2.29s
+2025-06-03 19:40:31,389 - INFO - Epoch 29 EVAL  Summary: Avg Loss: 2.7000, Avg Acc: 41.79%, Duration: 0.39s
+2025-06-03 19:40:32,209 - INFO - Epoch 29: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:32,210 - INFO - Epoch 29: 新的最佳准确率: 41.79% (已保存至 best_model.pth)
+2025-06-03 19:40:32,648 - INFO - Epoch 30/300 | Batch 0/24 | Loss: 4.1838 | Acc: 12.62% | LR: 3.91e-03
+2025-06-03 19:40:34,517 - INFO - Epoch 30 TRAIN Summary: Avg Loss: 3.2103, Avg Acc: 30.53%, Duration: 2.31s
+2025-06-03 19:40:34,926 - INFO - Epoch 30 EVAL  Summary: Avg Loss: 2.6961, Avg Acc: 41.81%, Duration: 0.41s
+2025-06-03 19:40:35,735 - INFO - Epoch 30: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:35,735 - INFO - Epoch 30: 新的最佳准确率: 41.81% (已保存至 best_model.pth)
+2025-06-03 19:40:36,143 - INFO - Epoch 31/300 | Batch 0/24 | Loss: 3.1427 | Acc: 33.84% | LR: 3.90e-03
+2025-06-03 19:40:37,971 - INFO - Epoch 31 TRAIN Summary: Avg Loss: 3.1911, Avg Acc: 30.25%, Duration: 2.24s
+2025-06-03 19:40:38,381 - INFO - Epoch 31 EVAL  Summary: Avg Loss: 2.6800, Avg Acc: 42.13%, Duration: 0.41s
+2025-06-03 19:40:39,286 - INFO - Epoch 31: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:39,287 - INFO - Epoch 31: 新的最佳准确率: 42.13% (已保存至 best_model.pth)
+2025-06-03 19:40:39,677 - INFO - Epoch 32/300 | Batch 0/24 | Loss: 3.0129 | Acc: 35.56% | LR: 3.90e-03
+2025-06-03 19:40:41,541 - INFO - Epoch 32 TRAIN Summary: Avg Loss: 3.1686, Avg Acc: 31.67%, Duration: 2.25s
+2025-06-03 19:40:41,952 - INFO - Epoch 32 EVAL  Summary: Avg Loss: 2.6412, Avg Acc: 43.40%, Duration: 0.41s
+2025-06-03 19:40:42,851 - INFO - Epoch 32: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:42,852 - INFO - Epoch 32: 新的最佳准确率: 43.40% (已保存至 best_model.pth)
+2025-06-03 19:40:43,253 - INFO - Epoch 33/300 | Batch 0/24 | Loss: 4.3181 | Acc: 12.11% | LR: 3.89e-03
+2025-06-03 19:40:45,078 - INFO - Epoch 33 TRAIN Summary: Avg Loss: 3.2142, Avg Acc: 30.18%, Duration: 2.23s
+2025-06-03 19:40:45,478 - INFO - Epoch 33 EVAL  Summary: Avg Loss: 2.6325, Avg Acc: 43.28%, Duration: 0.40s
+2025-06-03 19:40:46,035 - INFO - Epoch 34/300 | Batch 0/24 | Loss: 3.4796 | Acc: 28.88% | LR: 3.88e-03
+2025-06-03 19:40:47,871 - INFO - Epoch 34 TRAIN Summary: Avg Loss: 3.0685, Avg Acc: 33.79%, Duration: 2.39s
+2025-06-03 19:40:48,293 - INFO - Epoch 34 EVAL  Summary: Avg Loss: 2.6528, Avg Acc: 42.97%, Duration: 0.42s
+2025-06-03 19:40:48,869 - INFO - Epoch 35/300 | Batch 0/24 | Loss: 2.9080 | Acc: 37.89% | LR: 3.87e-03
+2025-06-03 19:40:50,688 - INFO - Epoch 35 TRAIN Summary: Avg Loss: 3.0371, Avg Acc: 34.41%, Duration: 2.39s
+2025-06-03 19:40:51,104 - INFO - Epoch 35 EVAL  Summary: Avg Loss: 2.6315, Avg Acc: 43.11%, Duration: 0.41s
+2025-06-03 19:40:51,634 - INFO - Epoch 36/300 | Batch 0/24 | Loss: 2.8471 | Acc: 37.50% | LR: 3.87e-03
+2025-06-03 19:40:53,516 - INFO - Epoch 36 TRAIN Summary: Avg Loss: 3.0588, Avg Acc: 32.90%, Duration: 2.41s
+2025-06-03 19:40:53,919 - INFO - Epoch 36 EVAL  Summary: Avg Loss: 2.5927, Avg Acc: 44.65%, Duration: 0.40s
+2025-06-03 19:40:54,734 - INFO - Epoch 36: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:54,735 - INFO - Epoch 36: 新的最佳准确率: 44.65% (已保存至 best_model.pth)
+2025-06-03 19:40:55,160 - INFO - Epoch 37/300 | Batch 0/24 | Loss: 2.8627 | Acc: 37.86% | LR: 3.86e-03
+2025-06-03 19:40:56,999 - INFO - Epoch 37 TRAIN Summary: Avg Loss: 3.0386, Avg Acc: 34.81%, Duration: 2.26s
+2025-06-03 19:40:57,430 - INFO - Epoch 37 EVAL  Summary: Avg Loss: 2.5639, Avg Acc: 45.62%, Duration: 0.43s
+2025-06-03 19:40:58,245 - INFO - Epoch 37: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:40:58,245 - INFO - Epoch 37: 新的最佳准确率: 45.62% (已保存至 best_model.pth)
+2025-06-03 19:40:58,700 - INFO - Epoch 38/300 | Batch 0/24 | Loss: 2.8600 | Acc: 40.48% | LR: 3.85e-03
+2025-06-03 19:41:00,569 - INFO - Epoch 38 TRAIN Summary: Avg Loss: 2.9767, Avg Acc: 36.48%, Duration: 2.32s
+2025-06-03 19:41:00,991 - INFO - Epoch 38 EVAL  Summary: Avg Loss: 2.5063, Avg Acc: 47.58%, Duration: 0.42s
+2025-06-03 19:41:01,792 - INFO - Epoch 38: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:01,792 - INFO - Epoch 38: 新的最佳准确率: 47.58% (已保存至 best_model.pth)
+2025-06-03 19:41:02,225 - INFO - Epoch 39/300 | Batch 0/24 | Loss: 2.6771 | Acc: 43.36% | LR: 3.84e-03
+2025-06-03 19:41:04,083 - INFO - Epoch 39 TRAIN Summary: Avg Loss: 3.1167, Avg Acc: 34.41%, Duration: 2.29s
+2025-06-03 19:41:04,486 - INFO - Epoch 39 EVAL  Summary: Avg Loss: 2.5199, Avg Acc: 46.78%, Duration: 0.40s
+2025-06-03 19:41:05,035 - INFO - Epoch 40/300 | Batch 0/24 | Loss: 3.4903 | Acc: 27.98% | LR: 3.84e-03
+2025-06-03 19:41:06,879 - INFO - Epoch 40 TRAIN Summary: Avg Loss: 2.9607, Avg Acc: 36.87%, Duration: 2.39s
+2025-06-03 19:41:07,298 - INFO - Epoch 40 EVAL  Summary: Avg Loss: 2.4952, Avg Acc: 47.71%, Duration: 0.42s
+2025-06-03 19:41:08,192 - INFO - Epoch 40: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:08,193 - INFO - Epoch 40: 新的最佳准确率: 47.71% (已保存至 best_model.pth)
+2025-06-03 19:41:08,745 - INFO - Epoch 40: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_40.pth
+2025-06-03 19:41:09,164 - INFO - Epoch 41/300 | Batch 0/24 | Loss: 2.6370 | Acc: 43.36% | LR: 3.83e-03
+2025-06-03 19:41:11,039 - INFO - Epoch 41 TRAIN Summary: Avg Loss: 3.0342, Avg Acc: 36.21%, Duration: 2.29s
+2025-06-03 19:41:11,474 - INFO - Epoch 41 EVAL  Summary: Avg Loss: 2.4644, Avg Acc: 48.17%, Duration: 0.43s
+2025-06-03 19:41:12,388 - INFO - Epoch 41: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:12,388 - INFO - Epoch 41: 新的最佳准确率: 48.17% (已保存至 best_model.pth)
+2025-06-03 19:41:12,794 - INFO - Epoch 42/300 | Batch 0/24 | Loss: 2.7048 | Acc: 43.36% | LR: 3.82e-03
+2025-06-03 19:41:14,614 - INFO - Epoch 42 TRAIN Summary: Avg Loss: 2.9316, Avg Acc: 37.46%, Duration: 2.22s
+2025-06-03 19:41:15,031 - INFO - Epoch 42 EVAL  Summary: Avg Loss: 2.5014, Avg Acc: 47.41%, Duration: 0.42s
+2025-06-03 19:41:15,575 - INFO - Epoch 43/300 | Batch 0/24 | Loss: 2.7136 | Acc: 44.14% | LR: 3.81e-03
+2025-06-03 19:41:17,429 - INFO - Epoch 43 TRAIN Summary: Avg Loss: 2.8641, Avg Acc: 39.14%, Duration: 2.40s
+2025-06-03 19:41:17,835 - INFO - Epoch 43 EVAL  Summary: Avg Loss: 2.4814, Avg Acc: 47.58%, Duration: 0.40s
+2025-06-03 19:41:18,381 - INFO - Epoch 44/300 | Batch 0/24 | Loss: 2.6743 | Acc: 40.23% | LR: 3.80e-03
+2025-06-03 19:41:20,221 - INFO - Epoch 44 TRAIN Summary: Avg Loss: 2.8383, Avg Acc: 40.17%, Duration: 2.38s
+2025-06-03 19:41:20,649 - INFO - Epoch 44 EVAL  Summary: Avg Loss: 2.4734, Avg Acc: 48.75%, Duration: 0.43s
+2025-06-03 19:41:21,535 - INFO - Epoch 44: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:21,536 - INFO - Epoch 44: 新的最佳准确率: 48.75% (已保存至 best_model.pth)
+2025-06-03 19:41:21,986 - INFO - Epoch 45/300 | Batch 0/24 | Loss: 2.6156 | Acc: 40.62% | LR: 3.79e-03
+2025-06-03 19:41:23,853 - INFO - Epoch 45 TRAIN Summary: Avg Loss: 2.7977, Avg Acc: 41.40%, Duration: 2.32s
+2025-06-03 19:41:24,256 - INFO - Epoch 45 EVAL  Summary: Avg Loss: 2.4459, Avg Acc: 49.14%, Duration: 0.40s
+2025-06-03 19:41:25,155 - INFO - Epoch 45: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:25,156 - INFO - Epoch 45: 新的最佳准确率: 49.14% (已保存至 best_model.pth)
+2025-06-03 19:41:25,573 - INFO - Epoch 46/300 | Batch 0/24 | Loss: 2.7176 | Acc: 42.01% | LR: 3.78e-03
+2025-06-03 19:41:27,425 - INFO - Epoch 46 TRAIN Summary: Avg Loss: 2.6748, Avg Acc: 43.86%, Duration: 2.27s
+2025-06-03 19:41:27,840 - INFO - Epoch 46 EVAL  Summary: Avg Loss: 2.4555, Avg Acc: 48.91%, Duration: 0.41s
+2025-06-03 19:41:28,382 - INFO - Epoch 47/300 | Batch 0/24 | Loss: 3.4088 | Acc: 28.87% | LR: 3.77e-03
+2025-06-03 19:41:30,229 - INFO - Epoch 47 TRAIN Summary: Avg Loss: 2.8670, Avg Acc: 39.72%, Duration: 2.39s
+2025-06-03 19:41:30,648 - INFO - Epoch 47 EVAL  Summary: Avg Loss: 2.4398, Avg Acc: 49.11%, Duration: 0.42s
+2025-06-03 19:41:31,233 - INFO - Epoch 48/300 | Batch 0/24 | Loss: 3.1430 | Acc: 38.11% | LR: 3.76e-03
+2025-06-03 19:41:33,126 - INFO - Epoch 48 TRAIN Summary: Avg Loss: 2.7320, Avg Acc: 42.90%, Duration: 2.48s
+2025-06-03 19:41:33,587 - INFO - Epoch 48 EVAL  Summary: Avg Loss: 2.4476, Avg Acc: 49.48%, Duration: 0.46s
+2025-06-03 19:41:34,458 - INFO - Epoch 48: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:34,459 - INFO - Epoch 48: 新的最佳准确率: 49.48% (已保存至 best_model.pth)
+2025-06-03 19:41:34,876 - INFO - Epoch 49/300 | Batch 0/24 | Loss: 4.0260 | Acc: 17.96% | LR: 3.75e-03
+2025-06-03 19:41:36,744 - INFO - Epoch 49 TRAIN Summary: Avg Loss: 2.9233, Avg Acc: 38.80%, Duration: 2.28s
+2025-06-03 19:41:37,148 - INFO - Epoch 49 EVAL  Summary: Avg Loss: 2.4279, Avg Acc: 49.89%, Duration: 0.40s
+2025-06-03 19:41:38,019 - INFO - Epoch 49: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:38,020 - INFO - Epoch 49: 新的最佳准确率: 49.89% (已保存至 best_model.pth)
+2025-06-03 19:41:38,431 - INFO - Epoch 50/300 | Batch 0/24 | Loss: 2.4235 | Acc: 53.12% | LR: 3.74e-03
+2025-06-03 19:41:40,255 - INFO - Epoch 50 TRAIN Summary: Avg Loss: 2.5841, Avg Acc: 46.52%, Duration: 2.23s
+2025-06-03 19:41:40,665 - INFO - Epoch 50 EVAL  Summary: Avg Loss: 2.4074, Avg Acc: 50.13%, Duration: 0.41s
+2025-06-03 19:41:41,381 - INFO - Epoch 50: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:41,382 - INFO - Epoch 50: 新的最佳准确率: 50.13% (已保存至 best_model.pth)
+2025-06-03 19:41:41,824 - INFO - Epoch 51/300 | Batch 0/24 | Loss: 2.5472 | Acc: 48.44% | LR: 3.73e-03
+2025-06-03 19:41:43,621 - INFO - Epoch 51 TRAIN Summary: Avg Loss: 2.6049, Avg Acc: 45.65%, Duration: 2.24s
+2025-06-03 19:41:44,040 - INFO - Epoch 51 EVAL  Summary: Avg Loss: 2.4089, Avg Acc: 50.55%, Duration: 0.42s
+2025-06-03 19:41:44,871 - INFO - Epoch 51: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:44,872 - INFO - Epoch 51: 新的最佳准确率: 50.55% (已保存至 best_model.pth)
+2025-06-03 19:41:45,294 - INFO - Epoch 52/300 | Batch 0/24 | Loss: 2.4585 | Acc: 49.61% | LR: 3.72e-03
+2025-06-03 19:41:47,135 - INFO - Epoch 52 TRAIN Summary: Avg Loss: 2.6218, Avg Acc: 45.86%, Duration: 2.26s
+2025-06-03 19:41:47,538 - INFO - Epoch 52 EVAL  Summary: Avg Loss: 2.4349, Avg Acc: 49.95%, Duration: 0.40s
+2025-06-03 19:41:48,084 - INFO - Epoch 53/300 | Batch 0/24 | Loss: 2.5361 | Acc: 46.09% | LR: 3.71e-03
+2025-06-03 19:41:49,913 - INFO - Epoch 53 TRAIN Summary: Avg Loss: 2.5816, Avg Acc: 47.29%, Duration: 2.37s
+2025-06-03 19:41:50,334 - INFO - Epoch 53 EVAL  Summary: Avg Loss: 2.4225, Avg Acc: 50.25%, Duration: 0.42s
+2025-06-03 19:41:50,900 - INFO - Epoch 54/300 | Batch 0/24 | Loss: 2.7751 | Acc: 43.93% | LR: 3.70e-03
+2025-06-03 19:41:52,752 - INFO - Epoch 54 TRAIN Summary: Avg Loss: 2.6079, Avg Acc: 47.33%, Duration: 2.42s
+2025-06-03 19:41:53,170 - INFO - Epoch 54 EVAL  Summary: Avg Loss: 2.3851, Avg Acc: 51.23%, Duration: 0.42s
+2025-06-03 19:41:53,923 - INFO - Epoch 54: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:41:53,924 - INFO - Epoch 54: 新的最佳准确率: 51.23% (已保存至 best_model.pth)
+2025-06-03 19:41:54,348 - INFO - Epoch 55/300 | Batch 0/24 | Loss: 2.3229 | Acc: 53.12% | LR: 3.69e-03
+2025-06-03 19:41:56,197 - INFO - Epoch 55 TRAIN Summary: Avg Loss: 2.6032, Avg Acc: 47.52%, Duration: 2.27s
+2025-06-03 19:41:56,585 - INFO - Epoch 55 EVAL  Summary: Avg Loss: 2.4114, Avg Acc: 50.64%, Duration: 0.39s
+2025-06-03 19:41:57,154 - INFO - Epoch 56/300 | Batch 0/24 | Loss: 2.4076 | Acc: 51.21% | LR: 3.68e-03
+2025-06-03 19:41:59,017 - INFO - Epoch 56 TRAIN Summary: Avg Loss: 2.6611, Avg Acc: 45.62%, Duration: 2.43s
+2025-06-03 19:41:59,455 - INFO - Epoch 56 EVAL  Summary: Avg Loss: 2.4123, Avg Acc: 50.55%, Duration: 0.44s
+2025-06-03 19:42:00,019 - INFO - Epoch 57/300 | Batch 0/24 | Loss: 2.4318 | Acc: 49.56% | LR: 3.67e-03
+2025-06-03 19:42:01,898 - INFO - Epoch 57 TRAIN Summary: Avg Loss: 2.5138, Avg Acc: 49.23%, Duration: 2.44s
+2025-06-03 19:42:02,311 - INFO - Epoch 57 EVAL  Summary: Avg Loss: 2.3926, Avg Acc: 51.21%, Duration: 0.41s
+2025-06-03 19:42:02,863 - INFO - Epoch 58/300 | Batch 0/24 | Loss: 3.2303 | Acc: 35.30% | LR: 3.65e-03
+2025-06-03 19:42:04,697 - INFO - Epoch 58 TRAIN Summary: Avg Loss: 2.4865, Avg Acc: 49.97%, Duration: 2.38s
+2025-06-03 19:42:05,076 - INFO - Epoch 58 EVAL  Summary: Avg Loss: 2.3764, Avg Acc: 51.76%, Duration: 0.38s
+2025-06-03 19:42:05,893 - INFO - Epoch 58: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:42:05,894 - INFO - Epoch 58: 新的最佳准确率: 51.76% (已保存至 best_model.pth)
+2025-06-03 19:42:06,371 - INFO - Epoch 59/300 | Batch 0/24 | Loss: 2.2083 | Acc: 58.20% | LR: 3.64e-03
+2025-06-03 19:42:08,206 - INFO - Epoch 59 TRAIN Summary: Avg Loss: 2.4790, Avg Acc: 50.76%, Duration: 2.31s
+2025-06-03 19:42:08,588 - INFO - Epoch 59 EVAL  Summary: Avg Loss: 2.3746, Avg Acc: 52.02%, Duration: 0.38s
+2025-06-03 19:42:09,500 - INFO - Epoch 59: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:42:09,500 - INFO - Epoch 59: 新的最佳准确率: 52.02% (已保存至 best_model.pth)
+2025-06-03 19:42:09,926 - INFO - Epoch 60/300 | Batch 0/24 | Loss: 2.1900 | Acc: 57.07% | LR: 3.63e-03
+2025-06-03 19:42:11,850 - INFO - Epoch 60 TRAIN Summary: Avg Loss: 2.4494, Avg Acc: 51.87%, Duration: 2.35s
+2025-06-03 19:42:12,432 - INFO - Epoch 60 EVAL  Summary: Avg Loss: 2.4166, Avg Acc: 51.41%, Duration: 0.58s
+2025-06-03 19:42:13,366 - INFO - Epoch 60: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_60.pth
+2025-06-03 19:42:13,797 - INFO - Epoch 61/300 | Batch 0/24 | Loss: 2.1998 | Acc: 57.42% | LR: 3.62e-03
+2025-06-03 19:42:15,636 - INFO - Epoch 61 TRAIN Summary: Avg Loss: 2.5017, Avg Acc: 50.70%, Duration: 2.27s
+2025-06-03 19:42:16,068 - INFO - Epoch 61 EVAL  Summary: Avg Loss: 2.4227, Avg Acc: 51.78%, Duration: 0.43s
+2025-06-03 19:42:16,623 - INFO - Epoch 62/300 | Batch 0/24 | Loss: 2.1508 | Acc: 56.64% | LR: 3.61e-03
+2025-06-03 19:42:18,463 - INFO - Epoch 62 TRAIN Summary: Avg Loss: 2.4964, Avg Acc: 50.32%, Duration: 2.39s
+2025-06-03 19:42:18,889 - INFO - Epoch 62 EVAL  Summary: Avg Loss: 2.3865, Avg Acc: 52.40%, Duration: 0.42s
+2025-06-03 19:42:19,709 - INFO - Epoch 62: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:42:19,709 - INFO - Epoch 62: 新的最佳准确率: 52.40% (已保存至 best_model.pth)
+2025-06-03 19:42:20,122 - INFO - Epoch 63/300 | Batch 0/24 | Loss: 2.1579 | Acc: 61.77% | LR: 3.59e-03
+2025-06-03 19:42:21,982 - INFO - Epoch 63 TRAIN Summary: Avg Loss: 2.5373, Avg Acc: 49.97%, Duration: 2.27s
+2025-06-03 19:42:22,427 - INFO - Epoch 63 EVAL  Summary: Avg Loss: 2.3873, Avg Acc: 52.05%, Duration: 0.44s
+2025-06-03 19:42:22,976 - INFO - Epoch 64/300 | Batch 0/24 | Loss: 2.1989 | Acc: 57.81% | LR: 3.58e-03
+2025-06-03 19:42:24,853 - INFO - Epoch 64 TRAIN Summary: Avg Loss: 2.4364, Avg Acc: 51.77%, Duration: 2.43s
+2025-06-03 19:42:25,268 - INFO - Epoch 64 EVAL  Summary: Avg Loss: 2.3813, Avg Acc: 51.54%, Duration: 0.41s
+2025-06-03 19:42:25,829 - INFO - Epoch 65/300 | Batch 0/24 | Loss: 2.2353 | Acc: 55.86% | LR: 3.57e-03
+2025-06-03 19:42:27,710 - INFO - Epoch 65 TRAIN Summary: Avg Loss: 2.2967, Avg Acc: 55.48%, Duration: 2.44s
+2025-06-03 19:42:28,158 - INFO - Epoch 65 EVAL  Summary: Avg Loss: 2.4198, Avg Acc: 52.04%, Duration: 0.45s
+2025-06-03 19:42:28,710 - INFO - Epoch 66/300 | Batch 0/24 | Loss: 3.3625 | Acc: 35.58% | LR: 3.55e-03
+2025-06-03 19:42:30,556 - INFO - Epoch 66 TRAIN Summary: Avg Loss: 2.4851, Avg Acc: 50.84%, Duration: 2.40s
+2025-06-03 19:42:30,985 - INFO - Epoch 66 EVAL  Summary: Avg Loss: 2.4107, Avg Acc: 51.76%, Duration: 0.43s
+2025-06-03 19:42:31,574 - INFO - Epoch 67/300 | Batch 0/24 | Loss: 2.1273 | Acc: 60.16% | LR: 3.54e-03
+2025-06-03 19:42:33,463 - INFO - Epoch 67 TRAIN Summary: Avg Loss: 2.3461, Avg Acc: 55.13%, Duration: 2.48s
+2025-06-03 19:42:33,877 - INFO - Epoch 67 EVAL  Summary: Avg Loss: 2.3763, Avg Acc: 52.21%, Duration: 0.41s
+2025-06-03 19:42:34,428 - INFO - Epoch 68/300 | Batch 0/24 | Loss: 2.0939 | Acc: 62.06% | LR: 3.53e-03
+2025-06-03 19:42:36,249 - INFO - Epoch 68 TRAIN Summary: Avg Loss: 2.6362, Avg Acc: 48.74%, Duration: 2.37s
+2025-06-03 19:42:36,668 - INFO - Epoch 68 EVAL  Summary: Avg Loss: 2.3344, Avg Acc: 53.02%, Duration: 0.42s
+2025-06-03 19:42:37,426 - INFO - Epoch 68: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:42:37,426 - INFO - Epoch 68: 新的最佳准确率: 53.02% (已保存至 best_model.pth)
+2025-06-03 19:42:37,837 - INFO - Epoch 69/300 | Batch 0/24 | Loss: 2.4326 | Acc: 53.77% | LR: 3.51e-03
+2025-06-03 19:42:39,634 - INFO - Epoch 69 TRAIN Summary: Avg Loss: 2.3347, Avg Acc: 54.64%, Duration: 2.21s
+2025-06-03 19:42:40,058 - INFO - Epoch 69 EVAL  Summary: Avg Loss: 2.4036, Avg Acc: 51.90%, Duration: 0.42s
+2025-06-03 19:42:40,607 - INFO - Epoch 70/300 | Batch 0/24 | Loss: 1.9885 | Acc: 62.11% | LR: 3.50e-03
+2025-06-03 19:42:42,457 - INFO - Epoch 70 TRAIN Summary: Avg Loss: 2.4124, Avg Acc: 54.19%, Duration: 2.40s
+2025-06-03 19:42:42,878 - INFO - Epoch 70 EVAL  Summary: Avg Loss: 2.4026, Avg Acc: 52.99%, Duration: 0.42s
+2025-06-03 19:42:43,442 - INFO - Epoch 71/300 | Batch 0/24 | Loss: 1.9175 | Acc: 67.50% | LR: 3.49e-03
+2025-06-03 19:42:45,300 - INFO - Epoch 71 TRAIN Summary: Avg Loss: 2.2234, Avg Acc: 58.06%, Duration: 2.42s
+2025-06-03 19:42:45,713 - INFO - Epoch 71 EVAL  Summary: Avg Loss: 2.3931, Avg Acc: 52.47%, Duration: 0.41s
+2025-06-03 19:42:46,261 - INFO - Epoch 72/300 | Batch 0/24 | Loss: 1.8614 | Acc: 67.58% | LR: 3.47e-03
+2025-06-03 19:42:48,077 - INFO - Epoch 72 TRAIN Summary: Avg Loss: 2.2251, Avg Acc: 58.73%, Duration: 2.36s
+2025-06-03 19:42:48,526 - INFO - Epoch 72 EVAL  Summary: Avg Loss: 2.3912, Avg Acc: 52.69%, Duration: 0.45s
+2025-06-03 19:42:49,073 - INFO - Epoch 73/300 | Batch 0/24 | Loss: 2.1070 | Acc: 58.98% | LR: 3.46e-03
+2025-06-03 19:42:50,907 - INFO - Epoch 73 TRAIN Summary: Avg Loss: 2.2721, Avg Acc: 56.92%, Duration: 2.38s
+2025-06-03 19:42:51,320 - INFO - Epoch 73 EVAL  Summary: Avg Loss: 2.3631, Avg Acc: 52.72%, Duration: 0.41s
+2025-06-03 19:42:51,870 - INFO - Epoch 74/300 | Batch 0/24 | Loss: 2.0020 | Acc: 63.28% | LR: 3.44e-03
+2025-06-03 19:42:53,711 - INFO - Epoch 74 TRAIN Summary: Avg Loss: 2.2246, Avg Acc: 58.90%, Duration: 2.39s
+2025-06-03 19:42:54,130 - INFO - Epoch 74 EVAL  Summary: Avg Loss: 2.3683, Avg Acc: 52.22%, Duration: 0.42s
+2025-06-03 19:42:54,686 - INFO - Epoch 75/300 | Batch 0/24 | Loss: 2.0460 | Acc: 63.28% | LR: 3.43e-03
+2025-06-03 19:42:56,549 - INFO - Epoch 75 TRAIN Summary: Avg Loss: 2.2082, Avg Acc: 58.72%, Duration: 2.42s
+2025-06-03 19:42:56,966 - INFO - Epoch 75 EVAL  Summary: Avg Loss: 2.3902, Avg Acc: 52.70%, Duration: 0.41s
+2025-06-03 19:42:57,525 - INFO - Epoch 76/300 | Batch 0/24 | Loss: 2.0528 | Acc: 65.40% | LR: 3.41e-03
+2025-06-03 19:42:59,345 - INFO - Epoch 76 TRAIN Summary: Avg Loss: 2.2099, Avg Acc: 59.06%, Duration: 2.38s
+2025-06-03 19:42:59,762 - INFO - Epoch 76 EVAL  Summary: Avg Loss: 2.3627, Avg Acc: 53.14%, Duration: 0.41s
+2025-06-03 19:43:00,614 - INFO - Epoch 76: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:43:00,615 - INFO - Epoch 76: 新的最佳准确率: 53.14% (已保存至 best_model.pth)
+2025-06-03 19:43:01,055 - INFO - Epoch 77/300 | Batch 0/24 | Loss: 2.1193 | Acc: 60.15% | LR: 3.40e-03
+2025-06-03 19:43:02,879 - INFO - Epoch 77 TRAIN Summary: Avg Loss: 2.1863, Avg Acc: 59.34%, Duration: 2.26s
+2025-06-03 19:43:03,302 - INFO - Epoch 77 EVAL  Summary: Avg Loss: 2.4148, Avg Acc: 52.14%, Duration: 0.42s
+2025-06-03 19:43:03,862 - INFO - Epoch 78/300 | Batch 0/24 | Loss: 1.9639 | Acc: 61.33% | LR: 3.38e-03
+2025-06-03 19:43:05,681 - INFO - Epoch 78 TRAIN Summary: Avg Loss: 2.2311, Avg Acc: 58.15%, Duration: 2.38s
+2025-06-03 19:43:06,070 - INFO - Epoch 78 EVAL  Summary: Avg Loss: 2.3979, Avg Acc: 52.52%, Duration: 0.39s
+2025-06-03 19:43:06,640 - INFO - Epoch 79/300 | Batch 0/24 | Loss: 2.1058 | Acc: 64.17% | LR: 3.37e-03
+2025-06-03 19:43:08,469 - INFO - Epoch 79 TRAIN Summary: Avg Loss: 2.3306, Avg Acc: 57.37%, Duration: 2.40s
+2025-06-03 19:43:08,892 - INFO - Epoch 79 EVAL  Summary: Avg Loss: 2.4101, Avg Acc: 52.51%, Duration: 0.42s
+2025-06-03 19:43:09,457 - INFO - Epoch 80/300 | Batch 0/24 | Loss: 1.9983 | Acc: 61.71% | LR: 3.35e-03
+2025-06-03 19:43:11,296 - INFO - Epoch 80 TRAIN Summary: Avg Loss: 2.2075, Avg Acc: 59.63%, Duration: 2.40s
+2025-06-03 19:43:11,730 - INFO - Epoch 80 EVAL  Summary: Avg Loss: 2.4009, Avg Acc: 52.42%, Duration: 0.43s
+2025-06-03 19:43:12,439 - INFO - Epoch 80: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_80.pth
+2025-06-03 19:43:12,896 - INFO - Epoch 81/300 | Batch 0/24 | Loss: 1.8076 | Acc: 72.27% | LR: 3.34e-03
+2025-06-03 19:43:14,712 - INFO - Epoch 81 TRAIN Summary: Avg Loss: 2.1730, Avg Acc: 59.76%, Duration: 2.27s
+2025-06-03 19:43:15,111 - INFO - Epoch 81 EVAL  Summary: Avg Loss: 2.3919, Avg Acc: 52.55%, Duration: 0.39s
+2025-06-03 19:43:15,667 - INFO - Epoch 82/300 | Batch 0/24 | Loss: 1.9350 | Acc: 68.75% | LR: 3.32e-03
+2025-06-03 19:43:17,479 - INFO - Epoch 82 TRAIN Summary: Avg Loss: 2.0470, Avg Acc: 63.74%, Duration: 2.37s
+2025-06-03 19:43:17,902 - INFO - Epoch 82 EVAL  Summary: Avg Loss: 2.3970, Avg Acc: 53.12%, Duration: 0.42s
+2025-06-03 19:43:18,447 - INFO - Epoch 83/300 | Batch 0/24 | Loss: 1.9405 | Acc: 63.28% | LR: 3.31e-03
+2025-06-03 19:43:20,275 - INFO - Epoch 83 TRAIN Summary: Avg Loss: 2.2307, Avg Acc: 59.17%, Duration: 2.37s
+2025-06-03 19:43:20,693 - INFO - Epoch 83 EVAL  Summary: Avg Loss: 2.4224, Avg Acc: 51.98%, Duration: 0.42s
+2025-06-03 19:43:21,244 - INFO - Epoch 84/300 | Batch 0/24 | Loss: 1.9972 | Acc: 64.82% | LR: 3.29e-03
+2025-06-03 19:43:23,066 - INFO - Epoch 84 TRAIN Summary: Avg Loss: 2.1655, Avg Acc: 60.61%, Duration: 2.37s
+2025-06-03 19:43:23,469 - INFO - Epoch 84 EVAL  Summary: Avg Loss: 2.4028, Avg Acc: 52.23%, Duration: 0.40s
+2025-06-03 19:43:24,003 - INFO - Epoch 85/300 | Batch 0/24 | Loss: 1.9108 | Acc: 68.75% | LR: 3.28e-03
+2025-06-03 19:43:25,847 - INFO - Epoch 85 TRAIN Summary: Avg Loss: 2.2363, Avg Acc: 58.94%, Duration: 2.38s
+2025-06-03 19:43:26,268 - INFO - Epoch 85 EVAL  Summary: Avg Loss: 2.3950, Avg Acc: 52.74%, Duration: 0.42s
+2025-06-03 19:43:26,813 - INFO - Epoch 86/300 | Batch 0/24 | Loss: 1.9352 | Acc: 66.34% | LR: 3.26e-03
+2025-06-03 19:43:28,620 - INFO - Epoch 86 TRAIN Summary: Avg Loss: 2.1777, Avg Acc: 60.85%, Duration: 2.35s
+2025-06-03 19:43:29,020 - INFO - Epoch 86 EVAL  Summary: Avg Loss: 2.4351, Avg Acc: 52.66%, Duration: 0.40s
+2025-06-03 19:43:29,566 - INFO - Epoch 87/300 | Batch 0/24 | Loss: 1.8978 | Acc: 66.41% | LR: 3.24e-03
+2025-06-03 19:43:31,436 - INFO - Epoch 87 TRAIN Summary: Avg Loss: 2.2473, Avg Acc: 59.45%, Duration: 2.41s
+2025-06-03 19:43:31,847 - INFO - Epoch 87 EVAL  Summary: Avg Loss: 2.4216, Avg Acc: 52.77%, Duration: 0.41s
+2025-06-03 19:43:32,400 - INFO - Epoch 88/300 | Batch 0/24 | Loss: 1.9796 | Acc: 62.07% | LR: 3.23e-03
+2025-06-03 19:43:34,251 - INFO - Epoch 88 TRAIN Summary: Avg Loss: 2.0767, Avg Acc: 62.51%, Duration: 2.40s
+2025-06-03 19:43:34,638 - INFO - Epoch 88 EVAL  Summary: Avg Loss: 2.3957, Avg Acc: 52.66%, Duration: 0.38s
+2025-06-03 19:43:35,212 - INFO - Epoch 89/300 | Batch 0/24 | Loss: 2.6939 | Acc: 49.77% | LR: 3.21e-03
+2025-06-03 19:43:37,061 - INFO - Epoch 89 TRAIN Summary: Avg Loss: 2.1428, Avg Acc: 61.64%, Duration: 2.42s
+2025-06-03 19:43:37,473 - INFO - Epoch 89 EVAL  Summary: Avg Loss: 2.4013, Avg Acc: 52.40%, Duration: 0.41s
+2025-06-03 19:43:38,063 - INFO - Epoch 90/300 | Batch 0/24 | Loss: 1.8828 | Acc: 65.62% | LR: 3.19e-03
+2025-06-03 19:43:39,896 - INFO - Epoch 90 TRAIN Summary: Avg Loss: 2.0945, Avg Acc: 62.83%, Duration: 2.42s
+2025-06-03 19:43:40,303 - INFO - Epoch 90 EVAL  Summary: Avg Loss: 2.4189, Avg Acc: 52.22%, Duration: 0.41s
+2025-06-03 19:43:40,843 - INFO - Epoch 91/300 | Batch 0/24 | Loss: 2.0674 | Acc: 65.93% | LR: 3.18e-03
+2025-06-03 19:43:42,711 - INFO - Epoch 91 TRAIN Summary: Avg Loss: 2.1684, Avg Acc: 60.90%, Duration: 2.41s
+2025-06-03 19:43:43,131 - INFO - Epoch 91 EVAL  Summary: Avg Loss: 2.4172, Avg Acc: 52.75%, Duration: 0.42s
+2025-06-03 19:43:43,694 - INFO - Epoch 92/300 | Batch 0/24 | Loss: 1.7777 | Acc: 73.61% | LR: 3.16e-03
+2025-06-03 19:43:45,524 - INFO - Epoch 92 TRAIN Summary: Avg Loss: 2.2004, Avg Acc: 60.58%, Duration: 2.39s
+2025-06-03 19:43:45,941 - INFO - Epoch 92 EVAL  Summary: Avg Loss: 2.3929, Avg Acc: 53.01%, Duration: 0.42s
+2025-06-03 19:43:46,504 - INFO - Epoch 93/300 | Batch 0/24 | Loss: 1.7831 | Acc: 68.32% | LR: 3.14e-03
+2025-06-03 19:43:48,359 - INFO - Epoch 93 TRAIN Summary: Avg Loss: 2.1582, Avg Acc: 61.72%, Duration: 2.42s
+2025-06-03 19:43:48,740 - INFO - Epoch 93 EVAL  Summary: Avg Loss: 2.3893, Avg Acc: 52.91%, Duration: 0.38s
+2025-06-03 19:43:49,284 - INFO - Epoch 94/300 | Batch 0/24 | Loss: 1.9042 | Acc: 64.84% | LR: 3.12e-03
+2025-06-03 19:43:51,097 - INFO - Epoch 94 TRAIN Summary: Avg Loss: 2.1536, Avg Acc: 61.89%, Duration: 2.36s
+2025-06-03 19:43:51,489 - INFO - Epoch 94 EVAL  Summary: Avg Loss: 2.3875, Avg Acc: 53.12%, Duration: 0.39s
+2025-06-03 19:43:52,043 - INFO - Epoch 95/300 | Batch 0/24 | Loss: 1.8981 | Acc: 67.56% | LR: 3.11e-03
+2025-06-03 19:43:53,890 - INFO - Epoch 95 TRAIN Summary: Avg Loss: 2.0364, Avg Acc: 64.38%, Duration: 2.40s
+2025-06-03 19:43:54,293 - INFO - Epoch 95 EVAL  Summary: Avg Loss: 2.4079, Avg Acc: 53.80%, Duration: 0.40s
+2025-06-03 19:43:55,128 - INFO - Epoch 95: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:43:55,129 - INFO - Epoch 95: 新的最佳准确率: 53.80% (已保存至 best_model.pth)
+2025-06-03 19:43:55,583 - INFO - Epoch 96/300 | Batch 0/24 | Loss: 1.7346 | Acc: 71.09% | LR: 3.09e-03
+2025-06-03 19:43:57,451 - INFO - Epoch 96 TRAIN Summary: Avg Loss: 2.1149, Avg Acc: 62.77%, Duration: 2.32s
+2025-06-03 19:43:57,858 - INFO - Epoch 96 EVAL  Summary: Avg Loss: 2.4169, Avg Acc: 53.46%, Duration: 0.40s
+2025-06-03 19:43:58,417 - INFO - Epoch 97/300 | Batch 0/24 | Loss: 2.2888 | Acc: 57.56% | LR: 3.07e-03
+2025-06-03 19:44:00,256 - INFO - Epoch 97 TRAIN Summary: Avg Loss: 1.8318, Avg Acc: 68.67%, Duration: 2.40s
+2025-06-03 19:44:00,654 - INFO - Epoch 97 EVAL  Summary: Avg Loss: 2.4147, Avg Acc: 52.87%, Duration: 0.40s
+2025-06-03 19:44:01,205 - INFO - Epoch 98/300 | Batch 0/24 | Loss: 4.1476 | Acc: 15.89% | LR: 3.05e-03
+2025-06-03 19:44:03,052 - INFO - Epoch 98 TRAIN Summary: Avg Loss: 2.1462, Avg Acc: 62.25%, Duration: 2.40s
+2025-06-03 19:44:03,470 - INFO - Epoch 98 EVAL  Summary: Avg Loss: 2.3804, Avg Acc: 53.95%, Duration: 0.42s
+2025-06-03 19:44:04,189 - INFO - Epoch 98: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:44:04,190 - INFO - Epoch 98: 新的最佳准确率: 53.95% (已保存至 best_model.pth)
+2025-06-03 19:44:04,656 - INFO - Epoch 99/300 | Batch 0/24 | Loss: 3.9693 | Acc: 21.77% | LR: 3.04e-03
+2025-06-03 19:44:06,461 - INFO - Epoch 99 TRAIN Summary: Avg Loss: 2.0635, Avg Acc: 64.29%, Duration: 2.27s
+2025-06-03 19:44:06,875 - INFO - Epoch 99 EVAL  Summary: Avg Loss: 2.4153, Avg Acc: 52.84%, Duration: 0.41s
+2025-06-03 19:44:07,415 - INFO - Epoch 100/300 | Batch 0/24 | Loss: 1.6513 | Acc: 74.95% | LR: 3.02e-03
+2025-06-03 19:44:09,271 - INFO - Epoch 100 TRAIN Summary: Avg Loss: 2.1251, Avg Acc: 63.27%, Duration: 2.39s
+2025-06-03 19:44:09,667 - INFO - Epoch 100 EVAL  Summary: Avg Loss: 2.3998, Avg Acc: 53.15%, Duration: 0.39s
+2025-06-03 19:44:10,358 - INFO - Epoch 100: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_100.pth
+2025-06-03 19:44:10,816 - INFO - Epoch 101/300 | Batch 0/24 | Loss: 1.9647 | Acc: 65.62% | LR: 3.00e-03
+2025-06-03 19:44:12,611 - INFO - Epoch 101 TRAIN Summary: Avg Loss: 1.8631, Avg Acc: 69.14%, Duration: 2.25s
+2025-06-03 19:44:13,061 - INFO - Epoch 101 EVAL  Summary: Avg Loss: 2.4119, Avg Acc: 53.57%, Duration: 0.45s
+2025-06-03 19:44:13,658 - INFO - Epoch 102/300 | Batch 0/24 | Loss: 2.5307 | Acc: 57.08% | LR: 2.98e-03
+2025-06-03 19:44:15,536 - INFO - Epoch 102 TRAIN Summary: Avg Loss: 2.0667, Avg Acc: 64.77%, Duration: 2.47s
+2025-06-03 19:44:15,944 - INFO - Epoch 102 EVAL  Summary: Avg Loss: 2.4174, Avg Acc: 54.41%, Duration: 0.41s
+2025-06-03 19:44:16,661 - INFO - Epoch 102: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:44:16,662 - INFO - Epoch 102: 新的最佳准确率: 54.41% (已保存至 best_model.pth)
+2025-06-03 19:44:17,077 - INFO - Epoch 103/300 | Batch 0/24 | Loss: 1.7693 | Acc: 69.14% | LR: 2.96e-03
+2025-06-03 19:44:18,923 - INFO - Epoch 103 TRAIN Summary: Avg Loss: 1.9057, Avg Acc: 67.69%, Duration: 2.26s
+2025-06-03 19:44:19,321 - INFO - Epoch 103 EVAL  Summary: Avg Loss: 2.3869, Avg Acc: 53.92%, Duration: 0.40s
+2025-06-03 19:44:19,865 - INFO - Epoch 104/300 | Batch 0/24 | Loss: 1.7538 | Acc: 72.27% | LR: 2.95e-03
+2025-06-03 19:44:21,704 - INFO - Epoch 104 TRAIN Summary: Avg Loss: 1.9777, Avg Acc: 66.39%, Duration: 2.38s
+2025-06-03 19:44:22,104 - INFO - Epoch 104 EVAL  Summary: Avg Loss: 2.4140, Avg Acc: 53.36%, Duration: 0.40s
+2025-06-03 19:44:22,667 - INFO - Epoch 105/300 | Batch 0/24 | Loss: 1.6957 | Acc: 72.17% | LR: 2.93e-03
+2025-06-03 19:44:24,477 - INFO - Epoch 105 TRAIN Summary: Avg Loss: 2.0356, Avg Acc: 64.41%, Duration: 2.37s
+2025-06-03 19:44:24,909 - INFO - Epoch 105 EVAL  Summary: Avg Loss: 2.3861, Avg Acc: 53.49%, Duration: 0.43s
+2025-06-03 19:44:25,453 - INFO - Epoch 106/300 | Batch 0/24 | Loss: 1.6237 | Acc: 73.44% | LR: 2.91e-03
+2025-06-03 19:44:27,296 - INFO - Epoch 106 TRAIN Summary: Avg Loss: 2.1152, Avg Acc: 63.54%, Duration: 2.39s
+2025-06-03 19:44:27,703 - INFO - Epoch 106 EVAL  Summary: Avg Loss: 2.3811, Avg Acc: 53.16%, Duration: 0.41s
+2025-06-03 19:44:28,291 - INFO - Epoch 107/300 | Batch 0/24 | Loss: 1.7254 | Acc: 71.09% | LR: 2.89e-03
+2025-06-03 19:44:30,184 - INFO - Epoch 107 TRAIN Summary: Avg Loss: 1.8733, Avg Acc: 69.16%, Duration: 2.48s
+2025-06-03 19:44:30,600 - INFO - Epoch 107 EVAL  Summary: Avg Loss: 2.4216, Avg Acc: 52.98%, Duration: 0.41s
+2025-06-03 19:44:31,159 - INFO - Epoch 108/300 | Batch 0/24 | Loss: 1.7836 | Acc: 68.75% | LR: 2.87e-03
+2025-06-03 19:44:33,005 - INFO - Epoch 108 TRAIN Summary: Avg Loss: 1.8550, Avg Acc: 69.36%, Duration: 2.40s
+2025-06-03 19:44:33,426 - INFO - Epoch 108 EVAL  Summary: Avg Loss: 2.4227, Avg Acc: 53.31%, Duration: 0.42s
+2025-06-03 19:44:33,976 - INFO - Epoch 109/300 | Batch 0/24 | Loss: 1.6422 | Acc: 73.48% | LR: 2.85e-03
+2025-06-03 19:44:35,845 - INFO - Epoch 109 TRAIN Summary: Avg Loss: 2.1956, Avg Acc: 61.81%, Duration: 2.42s
+2025-06-03 19:44:36,268 - INFO - Epoch 109 EVAL  Summary: Avg Loss: 2.3998, Avg Acc: 53.97%, Duration: 0.42s
+2025-06-03 19:44:36,802 - INFO - Epoch 110/300 | Batch 0/24 | Loss: 1.7214 | Acc: 73.44% | LR: 2.83e-03
+2025-06-03 19:44:38,625 - INFO - Epoch 110 TRAIN Summary: Avg Loss: 2.1147, Avg Acc: 63.16%, Duration: 2.36s
+2025-06-03 19:44:39,009 - INFO - Epoch 110 EVAL  Summary: Avg Loss: 2.4123, Avg Acc: 53.20%, Duration: 0.38s
+2025-06-03 19:44:39,556 - INFO - Epoch 111/300 | Batch 0/24 | Loss: 1.7141 | Acc: 71.88% | LR: 2.81e-03
+2025-06-03 19:44:41,377 - INFO - Epoch 111 TRAIN Summary: Avg Loss: 2.0672, Avg Acc: 65.00%, Duration: 2.37s
+2025-06-03 19:44:41,823 - INFO - Epoch 111 EVAL  Summary: Avg Loss: 2.4311, Avg Acc: 52.89%, Duration: 0.44s
+2025-06-03 19:44:42,383 - INFO - Epoch 112/300 | Batch 0/24 | Loss: 1.6692 | Acc: 73.83% | LR: 2.79e-03
+2025-06-03 19:44:44,232 - INFO - Epoch 112 TRAIN Summary: Avg Loss: 1.9789, Avg Acc: 66.66%, Duration: 2.41s
+2025-06-03 19:44:44,654 - INFO - Epoch 112 EVAL  Summary: Avg Loss: 2.3855, Avg Acc: 53.80%, Duration: 0.42s
+2025-06-03 19:44:45,224 - INFO - Epoch 113/300 | Batch 0/24 | Loss: 1.5982 | Acc: 73.83% | LR: 2.78e-03
+2025-06-03 19:44:47,100 - INFO - Epoch 113 TRAIN Summary: Avg Loss: 1.9939, Avg Acc: 66.42%, Duration: 2.44s
+2025-06-03 19:44:47,512 - INFO - Epoch 113 EVAL  Summary: Avg Loss: 2.4322, Avg Acc: 53.65%, Duration: 0.41s
+2025-06-03 19:44:48,069 - INFO - Epoch 114/300 | Batch 0/24 | Loss: 1.6926 | Acc: 73.94% | LR: 2.76e-03
+2025-06-03 19:44:49,945 - INFO - Epoch 114 TRAIN Summary: Avg Loss: 1.8626, Avg Acc: 69.55%, Duration: 2.43s
+2025-06-03 19:44:50,394 - INFO - Epoch 114 EVAL  Summary: Avg Loss: 2.4150, Avg Acc: 53.54%, Duration: 0.45s
+2025-06-03 19:44:50,946 - INFO - Epoch 115/300 | Batch 0/24 | Loss: 1.5309 | Acc: 74.61% | LR: 2.74e-03
+2025-06-03 19:44:52,831 - INFO - Epoch 115 TRAIN Summary: Avg Loss: 1.8365, Avg Acc: 70.38%, Duration: 2.44s
+2025-06-03 19:44:53,233 - INFO - Epoch 115 EVAL  Summary: Avg Loss: 2.4196, Avg Acc: 53.98%, Duration: 0.40s
+2025-06-03 19:44:53,795 - INFO - Epoch 116/300 | Batch 0/24 | Loss: 1.7009 | Acc: 74.18% | LR: 2.72e-03
+2025-06-03 19:44:55,653 - INFO - Epoch 116 TRAIN Summary: Avg Loss: 1.9428, Avg Acc: 68.09%, Duration: 2.42s
+2025-06-03 19:44:56,063 - INFO - Epoch 116 EVAL  Summary: Avg Loss: 2.3997, Avg Acc: 53.66%, Duration: 0.41s
+2025-06-03 19:44:56,655 - INFO - Epoch 117/300 | Batch 0/24 | Loss: 1.7313 | Acc: 73.05% | LR: 2.70e-03
+2025-06-03 19:44:58,514 - INFO - Epoch 117 TRAIN Summary: Avg Loss: 1.8392, Avg Acc: 70.25%, Duration: 2.45s
+2025-06-03 19:44:58,917 - INFO - Epoch 117 EVAL  Summary: Avg Loss: 2.4255, Avg Acc: 53.66%, Duration: 0.40s
+2025-06-03 19:44:59,466 - INFO - Epoch 118/300 | Batch 0/24 | Loss: 1.6869 | Acc: 71.88% | LR: 2.68e-03
+2025-06-03 19:45:01,295 - INFO - Epoch 118 TRAIN Summary: Avg Loss: 1.9763, Avg Acc: 66.77%, Duration: 2.38s
+2025-06-03 19:45:01,719 - INFO - Epoch 118 EVAL  Summary: Avg Loss: 2.4237, Avg Acc: 54.12%, Duration: 0.42s
+2025-06-03 19:45:02,283 - INFO - Epoch 119/300 | Batch 0/24 | Loss: 1.5403 | Acc: 76.95% | LR: 2.66e-03
+2025-06-03 19:45:04,141 - INFO - Epoch 119 TRAIN Summary: Avg Loss: 1.7414, Avg Acc: 71.93%, Duration: 2.42s
+2025-06-03 19:45:04,592 - INFO - Epoch 119 EVAL  Summary: Avg Loss: 2.3682, Avg Acc: 54.20%, Duration: 0.45s
+2025-06-03 19:45:05,156 - INFO - Epoch 120/300 | Batch 0/24 | Loss: 1.8602 | Acc: 69.80% | LR: 2.64e-03
+2025-06-03 19:45:06,980 - INFO - Epoch 120 TRAIN Summary: Avg Loss: 1.9789, Avg Acc: 67.10%, Duration: 2.39s
+2025-06-03 19:45:07,379 - INFO - Epoch 120 EVAL  Summary: Avg Loss: 2.3700, Avg Acc: 54.55%, Duration: 0.40s
+2025-06-03 19:45:08,118 - INFO - Epoch 120: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:45:08,118 - INFO - Epoch 120: 新的最佳准确率: 54.55% (已保存至 best_model.pth)
+2025-06-03 19:45:08,750 - INFO - Epoch 120: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_120.pth
+2025-06-03 19:45:09,177 - INFO - Epoch 121/300 | Batch 0/24 | Loss: 1.5104 | Acc: 77.34% | LR: 2.62e-03
+2025-06-03 19:45:10,986 - INFO - Epoch 121 TRAIN Summary: Avg Loss: 1.8761, Avg Acc: 68.71%, Duration: 2.23s
+2025-06-03 19:45:11,391 - INFO - Epoch 121 EVAL  Summary: Avg Loss: 2.4025, Avg Acc: 53.62%, Duration: 0.40s
+2025-06-03 19:45:11,929 - INFO - Epoch 122/300 | Batch 0/24 | Loss: 1.5631 | Acc: 75.39% | LR: 2.60e-03
+2025-06-03 19:45:13,778 - INFO - Epoch 122 TRAIN Summary: Avg Loss: 1.6350, Avg Acc: 74.34%, Duration: 2.38s
+2025-06-03 19:45:14,195 - INFO - Epoch 122 EVAL  Summary: Avg Loss: 2.3838, Avg Acc: 53.63%, Duration: 0.42s
+2025-06-03 19:45:14,761 - INFO - Epoch 123/300 | Batch 0/24 | Loss: 2.0068 | Acc: 68.40% | LR: 2.58e-03
+2025-06-03 19:45:16,613 - INFO - Epoch 123 TRAIN Summary: Avg Loss: 1.6496, Avg Acc: 74.81%, Duration: 2.42s
+2025-06-03 19:45:17,010 - INFO - Epoch 123 EVAL  Summary: Avg Loss: 2.4162, Avg Acc: 53.93%, Duration: 0.39s
+2025-06-03 19:45:17,597 - INFO - Epoch 124/300 | Batch 0/24 | Loss: 3.5376 | Acc: 31.52% | LR: 2.56e-03
+2025-06-03 19:45:19,476 - INFO - Epoch 124 TRAIN Summary: Avg Loss: 2.1506, Avg Acc: 62.98%, Duration: 2.46s
+2025-06-03 19:45:19,901 - INFO - Epoch 124 EVAL  Summary: Avg Loss: 2.4653, Avg Acc: 53.44%, Duration: 0.42s
+2025-06-03 19:45:20,466 - INFO - Epoch 125/300 | Batch 0/24 | Loss: 1.5659 | Acc: 75.78% | LR: 2.54e-03
+2025-06-03 19:45:22,319 - INFO - Epoch 125 TRAIN Summary: Avg Loss: 1.9915, Avg Acc: 66.85%, Duration: 2.42s
+2025-06-03 19:45:22,733 - INFO - Epoch 125 EVAL  Summary: Avg Loss: 2.3534, Avg Acc: 54.56%, Duration: 0.41s
+2025-06-03 19:45:23,525 - INFO - Epoch 125: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:45:23,525 - INFO - Epoch 125: 新的最佳准确率: 54.56% (已保存至 best_model.pth)
+2025-06-03 19:45:23,927 - INFO - Epoch 126/300 | Batch 0/24 | Loss: 1.7329 | Acc: 72.96% | LR: 2.52e-03
+2025-06-03 19:45:25,749 - INFO - Epoch 126 TRAIN Summary: Avg Loss: 2.0716, Avg Acc: 65.42%, Duration: 2.22s
+2025-06-03 19:45:26,172 - INFO - Epoch 126 EVAL  Summary: Avg Loss: 2.3937, Avg Acc: 53.97%, Duration: 0.42s
+2025-06-03 19:45:26,725 - INFO - Epoch 127/300 | Batch 0/24 | Loss: 3.8669 | Acc: 22.74% | LR: 2.50e-03
+2025-06-03 19:45:28,554 - INFO - Epoch 127 TRAIN Summary: Avg Loss: 1.9683, Avg Acc: 67.65%, Duration: 2.38s
+2025-06-03 19:45:28,979 - INFO - Epoch 127 EVAL  Summary: Avg Loss: 2.4108, Avg Acc: 54.49%, Duration: 0.42s
+2025-06-03 19:45:29,515 - INFO - Epoch 128/300 | Batch 0/24 | Loss: 4.1818 | Acc: 14.89% | LR: 2.48e-03
+2025-06-03 19:45:31,351 - INFO - Epoch 128 TRAIN Summary: Avg Loss: 1.8838, Avg Acc: 68.88%, Duration: 2.37s
+2025-06-03 19:45:31,746 - INFO - Epoch 128 EVAL  Summary: Avg Loss: 2.3897, Avg Acc: 54.51%, Duration: 0.39s
+2025-06-03 19:45:32,286 - INFO - Epoch 129/300 | Batch 0/24 | Loss: 1.6726 | Acc: 70.70% | LR: 2.46e-03
+2025-06-03 19:45:34,129 - INFO - Epoch 129 TRAIN Summary: Avg Loss: 1.8526, Avg Acc: 70.49%, Duration: 2.38s
+2025-06-03 19:45:34,570 - INFO - Epoch 129 EVAL  Summary: Avg Loss: 2.4001, Avg Acc: 54.30%, Duration: 0.44s
+2025-06-03 19:45:35,125 - INFO - Epoch 130/300 | Batch 0/24 | Loss: 2.6636 | Acc: 55.46% | LR: 2.44e-03
+2025-06-03 19:45:36,960 - INFO - Epoch 130 TRAIN Summary: Avg Loss: 1.9224, Avg Acc: 68.66%, Duration: 2.39s
+2025-06-03 19:45:37,388 - INFO - Epoch 130 EVAL  Summary: Avg Loss: 2.3871, Avg Acc: 54.31%, Duration: 0.43s
+2025-06-03 19:45:37,935 - INFO - Epoch 131/300 | Batch 0/24 | Loss: 1.6629 | Acc: 75.00% | LR: 2.42e-03
+2025-06-03 19:45:39,780 - INFO - Epoch 131 TRAIN Summary: Avg Loss: 1.7117, Avg Acc: 73.58%, Duration: 2.39s
+2025-06-03 19:45:40,169 - INFO - Epoch 131 EVAL  Summary: Avg Loss: 2.3675, Avg Acc: 54.47%, Duration: 0.39s
+2025-06-03 19:45:40,710 - INFO - Epoch 132/300 | Batch 0/24 | Loss: 1.8943 | Acc: 70.97% | LR: 2.40e-03
+2025-06-03 19:45:42,546 - INFO - Epoch 132 TRAIN Summary: Avg Loss: 1.9403, Avg Acc: 67.64%, Duration: 2.38s
+2025-06-03 19:45:42,957 - INFO - Epoch 132 EVAL  Summary: Avg Loss: 2.3888, Avg Acc: 54.47%, Duration: 0.41s
+2025-06-03 19:45:43,526 - INFO - Epoch 133/300 | Batch 0/24 | Loss: 1.5885 | Acc: 78.38% | LR: 2.38e-03
+2025-06-03 19:45:45,363 - INFO - Epoch 133 TRAIN Summary: Avg Loss: 1.7002, Avg Acc: 74.17%, Duration: 2.41s
+2025-06-03 19:45:45,772 - INFO - Epoch 133 EVAL  Summary: Avg Loss: 2.3949, Avg Acc: 54.43%, Duration: 0.41s
+2025-06-03 19:45:46,323 - INFO - Epoch 134/300 | Batch 0/24 | Loss: 1.4278 | Acc: 80.86% | LR: 2.35e-03
+2025-06-03 19:45:48,205 - INFO - Epoch 134 TRAIN Summary: Avg Loss: 1.7642, Avg Acc: 72.09%, Duration: 2.43s
+2025-06-03 19:45:48,613 - INFO - Epoch 134 EVAL  Summary: Avg Loss: 2.4457, Avg Acc: 53.35%, Duration: 0.41s
+2025-06-03 19:45:49,178 - INFO - Epoch 135/300 | Batch 0/24 | Loss: 1.6573 | Acc: 76.64% | LR: 2.33e-03
+2025-06-03 19:45:51,031 - INFO - Epoch 135 TRAIN Summary: Avg Loss: 2.0776, Avg Acc: 65.65%, Duration: 2.42s
+2025-06-03 19:45:51,442 - INFO - Epoch 135 EVAL  Summary: Avg Loss: 2.3625, Avg Acc: 54.28%, Duration: 0.41s
+2025-06-03 19:45:51,987 - INFO - Epoch 136/300 | Batch 0/24 | Loss: 1.4632 | Acc: 78.52% | LR: 2.31e-03
+2025-06-03 19:45:53,843 - INFO - Epoch 136 TRAIN Summary: Avg Loss: 1.6818, Avg Acc: 74.44%, Duration: 2.40s
+2025-06-03 19:45:54,259 - INFO - Epoch 136 EVAL  Summary: Avg Loss: 2.3893, Avg Acc: 54.16%, Duration: 0.41s
+2025-06-03 19:45:54,804 - INFO - Epoch 137/300 | Batch 0/24 | Loss: 1.6015 | Acc: 76.56% | LR: 2.29e-03
+2025-06-03 19:45:56,672 - INFO - Epoch 137 TRAIN Summary: Avg Loss: 1.8936, Avg Acc: 70.38%, Duration: 2.41s
+2025-06-03 19:45:57,139 - INFO - Epoch 137 EVAL  Summary: Avg Loss: 2.4097, Avg Acc: 54.02%, Duration: 0.46s
+2025-06-03 19:45:57,702 - INFO - Epoch 138/300 | Batch 0/24 | Loss: 1.4440 | Acc: 80.47% | LR: 2.27e-03
+2025-06-03 19:45:59,554 - INFO - Epoch 138 TRAIN Summary: Avg Loss: 1.6655, Avg Acc: 74.51%, Duration: 2.41s
+2025-06-03 19:45:59,965 - INFO - Epoch 138 EVAL  Summary: Avg Loss: 2.3808, Avg Acc: 54.33%, Duration: 0.41s
+2025-06-03 19:46:00,518 - INFO - Epoch 139/300 | Batch 0/24 | Loss: 1.4728 | Acc: 79.30% | LR: 2.25e-03
+2025-06-03 19:46:02,358 - INFO - Epoch 139 TRAIN Summary: Avg Loss: 1.8835, Avg Acc: 69.56%, Duration: 2.39s
+2025-06-03 19:46:02,770 - INFO - Epoch 139 EVAL  Summary: Avg Loss: 2.3984, Avg Acc: 54.63%, Duration: 0.41s
+2025-06-03 19:46:03,592 - INFO - Epoch 139: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:46:03,593 - INFO - Epoch 139: 新的最佳准确率: 54.63% (已保存至 best_model.pth)
+2025-06-03 19:46:04,013 - INFO - Epoch 140/300 | Batch 0/24 | Loss: 1.5343 | Acc: 77.73% | LR: 2.23e-03
+2025-06-03 19:46:05,874 - INFO - Epoch 140 TRAIN Summary: Avg Loss: 1.8360, Avg Acc: 71.60%, Duration: 2.28s
+2025-06-03 19:46:06,288 - INFO - Epoch 140 EVAL  Summary: Avg Loss: 2.3759, Avg Acc: 54.25%, Duration: 0.41s
+2025-06-03 19:46:06,984 - INFO - Epoch 140: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_140.pth
+2025-06-03 19:46:07,400 - INFO - Epoch 141/300 | Batch 0/24 | Loss: 1.5896 | Acc: 77.09% | LR: 2.21e-03
+2025-06-03 19:46:09,214 - INFO - Epoch 141 TRAIN Summary: Avg Loss: 1.8816, Avg Acc: 69.67%, Duration: 2.23s
+2025-06-03 19:46:09,634 - INFO - Epoch 141 EVAL  Summary: Avg Loss: 2.4055, Avg Acc: 54.09%, Duration: 0.42s
+2025-06-03 19:46:10,194 - INFO - Epoch 142/300 | Batch 0/24 | Loss: 1.6511 | Acc: 75.26% | LR: 2.19e-03
+2025-06-03 19:46:12,057 - INFO - Epoch 142 TRAIN Summary: Avg Loss: 1.8206, Avg Acc: 70.87%, Duration: 2.42s
+2025-06-03 19:46:12,506 - INFO - Epoch 142 EVAL  Summary: Avg Loss: 2.4045, Avg Acc: 54.42%, Duration: 0.45s
+2025-06-03 19:46:13,051 - INFO - Epoch 143/300 | Batch 0/24 | Loss: 1.7286 | Acc: 73.05% | LR: 2.17e-03
+2025-06-03 19:46:14,861 - INFO - Epoch 143 TRAIN Summary: Avg Loss: 1.9211, Avg Acc: 69.36%, Duration: 2.35s
+2025-06-03 19:46:15,266 - INFO - Epoch 143 EVAL  Summary: Avg Loss: 2.3836, Avg Acc: 54.73%, Duration: 0.40s
+2025-06-03 19:46:16,151 - INFO - Epoch 143: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:46:16,152 - INFO - Epoch 143: 新的最佳准确率: 54.73% (已保存至 best_model.pth)
+2025-06-03 19:46:16,566 - INFO - Epoch 144/300 | Batch 0/24 | Loss: 1.3530 | Acc: 81.64% | LR: 2.15e-03
+2025-06-03 19:46:18,374 - INFO - Epoch 144 TRAIN Summary: Avg Loss: 1.6412, Avg Acc: 75.55%, Duration: 2.22s
+2025-06-03 19:46:18,805 - INFO - Epoch 144 EVAL  Summary: Avg Loss: 2.3733, Avg Acc: 54.50%, Duration: 0.43s
+2025-06-03 19:46:19,345 - INFO - Epoch 145/300 | Batch 0/24 | Loss: 1.6422 | Acc: 73.83% | LR: 2.13e-03
+2025-06-03 19:46:21,209 - INFO - Epoch 145 TRAIN Summary: Avg Loss: 2.0598, Avg Acc: 66.35%, Duration: 2.40s
+2025-06-03 19:46:21,601 - INFO - Epoch 145 EVAL  Summary: Avg Loss: 2.3602, Avg Acc: 54.86%, Duration: 0.39s
+2025-06-03 19:46:22,519 - INFO - Epoch 145: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:46:22,520 - INFO - Epoch 145: 新的最佳准确率: 54.86% (已保存至 best_model.pth)
+2025-06-03 19:46:22,978 - INFO - Epoch 146/300 | Batch 0/24 | Loss: 1.5720 | Acc: 78.08% | LR: 2.11e-03
+2025-06-03 19:46:24,831 - INFO - Epoch 146 TRAIN Summary: Avg Loss: 1.7540, Avg Acc: 72.59%, Duration: 2.31s
+2025-06-03 19:46:25,241 - INFO - Epoch 146 EVAL  Summary: Avg Loss: 2.4150, Avg Acc: 54.60%, Duration: 0.41s
+2025-06-03 19:46:25,813 - INFO - Epoch 147/300 | Batch 0/24 | Loss: 1.5345 | Acc: 78.91% | LR: 2.08e-03
+2025-06-03 19:46:27,614 - INFO - Epoch 147 TRAIN Summary: Avg Loss: 1.8592, Avg Acc: 69.94%, Duration: 2.37s
+2025-06-03 19:46:28,017 - INFO - Epoch 147 EVAL  Summary: Avg Loss: 2.3982, Avg Acc: 54.45%, Duration: 0.40s
+2025-06-03 19:46:28,571 - INFO - Epoch 148/300 | Batch 0/24 | Loss: 2.2481 | Acc: 66.61% | LR: 2.06e-03
+2025-06-03 19:46:30,457 - INFO - Epoch 148 TRAIN Summary: Avg Loss: 1.8087, Avg Acc: 72.60%, Duration: 2.44s
+2025-06-03 19:46:30,885 - INFO - Epoch 148 EVAL  Summary: Avg Loss: 2.3663, Avg Acc: 54.82%, Duration: 0.43s
+2025-06-03 19:46:31,434 - INFO - Epoch 149/300 | Batch 0/24 | Loss: 1.4404 | Acc: 80.47% | LR: 2.04e-03
+2025-06-03 19:46:33,282 - INFO - Epoch 149 TRAIN Summary: Avg Loss: 1.9343, Avg Acc: 68.95%, Duration: 2.39s
+2025-06-03 19:46:33,709 - INFO - Epoch 149 EVAL  Summary: Avg Loss: 2.3558, Avg Acc: 55.15%, Duration: 0.43s
+2025-06-03 19:46:34,519 - INFO - Epoch 149: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:46:34,519 - INFO - Epoch 149: 新的最佳准确率: 55.15% (已保存至 best_model.pth)
+2025-06-03 19:46:34,932 - INFO - Epoch 150/300 | Batch 0/24 | Loss: 1.8007 | Acc: 73.87% | LR: 2.02e-03
+2025-06-03 19:46:36,797 - INFO - Epoch 150 TRAIN Summary: Avg Loss: 1.8114, Avg Acc: 71.57%, Duration: 2.28s
+2025-06-03 19:46:37,232 - INFO - Epoch 150 EVAL  Summary: Avg Loss: 2.3985, Avg Acc: 54.89%, Duration: 0.43s
+2025-06-03 19:46:37,790 - INFO - Epoch 151/300 | Batch 0/24 | Loss: 1.6122 | Acc: 76.56% | LR: 2.00e-03
+2025-06-03 19:46:39,666 - INFO - Epoch 151 TRAIN Summary: Avg Loss: 1.8287, Avg Acc: 71.77%, Duration: 2.43s
+2025-06-03 19:46:40,061 - INFO - Epoch 151 EVAL  Summary: Avg Loss: 2.4143, Avg Acc: 55.20%, Duration: 0.39s
+2025-06-03 19:46:40,935 - INFO - Epoch 151: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:46:40,936 - INFO - Epoch 151: 新的最佳准确率: 55.20% (已保存至 best_model.pth)
+2025-06-03 19:46:41,356 - INFO - Epoch 152/300 | Batch 0/24 | Loss: 3.9962 | Acc: 20.02% | LR: 1.98e-03
+2025-06-03 19:46:43,179 - INFO - Epoch 152 TRAIN Summary: Avg Loss: 1.9356, Avg Acc: 68.98%, Duration: 2.24s
+2025-06-03 19:46:43,579 - INFO - Epoch 152 EVAL  Summary: Avg Loss: 2.4033, Avg Acc: 54.66%, Duration: 0.40s
+2025-06-03 19:46:44,143 - INFO - Epoch 153/300 | Batch 0/24 | Loss: 2.7024 | Acc: 54.45% | LR: 1.96e-03
+2025-06-03 19:46:45,933 - INFO - Epoch 153 TRAIN Summary: Avg Loss: 1.6790, Avg Acc: 74.63%, Duration: 2.35s
+2025-06-03 19:46:46,355 - INFO - Epoch 153 EVAL  Summary: Avg Loss: 2.3876, Avg Acc: 54.76%, Duration: 0.42s
+2025-06-03 19:46:46,900 - INFO - Epoch 154/300 | Batch 0/24 | Loss: 2.1272 | Acc: 67.72% | LR: 1.94e-03
+2025-06-03 19:46:48,754 - INFO - Epoch 154 TRAIN Summary: Avg Loss: 1.5180, Avg Acc: 78.45%, Duration: 2.40s
+2025-06-03 19:46:49,158 - INFO - Epoch 154 EVAL  Summary: Avg Loss: 2.3849, Avg Acc: 55.14%, Duration: 0.40s
+2025-06-03 19:46:49,721 - INFO - Epoch 155/300 | Batch 0/24 | Loss: 1.3372 | Acc: 83.59% | LR: 1.92e-03
+2025-06-03 19:46:51,563 - INFO - Epoch 155 TRAIN Summary: Avg Loss: 1.9246, Avg Acc: 68.61%, Duration: 2.40s
+2025-06-03 19:46:51,977 - INFO - Epoch 155 EVAL  Summary: Avg Loss: 2.3601, Avg Acc: 54.90%, Duration: 0.41s
+2025-06-03 19:46:52,516 - INFO - Epoch 156/300 | Batch 0/24 | Loss: 1.5832 | Acc: 75.78% | LR: 1.90e-03
+2025-06-03 19:46:54,363 - INFO - Epoch 156 TRAIN Summary: Avg Loss: 1.8760, Avg Acc: 69.91%, Duration: 2.38s
+2025-06-03 19:46:54,789 - INFO - Epoch 156 EVAL  Summary: Avg Loss: 2.3652, Avg Acc: 55.31%, Duration: 0.42s
+2025-06-03 19:46:55,661 - INFO - Epoch 156: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:46:55,661 - INFO - Epoch 156: 新的最佳准确率: 55.31% (已保存至 best_model.pth)
+2025-06-03 19:46:56,085 - INFO - Epoch 157/300 | Batch 0/24 | Loss: 1.4221 | Acc: 82.81% | LR: 1.87e-03
+2025-06-03 19:46:57,949 - INFO - Epoch 157 TRAIN Summary: Avg Loss: 1.7005, Avg Acc: 74.68%, Duration: 2.29s
+2025-06-03 19:46:58,340 - INFO - Epoch 157 EVAL  Summary: Avg Loss: 2.4168, Avg Acc: 54.25%, Duration: 0.39s
+2025-06-03 19:46:58,901 - INFO - Epoch 158/300 | Batch 0/24 | Loss: 1.5123 | Acc: 81.67% | LR: 1.85e-03
+2025-06-03 19:47:00,742 - INFO - Epoch 158 TRAIN Summary: Avg Loss: 1.5286, Avg Acc: 78.32%, Duration: 2.40s
+2025-06-03 19:47:01,164 - INFO - Epoch 158 EVAL  Summary: Avg Loss: 2.3645, Avg Acc: 55.26%, Duration: 0.42s
+2025-06-03 19:47:01,740 - INFO - Epoch 159/300 | Batch 0/24 | Loss: 2.6274 | Acc: 56.63% | LR: 1.83e-03
+2025-06-03 19:47:03,592 - INFO - Epoch 159 TRAIN Summary: Avg Loss: 1.6684, Avg Acc: 75.60%, Duration: 2.43s
+2025-06-03 19:47:04,002 - INFO - Epoch 159 EVAL  Summary: Avg Loss: 2.3441, Avg Acc: 55.55%, Duration: 0.41s
+2025-06-03 19:47:04,791 - INFO - Epoch 159: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:47:04,792 - INFO - Epoch 159: 新的最佳准确率: 55.55% (已保存至 best_model.pth)
+2025-06-03 19:47:05,220 - INFO - Epoch 160/300 | Batch 0/24 | Loss: 1.3444 | Acc: 83.59% | LR: 1.81e-03
+2025-06-03 19:47:07,026 - INFO - Epoch 160 TRAIN Summary: Avg Loss: 1.6348, Avg Acc: 75.17%, Duration: 2.23s
+2025-06-03 19:47:07,454 - INFO - Epoch 160 EVAL  Summary: Avg Loss: 2.3572, Avg Acc: 55.80%, Duration: 0.43s
+2025-06-03 19:47:08,245 - INFO - Epoch 160: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:47:08,246 - INFO - Epoch 160: 新的最佳准确率: 55.80% (已保存至 best_model.pth)
+2025-06-03 19:47:08,824 - INFO - Epoch 160: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_160.pth
+2025-06-03 19:47:09,264 - INFO - Epoch 161/300 | Batch 0/24 | Loss: 1.3005 | Acc: 85.55% | LR: 1.79e-03
+2025-06-03 19:47:11,071 - INFO - Epoch 161 TRAIN Summary: Avg Loss: 1.5909, Avg Acc: 76.67%, Duration: 2.25s
+2025-06-03 19:47:11,463 - INFO - Epoch 161 EVAL  Summary: Avg Loss: 2.3591, Avg Acc: 55.83%, Duration: 0.39s
+2025-06-03 19:47:12,348 - INFO - Epoch 161: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:47:12,348 - INFO - Epoch 161: 新的最佳准确率: 55.83% (已保存至 best_model.pth)
+2025-06-03 19:47:12,785 - INFO - Epoch 162/300 | Batch 0/24 | Loss: 1.4500 | Acc: 79.58% | LR: 1.77e-03
+2025-06-03 19:47:14,643 - INFO - Epoch 162 TRAIN Summary: Avg Loss: 1.8550, Avg Acc: 71.35%, Duration: 2.29s
+2025-06-03 19:47:15,044 - INFO - Epoch 162 EVAL  Summary: Avg Loss: 2.3818, Avg Acc: 54.92%, Duration: 0.40s
+2025-06-03 19:47:15,603 - INFO - Epoch 163/300 | Batch 0/24 | Loss: 1.9103 | Acc: 72.53% | LR: 1.75e-03
+2025-06-03 19:47:17,475 - INFO - Epoch 163 TRAIN Summary: Avg Loss: 1.7995, Avg Acc: 72.14%, Duration: 2.43s
+2025-06-03 19:47:17,889 - INFO - Epoch 163 EVAL  Summary: Avg Loss: 2.3945, Avg Acc: 54.76%, Duration: 0.41s
+2025-06-03 19:47:18,468 - INFO - Epoch 164/300 | Batch 0/24 | Loss: 1.4391 | Acc: 82.81% | LR: 1.73e-03
+2025-06-03 19:47:20,294 - INFO - Epoch 164 TRAIN Summary: Avg Loss: 1.6652, Avg Acc: 75.58%, Duration: 2.40s
+2025-06-03 19:47:20,714 - INFO - Epoch 164 EVAL  Summary: Avg Loss: 2.4197, Avg Acc: 54.65%, Duration: 0.42s
+2025-06-03 19:47:21,266 - INFO - Epoch 165/300 | Batch 0/24 | Loss: 1.6795 | Acc: 75.00% | LR: 1.71e-03
+2025-06-03 19:47:23,172 - INFO - Epoch 165 TRAIN Summary: Avg Loss: 1.8794, Avg Acc: 70.80%, Duration: 2.46s
+2025-06-03 19:47:23,568 - INFO - Epoch 165 EVAL  Summary: Avg Loss: 2.3880, Avg Acc: 54.81%, Duration: 0.39s
+2025-06-03 19:47:24,136 - INFO - Epoch 166/300 | Batch 0/24 | Loss: 1.3917 | Acc: 80.86% | LR: 1.69e-03
+2025-06-03 19:47:25,982 - INFO - Epoch 166 TRAIN Summary: Avg Loss: 1.8092, Avg Acc: 71.72%, Duration: 2.41s
+2025-06-03 19:47:26,381 - INFO - Epoch 166 EVAL  Summary: Avg Loss: 2.3926, Avg Acc: 54.77%, Duration: 0.40s
+2025-06-03 19:47:26,946 - INFO - Epoch 167/300 | Batch 0/24 | Loss: 1.3373 | Acc: 80.47% | LR: 1.67e-03
+2025-06-03 19:47:28,782 - INFO - Epoch 167 TRAIN Summary: Avg Loss: 1.7000, Avg Acc: 74.98%, Duration: 2.40s
+2025-06-03 19:47:29,202 - INFO - Epoch 167 EVAL  Summary: Avg Loss: 2.4003, Avg Acc: 54.93%, Duration: 0.42s
+2025-06-03 19:47:29,741 - INFO - Epoch 168/300 | Batch 0/24 | Loss: 1.8775 | Acc: 72.75% | LR: 1.65e-03
+2025-06-03 19:47:31,587 - INFO - Epoch 168 TRAIN Summary: Avg Loss: 1.6656, Avg Acc: 76.30%, Duration: 2.38s
+2025-06-03 19:47:32,013 - INFO - Epoch 168 EVAL  Summary: Avg Loss: 2.3878, Avg Acc: 55.17%, Duration: 0.42s
+2025-06-03 19:47:32,544 - INFO - Epoch 169/300 | Batch 0/24 | Loss: 1.3773 | Acc: 82.81% | LR: 1.63e-03
+2025-06-03 19:47:34,413 - INFO - Epoch 169 TRAIN Summary: Avg Loss: 1.8324, Avg Acc: 71.94%, Duration: 2.40s
+2025-06-03 19:47:34,826 - INFO - Epoch 169 EVAL  Summary: Avg Loss: 2.3977, Avg Acc: 55.49%, Duration: 0.41s
+2025-06-03 19:47:35,369 - INFO - Epoch 170/300 | Batch 0/24 | Loss: 1.5132 | Acc: 77.34% | LR: 1.61e-03
+2025-06-03 19:47:37,170 - INFO - Epoch 170 TRAIN Summary: Avg Loss: 1.7829, Avg Acc: 72.37%, Duration: 2.34s
+2025-06-03 19:47:37,594 - INFO - Epoch 170 EVAL  Summary: Avg Loss: 2.3641, Avg Acc: 55.68%, Duration: 0.42s
+2025-06-03 19:47:38,190 - INFO - Epoch 171/300 | Batch 0/24 | Loss: 1.4207 | Acc: 80.86% | LR: 1.58e-03
+2025-06-03 19:47:40,001 - INFO - Epoch 171 TRAIN Summary: Avg Loss: 1.7193, Avg Acc: 74.17%, Duration: 2.41s
+2025-06-03 19:47:40,416 - INFO - Epoch 171 EVAL  Summary: Avg Loss: 2.3515, Avg Acc: 55.66%, Duration: 0.41s
+2025-06-03 19:47:40,994 - INFO - Epoch 172/300 | Batch 0/24 | Loss: 2.2505 | Acc: 67.09% | LR: 1.56e-03
+2025-06-03 19:47:42,887 - INFO - Epoch 172 TRAIN Summary: Avg Loss: 1.6825, Avg Acc: 75.26%, Duration: 2.47s
+2025-06-03 19:47:43,299 - INFO - Epoch 172 EVAL  Summary: Avg Loss: 2.3621, Avg Acc: 55.51%, Duration: 0.41s
+2025-06-03 19:47:43,897 - INFO - Epoch 173/300 | Batch 0/24 | Loss: 3.0283 | Acc: 46.08% | LR: 1.54e-03
+2025-06-03 19:47:45,718 - INFO - Epoch 173 TRAIN Summary: Avg Loss: 1.9608, Avg Acc: 68.64%, Duration: 2.42s
+2025-06-03 19:47:46,115 - INFO - Epoch 173 EVAL  Summary: Avg Loss: 2.3451, Avg Acc: 56.11%, Duration: 0.39s
+2025-06-03 19:47:46,955 - INFO - Epoch 173: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:47:46,956 - INFO - Epoch 173: 新的最佳准确率: 56.11% (已保存至 best_model.pth)
+2025-06-03 19:47:47,382 - INFO - Epoch 174/300 | Batch 0/24 | Loss: 1.4866 | Acc: 78.12% | LR: 1.52e-03
+2025-06-03 19:47:49,181 - INFO - Epoch 174 TRAIN Summary: Avg Loss: 1.4747, Avg Acc: 80.10%, Duration: 2.22s
+2025-06-03 19:47:49,598 - INFO - Epoch 174 EVAL  Summary: Avg Loss: 2.3941, Avg Acc: 55.85%, Duration: 0.42s
+2025-06-03 19:47:50,147 - INFO - Epoch 175/300 | Batch 0/24 | Loss: 1.3603 | Acc: 82.81% | LR: 1.50e-03
+2025-06-03 19:47:52,016 - INFO - Epoch 175 TRAIN Summary: Avg Loss: 1.6525, Avg Acc: 76.58%, Duration: 2.42s
+2025-06-03 19:47:52,447 - INFO - Epoch 175 EVAL  Summary: Avg Loss: 2.3934, Avg Acc: 55.32%, Duration: 0.43s
+2025-06-03 19:47:52,991 - INFO - Epoch 176/300 | Batch 0/24 | Loss: 1.3994 | Acc: 82.81% | LR: 1.48e-03
+2025-06-03 19:47:54,859 - INFO - Epoch 176 TRAIN Summary: Avg Loss: 2.0382, Avg Acc: 67.70%, Duration: 2.41s
+2025-06-03 19:47:55,292 - INFO - Epoch 176 EVAL  Summary: Avg Loss: 2.3657, Avg Acc: 55.65%, Duration: 0.43s
+2025-06-03 19:47:55,829 - INFO - Epoch 177/300 | Batch 0/24 | Loss: 1.4167 | Acc: 80.86% | LR: 1.46e-03
+2025-06-03 19:47:57,717 - INFO - Epoch 177 TRAIN Summary: Avg Loss: 1.5768, Avg Acc: 77.42%, Duration: 2.42s
+2025-06-03 19:47:58,121 - INFO - Epoch 177 EVAL  Summary: Avg Loss: 2.4180, Avg Acc: 55.47%, Duration: 0.40s
+2025-06-03 19:47:58,704 - INFO - Epoch 178/300 | Batch 0/24 | Loss: 1.3648 | Acc: 84.10% | LR: 1.44e-03
+2025-06-03 19:48:00,508 - INFO - Epoch 178 TRAIN Summary: Avg Loss: 1.7407, Avg Acc: 73.53%, Duration: 2.39s
+2025-06-03 19:48:00,919 - INFO - Epoch 178 EVAL  Summary: Avg Loss: 2.3717, Avg Acc: 55.86%, Duration: 0.41s
+2025-06-03 19:48:01,471 - INFO - Epoch 179/300 | Batch 0/24 | Loss: 1.4303 | Acc: 81.60% | LR: 1.42e-03
+2025-06-03 19:48:03,326 - INFO - Epoch 179 TRAIN Summary: Avg Loss: 1.8230, Avg Acc: 72.50%, Duration: 2.41s
+2025-06-03 19:48:03,746 - INFO - Epoch 179 EVAL  Summary: Avg Loss: 2.3476, Avg Acc: 55.30%, Duration: 0.42s
+2025-06-03 19:48:04,287 - INFO - Epoch 180/300 | Batch 0/24 | Loss: 1.3282 | Acc: 82.03% | LR: 1.40e-03
+2025-06-03 19:48:06,173 - INFO - Epoch 180 TRAIN Summary: Avg Loss: 1.5614, Avg Acc: 78.31%, Duration: 2.43s
+2025-06-03 19:48:06,603 - INFO - Epoch 180 EVAL  Summary: Avg Loss: 2.3745, Avg Acc: 55.14%, Duration: 0.43s
+2025-06-03 19:48:07,298 - INFO - Epoch 180: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_180.pth
+2025-06-03 19:48:07,752 - INFO - Epoch 181/300 | Batch 0/24 | Loss: 1.4907 | Acc: 81.13% | LR: 1.38e-03
+2025-06-03 19:48:09,581 - INFO - Epoch 181 TRAIN Summary: Avg Loss: 1.6034, Avg Acc: 77.30%, Duration: 2.28s
+2025-06-03 19:48:09,978 - INFO - Epoch 181 EVAL  Summary: Avg Loss: 2.3796, Avg Acc: 55.46%, Duration: 0.39s
+2025-06-03 19:48:10,553 - INFO - Epoch 182/300 | Batch 0/24 | Loss: 1.8512 | Acc: 75.06% | LR: 1.36e-03
+2025-06-03 19:48:12,436 - INFO - Epoch 182 TRAIN Summary: Avg Loss: 1.7794, Avg Acc: 73.49%, Duration: 2.46s
+2025-06-03 19:48:12,860 - INFO - Epoch 182 EVAL  Summary: Avg Loss: 2.3703, Avg Acc: 55.94%, Duration: 0.42s
+2025-06-03 19:48:13,460 - INFO - Epoch 183/300 | Batch 0/24 | Loss: 1.5145 | Acc: 79.15% | LR: 1.34e-03
+2025-06-03 19:48:15,278 - INFO - Epoch 183 TRAIN Summary: Avg Loss: 1.6298, Avg Acc: 76.32%, Duration: 2.42s
+2025-06-03 19:48:15,723 - INFO - Epoch 183 EVAL  Summary: Avg Loss: 2.3680, Avg Acc: 55.85%, Duration: 0.44s
+2025-06-03 19:48:16,290 - INFO - Epoch 184/300 | Batch 0/24 | Loss: 3.5282 | Acc: 30.84% | LR: 1.32e-03
+2025-06-03 19:48:18,155 - INFO - Epoch 184 TRAIN Summary: Avg Loss: 1.7500, Avg Acc: 74.02%, Duration: 2.43s
+2025-06-03 19:48:18,566 - INFO - Epoch 184 EVAL  Summary: Avg Loss: 2.3845, Avg Acc: 55.80%, Duration: 0.41s
+2025-06-03 19:48:19,109 - INFO - Epoch 185/300 | Batch 0/24 | Loss: 1.3041 | Acc: 83.98% | LR: 1.30e-03
+2025-06-03 19:48:20,968 - INFO - Epoch 185 TRAIN Summary: Avg Loss: 1.4858, Avg Acc: 79.99%, Duration: 2.40s
+2025-06-03 19:48:21,401 - INFO - Epoch 185 EVAL  Summary: Avg Loss: 2.3533, Avg Acc: 55.45%, Duration: 0.43s
+2025-06-03 19:48:21,961 - INFO - Epoch 186/300 | Batch 0/24 | Loss: 1.3929 | Acc: 81.25% | LR: 1.28e-03
+2025-06-03 19:48:23,783 - INFO - Epoch 186 TRAIN Summary: Avg Loss: 1.7419, Avg Acc: 73.64%, Duration: 2.38s
+2025-06-03 19:48:24,199 - INFO - Epoch 186 EVAL  Summary: Avg Loss: 2.3402, Avg Acc: 55.71%, Duration: 0.42s
+2025-06-03 19:48:24,746 - INFO - Epoch 187/300 | Batch 0/24 | Loss: 1.3967 | Acc: 82.03% | LR: 1.26e-03
+2025-06-03 19:48:26,553 - INFO - Epoch 187 TRAIN Summary: Avg Loss: 1.8245, Avg Acc: 72.32%, Duration: 2.35s
+2025-06-03 19:48:26,942 - INFO - Epoch 187 EVAL  Summary: Avg Loss: 2.3622, Avg Acc: 56.12%, Duration: 0.39s
+2025-06-03 19:48:27,859 - INFO - Epoch 187: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:48:27,860 - INFO - Epoch 187: 新的最佳准确率: 56.12% (已保存至 best_model.pth)
+2025-06-03 19:48:28,270 - INFO - Epoch 188/300 | Batch 0/24 | Loss: 1.4787 | Acc: 79.40% | LR: 1.25e-03
+2025-06-03 19:48:30,072 - INFO - Epoch 188 TRAIN Summary: Avg Loss: 1.9164, Avg Acc: 69.88%, Duration: 2.21s
+2025-06-03 19:48:30,498 - INFO - Epoch 188 EVAL  Summary: Avg Loss: 2.3646, Avg Acc: 56.11%, Duration: 0.42s
+2025-06-03 19:48:31,067 - INFO - Epoch 189/300 | Batch 0/24 | Loss: 1.9725 | Acc: 71.73% | LR: 1.23e-03
+2025-06-03 19:48:32,943 - INFO - Epoch 189 TRAIN Summary: Avg Loss: 1.4945, Avg Acc: 80.09%, Duration: 2.44s
+2025-06-03 19:48:33,355 - INFO - Epoch 189 EVAL  Summary: Avg Loss: 2.3609, Avg Acc: 55.92%, Duration: 0.41s
+2025-06-03 19:48:33,906 - INFO - Epoch 190/300 | Batch 0/24 | Loss: 1.5871 | Acc: 77.26% | LR: 1.21e-03
+2025-06-03 19:48:35,770 - INFO - Epoch 190 TRAIN Summary: Avg Loss: 1.5400, Avg Acc: 79.21%, Duration: 2.41s
+2025-06-03 19:48:36,180 - INFO - Epoch 190 EVAL  Summary: Avg Loss: 2.3612, Avg Acc: 55.94%, Duration: 0.41s
+2025-06-03 19:48:36,740 - INFO - Epoch 191/300 | Batch 0/24 | Loss: 1.4322 | Acc: 80.04% | LR: 1.19e-03
+2025-06-03 19:48:38,587 - INFO - Epoch 191 TRAIN Summary: Avg Loss: 1.9472, Avg Acc: 69.90%, Duration: 2.41s
+2025-06-03 19:48:39,021 - INFO - Epoch 191 EVAL  Summary: Avg Loss: 2.3499, Avg Acc: 55.80%, Duration: 0.43s
+2025-06-03 19:48:39,576 - INFO - Epoch 192/300 | Batch 0/24 | Loss: 1.4291 | Acc: 80.60% | LR: 1.17e-03
+2025-06-03 19:48:41,403 - INFO - Epoch 192 TRAIN Summary: Avg Loss: 1.7757, Avg Acc: 73.81%, Duration: 2.38s
+2025-06-03 19:48:41,804 - INFO - Epoch 192 EVAL  Summary: Avg Loss: 2.3365, Avg Acc: 56.54%, Duration: 0.40s
+2025-06-03 19:48:42,711 - INFO - Epoch 192: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:48:42,711 - INFO - Epoch 192: 新的最佳准确率: 56.54% (已保存至 best_model.pth)
+2025-06-03 19:48:43,111 - INFO - Epoch 193/300 | Batch 0/24 | Loss: 1.3388 | Acc: 84.77% | LR: 1.15e-03
+2025-06-03 19:48:44,945 - INFO - Epoch 193 TRAIN Summary: Avg Loss: 1.7900, Avg Acc: 73.01%, Duration: 2.23s
+2025-06-03 19:48:45,368 - INFO - Epoch 193 EVAL  Summary: Avg Loss: 2.3493, Avg Acc: 56.14%, Duration: 0.42s
+2025-06-03 19:48:45,948 - INFO - Epoch 194/300 | Batch 0/24 | Loss: 1.3945 | Acc: 80.86% | LR: 1.13e-03
+2025-06-03 19:48:47,775 - INFO - Epoch 194 TRAIN Summary: Avg Loss: 1.6614, Avg Acc: 76.10%, Duration: 2.41s
+2025-06-03 19:48:48,222 - INFO - Epoch 194 EVAL  Summary: Avg Loss: 2.3543, Avg Acc: 56.09%, Duration: 0.45s
+2025-06-03 19:48:48,786 - INFO - Epoch 195/300 | Batch 0/24 | Loss: 1.2978 | Acc: 84.77% | LR: 1.11e-03
+2025-06-03 19:48:50,639 - INFO - Epoch 195 TRAIN Summary: Avg Loss: 1.4582, Avg Acc: 80.91%, Duration: 2.42s
+2025-06-03 19:48:51,082 - INFO - Epoch 195 EVAL  Summary: Avg Loss: 2.3536, Avg Acc: 56.38%, Duration: 0.44s
+2025-06-03 19:48:51,678 - INFO - Epoch 196/300 | Batch 0/24 | Loss: 1.2053 | Acc: 87.11% | LR: 1.09e-03
+2025-06-03 19:48:53,509 - INFO - Epoch 196 TRAIN Summary: Avg Loss: 1.4310, Avg Acc: 81.77%, Duration: 2.43s
+2025-06-03 19:48:53,933 - INFO - Epoch 196 EVAL  Summary: Avg Loss: 2.3626, Avg Acc: 56.57%, Duration: 0.42s
+2025-06-03 19:48:54,838 - INFO - Epoch 196: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:48:54,839 - INFO - Epoch 196: 新的最佳准确率: 56.57% (已保存至 best_model.pth)
+2025-06-03 19:48:55,287 - INFO - Epoch 197/300 | Batch 0/24 | Loss: 1.2990 | Acc: 85.55% | LR: 1.07e-03
+2025-06-03 19:48:57,113 - INFO - Epoch 197 TRAIN Summary: Avg Loss: 1.4614, Avg Acc: 80.71%, Duration: 2.27s
+2025-06-03 19:48:57,517 - INFO - Epoch 197 EVAL  Summary: Avg Loss: 2.3450, Avg Acc: 56.48%, Duration: 0.40s
+2025-06-03 19:48:58,068 - INFO - Epoch 198/300 | Batch 0/24 | Loss: 1.3626 | Acc: 82.44% | LR: 1.06e-03
+2025-06-03 19:48:59,891 - INFO - Epoch 198 TRAIN Summary: Avg Loss: 1.6379, Avg Acc: 76.86%, Duration: 2.37s
+2025-06-03 19:49:00,286 - INFO - Epoch 198 EVAL  Summary: Avg Loss: 2.3298, Avg Acc: 56.34%, Duration: 0.39s
+2025-06-03 19:49:00,864 - INFO - Epoch 199/300 | Batch 0/24 | Loss: 1.3284 | Acc: 82.99% | LR: 1.04e-03
+2025-06-03 19:49:02,691 - INFO - Epoch 199 TRAIN Summary: Avg Loss: 1.3802, Avg Acc: 82.44%, Duration: 2.40s
+2025-06-03 19:49:03,102 - INFO - Epoch 199 EVAL  Summary: Avg Loss: 2.3502, Avg Acc: 56.39%, Duration: 0.41s
+2025-06-03 19:49:03,655 - INFO - Epoch 200/300 | Batch 0/24 | Loss: 1.2740 | Acc: 84.38% | LR: 1.02e-03
+2025-06-03 19:49:05,525 - INFO - Epoch 200 TRAIN Summary: Avg Loss: 1.6090, Avg Acc: 77.71%, Duration: 2.42s
+2025-06-03 19:49:05,969 - INFO - Epoch 200 EVAL  Summary: Avg Loss: 2.3545, Avg Acc: 56.49%, Duration: 0.44s
+2025-06-03 19:49:06,575 - INFO - Epoch 200: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_200.pth
+2025-06-03 19:49:07,060 - INFO - Epoch 201/300 | Batch 0/24 | Loss: 1.4246 | Acc: 80.88% | LR: 1.00e-03
+2025-06-03 19:49:08,906 - INFO - Epoch 201 TRAIN Summary: Avg Loss: 1.5106, Avg Acc: 80.08%, Duration: 2.33s
+2025-06-03 19:49:09,318 - INFO - Epoch 201 EVAL  Summary: Avg Loss: 2.3297, Avg Acc: 56.38%, Duration: 0.41s
+2025-06-03 19:49:09,891 - INFO - Epoch 202/300 | Batch 0/24 | Loss: 1.4867 | Acc: 78.91% | LR: 9.83e-04
+2025-06-03 19:49:11,703 - INFO - Epoch 202 TRAIN Summary: Avg Loss: 1.6173, Avg Acc: 77.42%, Duration: 2.38s
+2025-06-03 19:49:12,109 - INFO - Epoch 202 EVAL  Summary: Avg Loss: 2.3658, Avg Acc: 56.01%, Duration: 0.40s
+2025-06-03 19:49:12,674 - INFO - Epoch 203/300 | Batch 0/24 | Loss: 3.8505 | Acc: 21.84% | LR: 9.65e-04
+2025-06-03 19:49:14,509 - INFO - Epoch 203 TRAIN Summary: Avg Loss: 1.8797, Avg Acc: 71.44%, Duration: 2.40s
+2025-06-03 19:49:14,942 - INFO - Epoch 203 EVAL  Summary: Avg Loss: 2.3614, Avg Acc: 56.07%, Duration: 0.43s
+2025-06-03 19:49:15,543 - INFO - Epoch 204/300 | Batch 0/24 | Loss: 1.3876 | Acc: 81.25% | LR: 9.47e-04
+2025-06-03 19:49:17,377 - INFO - Epoch 204 TRAIN Summary: Avg Loss: 1.5829, Avg Acc: 78.36%, Duration: 2.43s
+2025-06-03 19:49:17,795 - INFO - Epoch 204 EVAL  Summary: Avg Loss: 2.3614, Avg Acc: 56.40%, Duration: 0.42s
+2025-06-03 19:49:18,334 - INFO - Epoch 205/300 | Batch 0/24 | Loss: 1.4048 | Acc: 82.77% | LR: 9.29e-04
+2025-06-03 19:49:20,280 - INFO - Epoch 205 TRAIN Summary: Avg Loss: 1.9361, Avg Acc: 70.17%, Duration: 2.48s
+2025-06-03 19:49:20,721 - INFO - Epoch 205 EVAL  Summary: Avg Loss: 2.3550, Avg Acc: 55.92%, Duration: 0.44s
+2025-06-03 19:49:21,264 - INFO - Epoch 206/300 | Batch 0/24 | Loss: 1.2664 | Acc: 86.31% | LR: 9.11e-04
+2025-06-03 19:49:23,108 - INFO - Epoch 206 TRAIN Summary: Avg Loss: 1.6935, Avg Acc: 75.74%, Duration: 2.39s
+2025-06-03 19:49:23,527 - INFO - Epoch 206 EVAL  Summary: Avg Loss: 2.3604, Avg Acc: 55.90%, Duration: 0.42s
+2025-06-03 19:49:24,065 - INFO - Epoch 207/300 | Batch 0/24 | Loss: 1.2697 | Acc: 83.59% | LR: 8.94e-04
+2025-06-03 19:49:25,946 - INFO - Epoch 207 TRAIN Summary: Avg Loss: 1.4660, Avg Acc: 80.70%, Duration: 2.42s
+2025-06-03 19:49:26,389 - INFO - Epoch 207 EVAL  Summary: Avg Loss: 2.3586, Avg Acc: 56.13%, Duration: 0.44s
+2025-06-03 19:49:26,972 - INFO - Epoch 208/300 | Batch 0/24 | Loss: 1.3283 | Acc: 82.78% | LR: 8.77e-04
+2025-06-03 19:49:28,827 - INFO - Epoch 208 TRAIN Summary: Avg Loss: 1.7602, Avg Acc: 74.32%, Duration: 2.44s
+2025-06-03 19:49:29,274 - INFO - Epoch 208 EVAL  Summary: Avg Loss: 2.3673, Avg Acc: 55.98%, Duration: 0.45s
+2025-06-03 19:49:29,828 - INFO - Epoch 209/300 | Batch 0/24 | Loss: 1.3626 | Acc: 85.55% | LR: 8.59e-04
+2025-06-03 19:49:31,683 - INFO - Epoch 209 TRAIN Summary: Avg Loss: 1.5815, Avg Acc: 78.46%, Duration: 2.41s
+2025-06-03 19:49:32,091 - INFO - Epoch 209 EVAL  Summary: Avg Loss: 2.3303, Avg Acc: 56.18%, Duration: 0.41s
+2025-06-03 19:49:32,637 - INFO - Epoch 210/300 | Batch 0/24 | Loss: 1.4241 | Acc: 81.64% | LR: 8.42e-04
+2025-06-03 19:49:34,506 - INFO - Epoch 210 TRAIN Summary: Avg Loss: 1.5453, Avg Acc: 80.17%, Duration: 2.41s
+2025-06-03 19:49:34,897 - INFO - Epoch 210 EVAL  Summary: Avg Loss: 2.3493, Avg Acc: 56.21%, Duration: 0.39s
+2025-06-03 19:49:35,448 - INFO - Epoch 211/300 | Batch 0/24 | Loss: 1.2947 | Acc: 85.94% | LR: 8.25e-04
+2025-06-03 19:49:37,270 - INFO - Epoch 211 TRAIN Summary: Avg Loss: 1.5711, Avg Acc: 78.48%, Duration: 2.37s
+2025-06-03 19:49:37,659 - INFO - Epoch 211 EVAL  Summary: Avg Loss: 2.3413, Avg Acc: 56.23%, Duration: 0.39s
+2025-06-03 19:49:38,204 - INFO - Epoch 212/300 | Batch 0/24 | Loss: 1.3610 | Acc: 82.81% | LR: 8.08e-04
+2025-06-03 19:49:40,004 - INFO - Epoch 212 TRAIN Summary: Avg Loss: 1.4965, Avg Acc: 80.99%, Duration: 2.34s
+2025-06-03 19:49:40,404 - INFO - Epoch 212 EVAL  Summary: Avg Loss: 2.3611, Avg Acc: 56.27%, Duration: 0.40s
+2025-06-03 19:49:40,986 - INFO - Epoch 213/300 | Batch 0/24 | Loss: 1.3405 | Acc: 81.64% | LR: 7.92e-04
+2025-06-03 19:49:42,817 - INFO - Epoch 213 TRAIN Summary: Avg Loss: 1.6456, Avg Acc: 76.72%, Duration: 2.41s
+2025-06-03 19:49:43,223 - INFO - Epoch 213 EVAL  Summary: Avg Loss: 2.3328, Avg Acc: 56.17%, Duration: 0.40s
+2025-06-03 19:49:43,780 - INFO - Epoch 214/300 | Batch 0/24 | Loss: 1.4060 | Acc: 81.25% | LR: 7.75e-04
+2025-06-03 19:49:45,608 - INFO - Epoch 214 TRAIN Summary: Avg Loss: 1.8631, Avg Acc: 71.87%, Duration: 2.38s
+2025-06-03 19:49:46,020 - INFO - Epoch 214 EVAL  Summary: Avg Loss: 2.3354, Avg Acc: 56.18%, Duration: 0.41s
+2025-06-03 19:49:46,577 - INFO - Epoch 215/300 | Batch 0/24 | Loss: 1.2932 | Acc: 85.55% | LR: 7.59e-04
+2025-06-03 19:49:48,448 - INFO - Epoch 215 TRAIN Summary: Avg Loss: 1.5481, Avg Acc: 79.09%, Duration: 2.43s
+2025-06-03 19:49:48,830 - INFO - Epoch 215 EVAL  Summary: Avg Loss: 2.3483, Avg Acc: 56.45%, Duration: 0.38s
+2025-06-03 19:49:49,386 - INFO - Epoch 216/300 | Batch 0/24 | Loss: 1.3741 | Acc: 81.64% | LR: 7.42e-04
+2025-06-03 19:49:51,186 - INFO - Epoch 216 TRAIN Summary: Avg Loss: 1.5816, Avg Acc: 78.50%, Duration: 2.35s
+2025-06-03 19:49:51,587 - INFO - Epoch 216 EVAL  Summary: Avg Loss: 2.3253, Avg Acc: 56.23%, Duration: 0.40s
+2025-06-03 19:49:52,140 - INFO - Epoch 217/300 | Batch 0/24 | Loss: 1.2998 | Acc: 83.59% | LR: 7.26e-04
+2025-06-03 19:49:53,996 - INFO - Epoch 217 TRAIN Summary: Avg Loss: 1.6102, Avg Acc: 77.33%, Duration: 2.41s
+2025-06-03 19:49:54,404 - INFO - Epoch 217 EVAL  Summary: Avg Loss: 2.3330, Avg Acc: 56.40%, Duration: 0.41s
+2025-06-03 19:49:54,957 - INFO - Epoch 218/300 | Batch 0/24 | Loss: 2.7987 | Acc: 52.60% | LR: 7.10e-04
+2025-06-03 19:49:56,812 - INFO - Epoch 218 TRAIN Summary: Avg Loss: 1.6486, Avg Acc: 77.13%, Duration: 2.41s
+2025-06-03 19:49:57,230 - INFO - Epoch 218 EVAL  Summary: Avg Loss: 2.3333, Avg Acc: 56.42%, Duration: 0.42s
+2025-06-03 19:49:57,776 - INFO - Epoch 219/300 | Batch 0/24 | Loss: 2.8094 | Acc: 51.75% | LR: 6.94e-04
+2025-06-03 19:49:59,629 - INFO - Epoch 219 TRAIN Summary: Avg Loss: 1.6184, Avg Acc: 77.00%, Duration: 2.40s
+2025-06-03 19:50:00,045 - INFO - Epoch 219 EVAL  Summary: Avg Loss: 2.3471, Avg Acc: 56.03%, Duration: 0.41s
+2025-06-03 19:50:00,606 - INFO - Epoch 220/300 | Batch 0/24 | Loss: 1.3146 | Acc: 83.98% | LR: 6.78e-04
+2025-06-03 19:50:02,448 - INFO - Epoch 220 TRAIN Summary: Avg Loss: 1.5929, Avg Acc: 77.96%, Duration: 2.40s
+2025-06-03 19:50:02,837 - INFO - Epoch 220 EVAL  Summary: Avg Loss: 2.3066, Avg Acc: 56.56%, Duration: 0.39s
+2025-06-03 19:50:03,449 - INFO - Epoch 220: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_220.pth
+2025-06-03 19:50:03,877 - INFO - Epoch 221/300 | Batch 0/24 | Loss: 1.3792 | Acc: 81.64% | LR: 6.63e-04
+2025-06-03 19:50:05,732 - INFO - Epoch 221 TRAIN Summary: Avg Loss: 1.5456, Avg Acc: 79.34%, Duration: 2.28s
+2025-06-03 19:50:06,139 - INFO - Epoch 221 EVAL  Summary: Avg Loss: 2.3518, Avg Acc: 56.24%, Duration: 0.41s
+2025-06-03 19:50:06,707 - INFO - Epoch 222/300 | Batch 0/24 | Loss: 3.6402 | Acc: 28.26% | LR: 6.47e-04
+2025-06-03 19:50:08,537 - INFO - Epoch 222 TRAIN Summary: Avg Loss: 1.4640, Avg Acc: 81.38%, Duration: 2.40s
+2025-06-03 19:50:08,976 - INFO - Epoch 222 EVAL  Summary: Avg Loss: 2.3154, Avg Acc: 56.59%, Duration: 0.44s
+2025-06-03 19:50:09,801 - INFO - Epoch 222: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:50:09,801 - INFO - Epoch 222: 新的最佳准确率: 56.59% (已保存至 best_model.pth)
+2025-06-03 19:50:10,225 - INFO - Epoch 223/300 | Batch 0/24 | Loss: 1.2565 | Acc: 82.81% | LR: 6.32e-04
+2025-06-03 19:50:12,080 - INFO - Epoch 223 TRAIN Summary: Avg Loss: 1.4362, Avg Acc: 81.21%, Duration: 2.28s
+2025-06-03 19:50:12,485 - INFO - Epoch 223 EVAL  Summary: Avg Loss: 2.3331, Avg Acc: 56.81%, Duration: 0.40s
+2025-06-03 19:50:13,387 - INFO - Epoch 223: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:50:13,388 - INFO - Epoch 223: 新的最佳准确率: 56.81% (已保存至 best_model.pth)
+2025-06-03 19:50:13,800 - INFO - Epoch 224/300 | Batch 0/24 | Loss: 1.2169 | Acc: 85.55% | LR: 6.17e-04
+2025-06-03 19:50:15,618 - INFO - Epoch 224 TRAIN Summary: Avg Loss: 1.6641, Avg Acc: 76.21%, Duration: 2.23s
+2025-06-03 19:50:16,036 - INFO - Epoch 224 EVAL  Summary: Avg Loss: 2.3386, Avg Acc: 56.59%, Duration: 0.42s
+2025-06-03 19:50:16,588 - INFO - Epoch 225/300 | Batch 0/24 | Loss: 1.2615 | Acc: 87.50% | LR: 6.02e-04
+2025-06-03 19:50:18,425 - INFO - Epoch 225 TRAIN Summary: Avg Loss: 1.7443, Avg Acc: 75.01%, Duration: 2.39s
+2025-06-03 19:50:18,840 - INFO - Epoch 225 EVAL  Summary: Avg Loss: 2.3244, Avg Acc: 56.64%, Duration: 0.41s
+2025-06-03 19:50:19,391 - INFO - Epoch 226/300 | Batch 0/24 | Loss: 1.3594 | Acc: 82.42% | LR: 5.87e-04
+2025-06-03 19:50:21,216 - INFO - Epoch 226 TRAIN Summary: Avg Loss: 1.5865, Avg Acc: 78.29%, Duration: 2.37s
+2025-06-03 19:50:21,625 - INFO - Epoch 226 EVAL  Summary: Avg Loss: 2.3366, Avg Acc: 56.54%, Duration: 0.41s
+2025-06-03 19:50:22,183 - INFO - Epoch 227/300 | Batch 0/24 | Loss: 1.7798 | Acc: 76.20% | LR: 5.72e-04
+2025-06-03 19:50:23,991 - INFO - Epoch 227 TRAIN Summary: Avg Loss: 1.4200, Avg Acc: 82.29%, Duration: 2.37s
+2025-06-03 19:50:24,405 - INFO - Epoch 227 EVAL  Summary: Avg Loss: 2.3318, Avg Acc: 56.53%, Duration: 0.41s
+2025-06-03 19:50:24,976 - INFO - Epoch 228/300 | Batch 0/24 | Loss: 1.1506 | Acc: 89.45% | LR: 5.57e-04
+2025-06-03 19:50:26,821 - INFO - Epoch 228 TRAIN Summary: Avg Loss: 1.6004, Avg Acc: 78.02%, Duration: 2.41s
+2025-06-03 19:50:27,285 - INFO - Epoch 228 EVAL  Summary: Avg Loss: 2.3478, Avg Acc: 56.32%, Duration: 0.46s
+2025-06-03 19:50:27,858 - INFO - Epoch 229/300 | Batch 0/24 | Loss: 1.2899 | Acc: 85.16% | LR: 5.43e-04
+2025-06-03 19:50:29,714 - INFO - Epoch 229 TRAIN Summary: Avg Loss: 1.5961, Avg Acc: 77.58%, Duration: 2.43s
+2025-06-03 19:50:30,171 - INFO - Epoch 229 EVAL  Summary: Avg Loss: 2.3489, Avg Acc: 56.58%, Duration: 0.45s
+2025-06-03 19:50:30,722 - INFO - Epoch 230/300 | Batch 0/24 | Loss: 1.1608 | Acc: 88.67% | LR: 5.29e-04
+2025-06-03 19:50:32,571 - INFO - Epoch 230 TRAIN Summary: Avg Loss: 1.4437, Avg Acc: 82.24%, Duration: 2.40s
+2025-06-03 19:50:32,987 - INFO - Epoch 230 EVAL  Summary: Avg Loss: 2.3458, Avg Acc: 56.31%, Duration: 0.41s
+2025-06-03 19:50:33,543 - INFO - Epoch 231/300 | Batch 0/24 | Loss: 1.4566 | Acc: 79.74% | LR: 5.15e-04
+2025-06-03 19:50:35,461 - INFO - Epoch 231 TRAIN Summary: Avg Loss: 1.4915, Avg Acc: 80.71%, Duration: 2.47s
+2025-06-03 19:50:35,861 - INFO - Epoch 231 EVAL  Summary: Avg Loss: 2.3454, Avg Acc: 56.55%, Duration: 0.40s
+2025-06-03 19:50:36,419 - INFO - Epoch 232/300 | Batch 0/24 | Loss: 1.1599 | Acc: 88.67% | LR: 5.01e-04
+2025-06-03 19:50:38,282 - INFO - Epoch 232 TRAIN Summary: Avg Loss: 1.5182, Avg Acc: 80.19%, Duration: 2.42s
+2025-06-03 19:50:38,687 - INFO - Epoch 232 EVAL  Summary: Avg Loss: 2.3498, Avg Acc: 56.46%, Duration: 0.40s
+2025-06-03 19:50:39,257 - INFO - Epoch 233/300 | Batch 0/24 | Loss: 1.2168 | Acc: 87.11% | LR: 4.87e-04
+2025-06-03 19:50:41,079 - INFO - Epoch 233 TRAIN Summary: Avg Loss: 1.6004, Avg Acc: 78.49%, Duration: 2.39s
+2025-06-03 19:50:41,486 - INFO - Epoch 233 EVAL  Summary: Avg Loss: 2.3652, Avg Acc: 56.45%, Duration: 0.41s
+2025-06-03 19:50:42,032 - INFO - Epoch 234/300 | Batch 0/24 | Loss: 1.3277 | Acc: 84.38% | LR: 4.73e-04
+2025-06-03 19:50:43,847 - INFO - Epoch 234 TRAIN Summary: Avg Loss: 1.4963, Avg Acc: 80.84%, Duration: 2.36s
+2025-06-03 19:50:44,291 - INFO - Epoch 234 EVAL  Summary: Avg Loss: 2.3264, Avg Acc: 56.95%, Duration: 0.44s
+2025-06-03 19:50:45,034 - INFO - Epoch 234: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:50:45,035 - INFO - Epoch 234: 新的最佳准确率: 56.95% (已保存至 best_model.pth)
+2025-06-03 19:50:45,456 - INFO - Epoch 235/300 | Batch 0/24 | Loss: 1.5410 | Acc: 79.23% | LR: 4.60e-04
+2025-06-03 19:50:47,276 - INFO - Epoch 235 TRAIN Summary: Avg Loss: 1.8352, Avg Acc: 72.38%, Duration: 2.24s
+2025-06-03 19:50:47,713 - INFO - Epoch 235 EVAL  Summary: Avg Loss: 2.3380, Avg Acc: 56.74%, Duration: 0.43s
+2025-06-03 19:50:48,248 - INFO - Epoch 236/300 | Batch 0/24 | Loss: 1.3507 | Acc: 83.68% | LR: 4.47e-04
+2025-06-03 19:50:50,072 - INFO - Epoch 236 TRAIN Summary: Avg Loss: 1.4455, Avg Acc: 81.73%, Duration: 2.36s
+2025-06-03 19:50:50,501 - INFO - Epoch 236 EVAL  Summary: Avg Loss: 2.3149, Avg Acc: 57.11%, Duration: 0.43s
+2025-06-03 19:50:51,239 - INFO - Epoch 236: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:50:51,239 - INFO - Epoch 236: 新的最佳准确率: 57.11% (已保存至 best_model.pth)
+2025-06-03 19:50:51,653 - INFO - Epoch 237/300 | Batch 0/24 | Loss: 1.4744 | Acc: 82.28% | LR: 4.34e-04
+2025-06-03 19:50:53,486 - INFO - Epoch 237 TRAIN Summary: Avg Loss: 1.5704, Avg Acc: 79.32%, Duration: 2.25s
+2025-06-03 19:50:53,920 - INFO - Epoch 237 EVAL  Summary: Avg Loss: 2.3230, Avg Acc: 57.11%, Duration: 0.43s
+2025-06-03 19:50:54,500 - INFO - Epoch 238/300 | Batch 0/24 | Loss: 1.7370 | Acc: 78.61% | LR: 4.21e-04
+2025-06-03 19:50:56,335 - INFO - Epoch 238 TRAIN Summary: Avg Loss: 1.4739, Avg Acc: 81.65%, Duration: 2.41s
+2025-06-03 19:50:56,718 - INFO - Epoch 238 EVAL  Summary: Avg Loss: 2.3319, Avg Acc: 56.80%, Duration: 0.38s
+2025-06-03 19:50:57,271 - INFO - Epoch 239/300 | Batch 0/24 | Loss: 1.2248 | Acc: 85.42% | LR: 4.08e-04
+2025-06-03 19:50:59,101 - INFO - Epoch 239 TRAIN Summary: Avg Loss: 1.5339, Avg Acc: 80.08%, Duration: 2.38s
+2025-06-03 19:50:59,524 - INFO - Epoch 239 EVAL  Summary: Avg Loss: 2.3505, Avg Acc: 56.98%, Duration: 0.42s
+2025-06-03 19:51:00,061 - INFO - Epoch 240/300 | Batch 0/24 | Loss: 1.2089 | Acc: 85.94% | LR: 3.95e-04
+2025-06-03 19:51:01,957 - INFO - Epoch 240 TRAIN Summary: Avg Loss: 1.6718, Avg Acc: 76.17%, Duration: 2.43s
+2025-06-03 19:51:02,374 - INFO - Epoch 240 EVAL  Summary: Avg Loss: 2.3421, Avg Acc: 56.45%, Duration: 0.42s
+2025-06-03 19:51:02,952 - INFO - Epoch 240: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_240.pth
+2025-06-03 19:51:03,389 - INFO - Epoch 241/300 | Batch 0/24 | Loss: 1.7120 | Acc: 76.58% | LR: 3.83e-04
+2025-06-03 19:51:05,190 - INFO - Epoch 241 TRAIN Summary: Avg Loss: 1.3938, Avg Acc: 82.79%, Duration: 2.24s
+2025-06-03 19:51:05,635 - INFO - Epoch 241 EVAL  Summary: Avg Loss: 2.3051, Avg Acc: 57.42%, Duration: 0.44s
+2025-06-03 19:51:06,428 - INFO - Epoch 241: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:51:06,428 - INFO - Epoch 241: 新的最佳准确率: 57.42% (已保存至 best_model.pth)
+2025-06-03 19:51:06,843 - INFO - Epoch 242/300 | Batch 0/24 | Loss: 3.8028 | Acc: 23.11% | LR: 3.71e-04
+2025-06-03 19:51:08,689 - INFO - Epoch 242 TRAIN Summary: Avg Loss: 1.6109, Avg Acc: 77.46%, Duration: 2.26s
+2025-06-03 19:51:09,121 - INFO - Epoch 242 EVAL  Summary: Avg Loss: 2.3249, Avg Acc: 57.30%, Duration: 0.43s
+2025-06-03 19:51:09,667 - INFO - Epoch 243/300 | Batch 0/24 | Loss: 1.3337 | Acc: 84.38% | LR: 3.59e-04
+2025-06-03 19:51:11,523 - INFO - Epoch 243 TRAIN Summary: Avg Loss: 1.6645, Avg Acc: 76.78%, Duration: 2.40s
+2025-06-03 19:51:11,917 - INFO - Epoch 243 EVAL  Summary: Avg Loss: 2.3159, Avg Acc: 57.07%, Duration: 0.39s
+2025-06-03 19:51:12,464 - INFO - Epoch 244/300 | Batch 0/24 | Loss: 1.2341 | Acc: 84.37% | LR: 3.47e-04
+2025-06-03 19:51:14,308 - INFO - Epoch 244 TRAIN Summary: Avg Loss: 1.6644, Avg Acc: 76.29%, Duration: 2.39s
+2025-06-03 19:51:14,725 - INFO - Epoch 244 EVAL  Summary: Avg Loss: 2.3168, Avg Acc: 57.57%, Duration: 0.42s
+2025-06-03 19:51:15,518 - INFO - Epoch 244: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:51:15,519 - INFO - Epoch 244: 新的最佳准确率: 57.57% (已保存至 best_model.pth)
+2025-06-03 19:51:15,954 - INFO - Epoch 245/300 | Batch 0/24 | Loss: 1.1483 | Acc: 87.89% | LR: 3.35e-04
+2025-06-03 19:51:17,759 - INFO - Epoch 245 TRAIN Summary: Avg Loss: 1.4521, Avg Acc: 82.43%, Duration: 2.24s
+2025-06-03 19:51:18,200 - INFO - Epoch 245 EVAL  Summary: Avg Loss: 2.3372, Avg Acc: 57.02%, Duration: 0.44s
+2025-06-03 19:51:18,758 - INFO - Epoch 246/300 | Batch 0/24 | Loss: 1.1710 | Acc: 88.28% | LR: 3.24e-04
+2025-06-03 19:51:20,628 - INFO - Epoch 246 TRAIN Summary: Avg Loss: 1.7357, Avg Acc: 74.92%, Duration: 2.43s
+2025-06-03 19:51:21,056 - INFO - Epoch 246 EVAL  Summary: Avg Loss: 2.3161, Avg Acc: 56.97%, Duration: 0.43s
+2025-06-03 19:51:21,596 - INFO - Epoch 247/300 | Batch 0/24 | Loss: 1.2383 | Acc: 85.16% | LR: 3.12e-04
+2025-06-03 19:51:23,459 - INFO - Epoch 247 TRAIN Summary: Avg Loss: 1.8493, Avg Acc: 72.67%, Duration: 2.40s
+2025-06-03 19:51:23,879 - INFO - Epoch 247 EVAL  Summary: Avg Loss: 2.3195, Avg Acc: 57.13%, Duration: 0.42s
+2025-06-03 19:51:24,433 - INFO - Epoch 248/300 | Batch 0/24 | Loss: 1.3839 | Acc: 82.81% | LR: 3.01e-04
+2025-06-03 19:51:26,242 - INFO - Epoch 248 TRAIN Summary: Avg Loss: 1.8681, Avg Acc: 71.77%, Duration: 2.36s
+2025-06-03 19:51:26,668 - INFO - Epoch 248 EVAL  Summary: Avg Loss: 2.3167, Avg Acc: 57.18%, Duration: 0.42s
+2025-06-03 19:51:27,219 - INFO - Epoch 249/300 | Batch 0/24 | Loss: 1.6002 | Acc: 79.25% | LR: 2.90e-04
+2025-06-03 19:51:29,049 - INFO - Epoch 249 TRAIN Summary: Avg Loss: 1.4882, Avg Acc: 80.72%, Duration: 2.38s
+2025-06-03 19:51:29,470 - INFO - Epoch 249 EVAL  Summary: Avg Loss: 2.3277, Avg Acc: 57.06%, Duration: 0.42s
+2025-06-03 19:51:30,030 - INFO - Epoch 250/300 | Batch 0/24 | Loss: 2.7031 | Acc: 55.52% | LR: 2.79e-04
+2025-06-03 19:51:31,850 - INFO - Epoch 250 TRAIN Summary: Avg Loss: 1.4596, Avg Acc: 81.51%, Duration: 2.38s
+2025-06-03 19:51:32,260 - INFO - Epoch 250 EVAL  Summary: Avg Loss: 2.3253, Avg Acc: 57.14%, Duration: 0.41s
+2025-06-03 19:51:32,821 - INFO - Epoch 251/300 | Batch 0/24 | Loss: 1.2403 | Acc: 86.72% | LR: 2.69e-04
+2025-06-03 19:51:34,638 - INFO - Epoch 251 TRAIN Summary: Avg Loss: 1.6254, Avg Acc: 78.32%, Duration: 2.38s
+2025-06-03 19:51:35,073 - INFO - Epoch 251 EVAL  Summary: Avg Loss: 2.3146, Avg Acc: 57.03%, Duration: 0.43s
+2025-06-03 19:51:35,623 - INFO - Epoch 252/300 | Batch 0/24 | Loss: 1.2085 | Acc: 86.72% | LR: 2.59e-04
+2025-06-03 19:51:37,452 - INFO - Epoch 252 TRAIN Summary: Avg Loss: 1.7005, Avg Acc: 76.64%, Duration: 2.38s
+2025-06-03 19:51:37,880 - INFO - Epoch 252 EVAL  Summary: Avg Loss: 2.3320, Avg Acc: 57.01%, Duration: 0.43s
+2025-06-03 19:51:38,427 - INFO - Epoch 253/300 | Batch 0/24 | Loss: 1.3278 | Acc: 85.16% | LR: 2.48e-04
+2025-06-03 19:51:40,308 - INFO - Epoch 253 TRAIN Summary: Avg Loss: 1.6892, Avg Acc: 76.41%, Duration: 2.43s
+2025-06-03 19:51:40,708 - INFO - Epoch 253 EVAL  Summary: Avg Loss: 2.3206, Avg Acc: 57.19%, Duration: 0.40s
+2025-06-03 19:51:41,264 - INFO - Epoch 254/300 | Batch 0/24 | Loss: 1.1986 | Acc: 87.11% | LR: 2.38e-04
+2025-06-03 19:51:43,109 - INFO - Epoch 254 TRAIN Summary: Avg Loss: 1.5286, Avg Acc: 80.34%, Duration: 2.40s
+2025-06-03 19:51:43,515 - INFO - Epoch 254 EVAL  Summary: Avg Loss: 2.3194, Avg Acc: 56.93%, Duration: 0.40s
+2025-06-03 19:51:44,075 - INFO - Epoch 255/300 | Batch 0/24 | Loss: 1.3098 | Acc: 85.15% | LR: 2.29e-04
+2025-06-03 19:51:45,930 - INFO - Epoch 255 TRAIN Summary: Avg Loss: 1.5332, Avg Acc: 79.58%, Duration: 2.41s
+2025-06-03 19:51:46,368 - INFO - Epoch 255 EVAL  Summary: Avg Loss: 2.3229, Avg Acc: 57.21%, Duration: 0.44s
+2025-06-03 19:51:46,924 - INFO - Epoch 256/300 | Batch 0/24 | Loss: 1.1961 | Acc: 87.89% | LR: 2.19e-04
+2025-06-03 19:51:48,779 - INFO - Epoch 256 TRAIN Summary: Avg Loss: 1.6585, Avg Acc: 77.22%, Duration: 2.41s
+2025-06-03 19:51:49,179 - INFO - Epoch 256 EVAL  Summary: Avg Loss: 2.3146, Avg Acc: 57.00%, Duration: 0.40s
+2025-06-03 19:51:49,729 - INFO - Epoch 257/300 | Batch 0/24 | Loss: 1.3250 | Acc: 85.55% | LR: 2.10e-04
+2025-06-03 19:51:51,609 - INFO - Epoch 257 TRAIN Summary: Avg Loss: 1.6103, Avg Acc: 78.47%, Duration: 2.43s
+2025-06-03 19:51:52,044 - INFO - Epoch 257 EVAL  Summary: Avg Loss: 2.3427, Avg Acc: 57.19%, Duration: 0.43s
+2025-06-03 19:51:52,643 - INFO - Epoch 258/300 | Batch 0/24 | Loss: 2.0823 | Acc: 71.15% | LR: 2.00e-04
+2025-06-03 19:51:54,507 - INFO - Epoch 258 TRAIN Summary: Avg Loss: 1.4125, Avg Acc: 83.44%, Duration: 2.46s
+2025-06-03 19:51:54,939 - INFO - Epoch 258 EVAL  Summary: Avg Loss: 2.3218, Avg Acc: 57.01%, Duration: 0.43s
+2025-06-03 19:51:55,496 - INFO - Epoch 259/300 | Batch 0/24 | Loss: 1.1597 | Acc: 89.79% | LR: 1.91e-04
+2025-06-03 19:51:57,339 - INFO - Epoch 259 TRAIN Summary: Avg Loss: 1.4621, Avg Acc: 82.18%, Duration: 2.40s
+2025-06-03 19:51:57,779 - INFO - Epoch 259 EVAL  Summary: Avg Loss: 2.3137, Avg Acc: 57.13%, Duration: 0.44s
+2025-06-03 19:51:58,333 - INFO - Epoch 260/300 | Batch 0/24 | Loss: 3.7598 | Acc: 22.59% | LR: 1.82e-04
+2025-06-03 19:52:00,182 - INFO - Epoch 260 TRAIN Summary: Avg Loss: 1.5980, Avg Acc: 78.42%, Duration: 2.40s
+2025-06-03 19:52:00,622 - INFO - Epoch 260 EVAL  Summary: Avg Loss: 2.3204, Avg Acc: 56.96%, Duration: 0.44s
+2025-06-03 19:52:01,324 - INFO - Epoch 260: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_260.pth
+2025-06-03 19:52:01,747 - INFO - Epoch 261/300 | Batch 0/24 | Loss: 1.1258 | Acc: 89.45% | LR: 1.74e-04
+2025-06-03 19:52:03,573 - INFO - Epoch 261 TRAIN Summary: Avg Loss: 1.6348, Avg Acc: 77.39%, Duration: 2.25s
+2025-06-03 19:52:03,967 - INFO - Epoch 261 EVAL  Summary: Avg Loss: 2.3230, Avg Acc: 57.27%, Duration: 0.39s
+2025-06-03 19:52:04,525 - INFO - Epoch 262/300 | Batch 0/24 | Loss: 1.1662 | Acc: 87.11% | LR: 1.65e-04
+2025-06-03 19:52:06,381 - INFO - Epoch 262 TRAIN Summary: Avg Loss: 1.5421, Avg Acc: 79.40%, Duration: 2.41s
+2025-06-03 19:52:06,817 - INFO - Epoch 262 EVAL  Summary: Avg Loss: 2.3121, Avg Acc: 57.36%, Duration: 0.43s
+2025-06-03 19:52:07,403 - INFO - Epoch 263/300 | Batch 0/24 | Loss: 1.2167 | Acc: 86.33% | LR: 1.57e-04
+2025-06-03 19:52:09,302 - INFO - Epoch 263 TRAIN Summary: Avg Loss: 1.5077, Avg Acc: 81.02%, Duration: 2.48s
+2025-06-03 19:52:09,689 - INFO - Epoch 263 EVAL  Summary: Avg Loss: 2.3205, Avg Acc: 57.30%, Duration: 0.38s
+2025-06-03 19:52:10,252 - INFO - Epoch 264/300 | Batch 0/24 | Loss: 2.1477 | Acc: 68.18% | LR: 1.49e-04
+2025-06-03 19:52:12,121 - INFO - Epoch 264 TRAIN Summary: Avg Loss: 1.4050, Avg Acc: 83.25%, Duration: 2.43s
+2025-06-03 19:52:12,543 - INFO - Epoch 264 EVAL  Summary: Avg Loss: 2.3207, Avg Acc: 57.35%, Duration: 0.42s
+2025-06-03 19:52:13,090 - INFO - Epoch 265/300 | Batch 0/24 | Loss: 1.2682 | Acc: 84.77% | LR: 1.41e-04
+2025-06-03 19:52:14,937 - INFO - Epoch 265 TRAIN Summary: Avg Loss: 1.5540, Avg Acc: 79.63%, Duration: 2.39s
+2025-06-03 19:52:15,360 - INFO - Epoch 265 EVAL  Summary: Avg Loss: 2.3239, Avg Acc: 57.38%, Duration: 0.42s
+2025-06-03 19:52:15,904 - INFO - Epoch 266/300 | Batch 0/24 | Loss: 1.3103 | Acc: 85.74% | LR: 1.34e-04
+2025-06-03 19:52:17,733 - INFO - Epoch 266 TRAIN Summary: Avg Loss: 1.3536, Avg Acc: 84.42%, Duration: 2.37s
+2025-06-03 19:52:18,172 - INFO - Epoch 266 EVAL  Summary: Avg Loss: 2.3236, Avg Acc: 57.39%, Duration: 0.44s
+2025-06-03 19:52:18,718 - INFO - Epoch 267/300 | Batch 0/24 | Loss: 1.2154 | Acc: 87.50% | LR: 1.26e-04
+2025-06-03 19:52:20,519 - INFO - Epoch 267 TRAIN Summary: Avg Loss: 1.5364, Avg Acc: 80.48%, Duration: 2.35s
+2025-06-03 19:52:20,989 - INFO - Epoch 267 EVAL  Summary: Avg Loss: 2.3111, Avg Acc: 57.55%, Duration: 0.47s
+2025-06-03 19:52:21,536 - INFO - Epoch 268/300 | Batch 0/24 | Loss: 1.2408 | Acc: 86.72% | LR: 1.19e-04
+2025-06-03 19:52:23,351 - INFO - Epoch 268 TRAIN Summary: Avg Loss: 1.3938, Avg Acc: 83.49%, Duration: 2.36s
+2025-06-03 19:52:23,783 - INFO - Epoch 268 EVAL  Summary: Avg Loss: 2.3143, Avg Acc: 57.41%, Duration: 0.43s
+2025-06-03 19:52:24,377 - INFO - Epoch 269/300 | Batch 0/24 | Loss: 3.0612 | Acc: 45.45% | LR: 1.12e-04
+2025-06-03 19:52:26,204 - INFO - Epoch 269 TRAIN Summary: Avg Loss: 1.6471, Avg Acc: 77.23%, Duration: 2.42s
+2025-06-03 19:52:26,625 - INFO - Epoch 269 EVAL  Summary: Avg Loss: 2.3161, Avg Acc: 57.46%, Duration: 0.42s
+2025-06-03 19:52:27,167 - INFO - Epoch 270/300 | Batch 0/24 | Loss: 1.5416 | Acc: 82.73% | LR: 1.05e-04
+2025-06-03 19:52:28,972 - INFO - Epoch 270 TRAIN Summary: Avg Loss: 1.6405, Avg Acc: 78.30%, Duration: 2.35s
+2025-06-03 19:52:29,394 - INFO - Epoch 270 EVAL  Summary: Avg Loss: 2.3179, Avg Acc: 57.45%, Duration: 0.42s
+2025-06-03 19:52:29,984 - INFO - Epoch 271/300 | Batch 0/24 | Loss: 1.2044 | Acc: 87.11% | LR: 9.89e-05
+2025-06-03 19:52:31,825 - INFO - Epoch 271 TRAIN Summary: Avg Loss: 1.4177, Avg Acc: 82.59%, Duration: 2.43s
+2025-06-03 19:52:32,261 - INFO - Epoch 271 EVAL  Summary: Avg Loss: 2.3280, Avg Acc: 57.37%, Duration: 0.44s
+2025-06-03 19:52:32,815 - INFO - Epoch 272/300 | Batch 0/24 | Loss: 1.2697 | Acc: 85.94% | LR: 9.25e-05
+2025-06-03 19:52:34,678 - INFO - Epoch 272 TRAIN Summary: Avg Loss: 1.4852, Avg Acc: 81.95%, Duration: 2.42s
+2025-06-03 19:52:35,060 - INFO - Epoch 272 EVAL  Summary: Avg Loss: 2.3108, Avg Acc: 57.74%, Duration: 0.38s
+2025-06-03 19:52:35,846 - INFO - Epoch 272: 最佳模型已保存至 ./logs/convnext_tiny/20250603-193850/best_model.pth
+2025-06-03 19:52:35,846 - INFO - Epoch 272: 新的最佳准确率: 57.74% (已保存至 best_model.pth)
+2025-06-03 19:52:36,274 - INFO - Epoch 273/300 | Batch 0/24 | Loss: 1.1027 | Acc: 91.02% | LR: 8.63e-05
+2025-06-03 19:52:38,090 - INFO - Epoch 273 TRAIN Summary: Avg Loss: 1.4428, Avg Acc: 82.66%, Duration: 2.24s
+2025-06-03 19:52:38,501 - INFO - Epoch 273 EVAL  Summary: Avg Loss: 2.3200, Avg Acc: 57.42%, Duration: 0.41s
+2025-06-03 19:52:39,055 - INFO - Epoch 274/300 | Batch 0/24 | Loss: 1.5107 | Acc: 81.42% | LR: 8.04e-05
+2025-06-03 19:52:40,911 - INFO - Epoch 274 TRAIN Summary: Avg Loss: 1.5204, Avg Acc: 80.02%, Duration: 2.41s
+2025-06-03 19:52:41,317 - INFO - Epoch 274 EVAL  Summary: Avg Loss: 2.3136, Avg Acc: 57.40%, Duration: 0.40s
+2025-06-03 19:52:41,868 - INFO - Epoch 275/300 | Batch 0/24 | Loss: 1.2597 | Acc: 85.94% | LR: 7.47e-05
+2025-06-03 19:52:43,690 - INFO - Epoch 275 TRAIN Summary: Avg Loss: 1.4738, Avg Acc: 81.76%, Duration: 2.37s
+2025-06-03 19:52:44,107 - INFO - Epoch 275 EVAL  Summary: Avg Loss: 2.3174, Avg Acc: 57.74%, Duration: 0.42s
+2025-06-03 19:52:44,667 - INFO - Epoch 276/300 | Batch 0/24 | Loss: 1.2439 | Acc: 86.02% | LR: 6.91e-05
+2025-06-03 19:52:46,513 - INFO - Epoch 276 TRAIN Summary: Avg Loss: 1.4282, Avg Acc: 82.08%, Duration: 2.40s
+2025-06-03 19:52:46,933 - INFO - Epoch 276 EVAL  Summary: Avg Loss: 2.3171, Avg Acc: 57.55%, Duration: 0.42s
+2025-06-03 19:52:47,485 - INFO - Epoch 277/300 | Batch 0/24 | Loss: 1.9693 | Acc: 71.24% | LR: 6.38e-05
+2025-06-03 19:52:49,313 - INFO - Epoch 277 TRAIN Summary: Avg Loss: 1.4918, Avg Acc: 80.84%, Duration: 2.38s
+2025-06-03 19:52:49,728 - INFO - Epoch 277 EVAL  Summary: Avg Loss: 2.3109, Avg Acc: 57.54%, Duration: 0.41s
+2025-06-03 19:52:50,290 - INFO - Epoch 278/300 | Batch 0/24 | Loss: 1.1284 | Acc: 91.02% | LR: 5.87e-05
+2025-06-03 19:52:52,134 - INFO - Epoch 278 TRAIN Summary: Avg Loss: 1.5003, Avg Acc: 80.57%, Duration: 2.41s
+2025-06-03 19:52:52,559 - INFO - Epoch 278 EVAL  Summary: Avg Loss: 2.3150, Avg Acc: 57.56%, Duration: 0.42s
+2025-06-03 19:52:53,107 - INFO - Epoch 279/300 | Batch 0/24 | Loss: 1.3493 | Acc: 86.38% | LR: 5.38e-05
+2025-06-03 19:52:54,956 - INFO - Epoch 279 TRAIN Summary: Avg Loss: 1.5012, Avg Acc: 80.63%, Duration: 2.40s
+2025-06-03 19:52:55,372 - INFO - Epoch 279 EVAL  Summary: Avg Loss: 2.3125, Avg Acc: 57.52%, Duration: 0.41s
+2025-06-03 19:52:55,925 - INFO - Epoch 280/300 | Batch 0/24 | Loss: 1.3280 | Acc: 84.99% | LR: 4.92e-05
+2025-06-03 19:52:57,740 - INFO - Epoch 280 TRAIN Summary: Avg Loss: 1.6714, Avg Acc: 77.40%, Duration: 2.37s
+2025-06-03 19:52:58,163 - INFO - Epoch 280 EVAL  Summary: Avg Loss: 2.3161, Avg Acc: 57.37%, Duration: 0.42s
+2025-06-03 19:52:58,825 - INFO - Epoch 280: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_280.pth
+2025-06-03 19:52:59,256 - INFO - Epoch 281/300 | Batch 0/24 | Loss: 1.1985 | Acc: 86.29% | LR: 4.47e-05
+2025-06-03 19:53:01,094 - INFO - Epoch 281 TRAIN Summary: Avg Loss: 1.7341, Avg Acc: 75.31%, Duration: 2.27s
+2025-06-03 19:53:01,486 - INFO - Epoch 281 EVAL  Summary: Avg Loss: 2.3159, Avg Acc: 57.54%, Duration: 0.39s
+2025-06-03 19:53:02,042 - INFO - Epoch 282/300 | Batch 0/24 | Loss: 1.6509 | Acc: 80.06% | LR: 4.04e-05
+2025-06-03 19:53:03,890 - INFO - Epoch 282 TRAIN Summary: Avg Loss: 1.4637, Avg Acc: 82.16%, Duration: 2.40s
+2025-06-03 19:53:04,285 - INFO - Epoch 282 EVAL  Summary: Avg Loss: 2.3149, Avg Acc: 57.54%, Duration: 0.39s
+2025-06-03 19:53:04,835 - INFO - Epoch 283/300 | Batch 0/24 | Loss: 1.1802 | Acc: 86.72% | LR: 3.64e-05
+2025-06-03 19:53:06,713 - INFO - Epoch 283 TRAIN Summary: Avg Loss: 1.4299, Avg Acc: 82.17%, Duration: 2.43s
+2025-06-03 19:53:07,146 - INFO - Epoch 283 EVAL  Summary: Avg Loss: 2.3139, Avg Acc: 57.55%, Duration: 0.43s
+2025-06-03 19:53:07,692 - INFO - Epoch 284/300 | Batch 0/24 | Loss: 3.6988 | Acc: 25.87% | LR: 3.26e-05
+2025-06-03 19:53:09,519 - INFO - Epoch 284 TRAIN Summary: Avg Loss: 1.4867, Avg Acc: 81.01%, Duration: 2.37s
+2025-06-03 19:53:09,923 - INFO - Epoch 284 EVAL  Summary: Avg Loss: 2.3136, Avg Acc: 57.47%, Duration: 0.40s
+2025-06-03 19:53:10,478 - INFO - Epoch 285/300 | Batch 0/24 | Loss: 1.4001 | Acc: 80.86% | LR: 2.90e-05
+2025-06-03 19:53:12,323 - INFO - Epoch 285 TRAIN Summary: Avg Loss: 1.6804, Avg Acc: 76.50%, Duration: 2.40s
+2025-06-03 19:53:12,725 - INFO - Epoch 285 EVAL  Summary: Avg Loss: 2.3088, Avg Acc: 57.54%, Duration: 0.40s
+2025-06-03 19:53:13,322 - INFO - Epoch 286/300 | Batch 0/24 | Loss: 1.1396 | Acc: 89.45% | LR: 2.56e-05
+2025-06-03 19:53:15,162 - INFO - Epoch 286 TRAIN Summary: Avg Loss: 1.7054, Avg Acc: 75.79%, Duration: 2.44s
+2025-06-03 19:53:15,569 - INFO - Epoch 286 EVAL  Summary: Avg Loss: 2.3111, Avg Acc: 57.51%, Duration: 0.40s
+2025-06-03 19:53:16,140 - INFO - Epoch 287/300 | Batch 0/24 | Loss: 1.1950 | Acc: 87.50% | LR: 2.24e-05
+2025-06-03 19:53:17,976 - INFO - Epoch 287 TRAIN Summary: Avg Loss: 1.5252, Avg Acc: 79.82%, Duration: 2.41s
+2025-06-03 19:53:18,414 - INFO - Epoch 287 EVAL  Summary: Avg Loss: 2.3126, Avg Acc: 57.57%, Duration: 0.44s
+2025-06-03 19:53:18,960 - INFO - Epoch 288/300 | Batch 0/24 | Loss: 3.7612 | Acc: 22.05% | LR: 1.95e-05
+2025-06-03 19:53:20,819 - INFO - Epoch 288 TRAIN Summary: Avg Loss: 1.8897, Avg Acc: 71.09%, Duration: 2.40s
+2025-06-03 19:53:21,242 - INFO - Epoch 288 EVAL  Summary: Avg Loss: 2.3136, Avg Acc: 57.43%, Duration: 0.42s
+2025-06-03 19:53:21,792 - INFO - Epoch 289/300 | Batch 0/24 | Loss: 1.1487 | Acc: 89.37% | LR: 1.68e-05
+2025-06-03 19:53:23,675 - INFO - Epoch 289 TRAIN Summary: Avg Loss: 1.6246, Avg Acc: 78.15%, Duration: 2.43s
+2025-06-03 19:53:24,071 - INFO - Epoch 289 EVAL  Summary: Avg Loss: 2.3146, Avg Acc: 57.39%, Duration: 0.39s
+2025-06-03 19:53:24,670 - INFO - Epoch 290/300 | Batch 0/24 | Loss: 1.6597 | Acc: 79.49% | LR: 1.43e-05
+2025-06-03 19:53:26,505 - INFO - Epoch 290 TRAIN Summary: Avg Loss: 1.3813, Avg Acc: 83.45%, Duration: 2.43s
+2025-06-03 19:53:26,913 - INFO - Epoch 290 EVAL  Summary: Avg Loss: 2.3182, Avg Acc: 57.40%, Duration: 0.41s
+2025-06-03 19:53:27,479 - INFO - Epoch 291/300 | Batch 0/24 | Loss: 1.2414 | Acc: 84.77% | LR: 1.20e-05
+2025-06-03 19:53:29,306 - INFO - Epoch 291 TRAIN Summary: Avg Loss: 1.4809, Avg Acc: 81.37%, Duration: 2.39s
+2025-06-03 19:53:29,732 - INFO - Epoch 291 EVAL  Summary: Avg Loss: 2.3165, Avg Acc: 57.44%, Duration: 0.42s
+2025-06-03 19:53:30,288 - INFO - Epoch 292/300 | Batch 0/24 | Loss: 1.2444 | Acc: 85.55% | LR: 9.87e-06
+2025-06-03 19:53:32,123 - INFO - Epoch 292 TRAIN Summary: Avg Loss: 1.5841, Avg Acc: 79.00%, Duration: 2.39s
+2025-06-03 19:53:32,505 - INFO - Epoch 292 EVAL  Summary: Avg Loss: 2.3131, Avg Acc: 57.49%, Duration: 0.38s
+2025-06-03 19:53:33,052 - INFO - Epoch 293/300 | Batch 0/24 | Loss: 1.1519 | Acc: 87.89% | LR: 8.01e-06
+2025-06-03 19:53:34,851 - INFO - Epoch 293 TRAIN Summary: Avg Loss: 1.6391, Avg Acc: 77.62%, Duration: 2.35s
+2025-06-03 19:53:35,282 - INFO - Epoch 293 EVAL  Summary: Avg Loss: 2.3144, Avg Acc: 57.45%, Duration: 0.43s
+2025-06-03 19:53:35,831 - INFO - Epoch 294/300 | Batch 0/24 | Loss: 1.2271 | Acc: 86.33% | LR: 6.37e-06
+2025-06-03 19:53:37,676 - INFO - Epoch 294 TRAIN Summary: Avg Loss: 1.4475, Avg Acc: 82.74%, Duration: 2.39s
+2025-06-03 19:53:38,068 - INFO - Epoch 294 EVAL  Summary: Avg Loss: 2.3148, Avg Acc: 57.38%, Duration: 0.39s
+2025-06-03 19:53:38,620 - INFO - Epoch 295/300 | Batch 0/24 | Loss: 1.4696 | Acc: 82.34% | LR: 4.95e-06
+2025-06-03 19:53:40,453 - INFO - Epoch 295 TRAIN Summary: Avg Loss: 1.6352, Avg Acc: 76.92%, Duration: 2.38s
+2025-06-03 19:53:40,836 - INFO - Epoch 295 EVAL  Summary: Avg Loss: 2.3140, Avg Acc: 57.41%, Duration: 0.38s
+2025-06-03 19:53:41,380 - INFO - Epoch 296/300 | Batch 0/24 | Loss: 1.2469 | Acc: 86.44% | LR: 3.74e-06
+2025-06-03 19:53:43,218 - INFO - Epoch 296 TRAIN Summary: Avg Loss: 1.6303, Avg Acc: 77.93%, Duration: 2.38s
+2025-06-03 19:53:43,611 - INFO - Epoch 296 EVAL  Summary: Avg Loss: 2.3138, Avg Acc: 57.43%, Duration: 0.39s
+2025-06-03 19:53:44,173 - INFO - Epoch 297/300 | Batch 0/24 | Loss: 1.1605 | Acc: 87.89% | LR: 2.75e-06
+2025-06-03 19:53:46,018 - INFO - Epoch 297 TRAIN Summary: Avg Loss: 1.2737, Avg Acc: 85.72%, Duration: 2.41s
+2025-06-03 19:53:46,443 - INFO - Epoch 297 EVAL  Summary: Avg Loss: 2.3141, Avg Acc: 57.40%, Duration: 0.42s
+2025-06-03 19:53:46,995 - INFO - Epoch 298/300 | Batch 0/24 | Loss: 1.2181 | Acc: 87.11% | LR: 1.99e-06
+2025-06-03 19:53:48,842 - INFO - Epoch 298 TRAIN Summary: Avg Loss: 1.4750, Avg Acc: 81.67%, Duration: 2.40s
+2025-06-03 19:53:49,244 - INFO - Epoch 298 EVAL  Summary: Avg Loss: 2.3142, Avg Acc: 57.38%, Duration: 0.40s
+2025-06-03 19:53:49,792 - INFO - Epoch 299/300 | Batch 0/24 | Loss: 1.2063 | Acc: 86.93% | LR: 1.44e-06
+2025-06-03 19:53:51,670 - INFO - Epoch 299 TRAIN Summary: Avg Loss: 1.5463, Avg Acc: 79.63%, Duration: 2.42s
+2025-06-03 19:53:52,090 - INFO - Epoch 299 EVAL  Summary: Avg Loss: 2.3143, Avg Acc: 57.37%, Duration: 0.42s
+2025-06-03 19:53:52,636 - INFO - Epoch 300/300 | Batch 0/24 | Loss: 1.1061 | Acc: 91.02% | LR: 1.11e-06
+2025-06-03 19:53:54,473 - INFO - Epoch 300 TRAIN Summary: Avg Loss: 1.7775, Avg Acc: 75.37%, Duration: 2.38s
+2025-06-03 19:53:54,879 - INFO - Epoch 300 EVAL  Summary: Avg Loss: 2.3143, Avg Acc: 57.39%, Duration: 0.40s
+2025-06-03 19:53:55,432 - INFO - Epoch 300: 检查点已保存至 ./logs/convnext_tiny/20250603-193850/checkpoint_epoch_300.pth
+2025-06-03 19:53:55,433 - INFO - 训练完成! 总用时: 0.25 小时。最佳测试准确率: 57.74%

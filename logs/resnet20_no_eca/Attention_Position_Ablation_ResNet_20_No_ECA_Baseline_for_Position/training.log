@@ -1,0 +1,67 @@
+2025-06-03 23:34:02,471 - INFO - ==================================================
+2025-06-03 23:34:02,471 - INFO - CIFAR-100 训练开始
+2025-06-03 23:34:02,472 - INFO - ==================================================
+2025-06-03 23:34:02,472 - INFO - 所有输出将保存到: ./logs/resnet20_no_eca/Attention_Position_Ablation_ResNet_20_No_ECA_Baseline_for_Position
+2025-06-03 23:34:02,472 - INFO - PyTorch版本: 2.7.0+cu126
+2025-06-03 23:34:02,472 - INFO - CUDA版本: 12.6
+2025-06-03 23:34:02,472 - INFO - 可用GPU数量: 8
+2025-06-03 23:34:02,473 - INFO - 当前设备: 0
+2025-06-03 23:34:02,473 - INFO - GPU内存: 15.8 GB
+2025-06-03 23:34:02,473 - INFO - TrainingArguments: {
+  "output_dir": "./logs",
+  "overwrite_output_dir": false,
+  "num_train_epochs": 300,
+  "per_device_train_batch_size": 256,
+  "per_device_eval_batch_size": 512,
+  "learning_rate": 0.1,
+  "weight_decay": 0.0005,
+  "adam_epsilon": 1e-08,
+  "max_grad_norm": 1.0,
+  "warmup_epochs": 0,
+  "lr_scheduler_type": "cosine_annealing",
+  "logging_steps": 50,
+  "eval_strategy": "epoch",
+  "save_strategy": "epoch",
+  "save_steps": 20,
+  "dataloader_num_workers": 4,
+  "dataloader_pin_memory": true,
+  "dataloader_drop_last": true,
+  "label_smoothing_factor": 0.1,
+  "use_mixup": true,
+  "mixup_alpha": 0.2,
+  "optimizer_type": "sgd",
+  "use_imagenet_norm": false,
+  "model_constructor_params": {},
+  "resume_from_checkpoint": null,
+  "model_name_for_log": "resnet20_no_eca",
+  "run_name": "Attention_Position_Ablation_ResNet_20_No_ECA_Baseline_for_Position",
+  "checkpoint_filename_best": "best_model.pth",
+  "checkpoint_filename_epoch": "checkpoint_epoch_{epoch}.pth",
+  "evaluation_filename": "evaluation_summary.json",
+  "plot_filename": "training_curves.png"
+}
+2025-06-03 23:34:02,473 - INFO - 分布式训练 (DDP): True, Rank: 0, World Size: 8
+2025-06-03 23:34:02,473 - INFO - 使用设备: cuda:0
+2025-06-03 23:34:02,499 - INFO - ***** 开始训练 *****
+2025-06-03 23:34:02,500 - INFO -   训练模型: resnet20_no_eca, 运行: Attention_Position_Ablation_ResNet_20_No_ECA_Baseline_for_Position
+2025-06-03 23:34:02,500 - INFO -   训练样本数 = 50000, 每轮步骤数 = 24
+2025-06-03 23:34:02,500 - INFO -   总轮数 = 300
+2025-06-03 23:34:02,500 - INFO -   每设备批次大小 = 256
+2025-06-03 23:34:02,500 - INFO -   总批次大小 (所有GPU) = 2048
+2025-06-03 23:34:02,500 - INFO -   初始学习率 = 1.00e-01
+2025-06-03 23:34:04,092 - INFO - Epoch 1/300 | Batch 0/24 | Loss: 4.7927 | Acc: 0.78% | LR: 1.00e-01
+2025-06-03 23:34:05,373 - INFO - Epoch 1 TRAIN Summary: Avg Loss: 4.5304, Avg Acc: 3.02%, Duration: 2.87s
+2025-06-03 23:34:05,786 - INFO - Epoch 1 EVAL  Summary: Avg Loss: 4.3576, Avg Acc: 4.68%, Duration: 0.41s
+2025-06-03 23:34:05,813 - INFO - Epoch 1: 最佳模型已保存至 ./logs/resnet20_no_eca/Attention_Position_Ablation_ResNet_20_No_ECA_Baseline_for_Position/best_model.pth
+2025-06-03 23:34:05,813 - INFO - Epoch 1: 新的最佳准确率: 4.68% (已保存至 best_model.pth)
+2025-06-03 23:34:06,256 - INFO - Epoch 2/300 | Batch 0/24 | Loss: 4.3545 | Acc: 5.08% | LR: 1.00e-01
+2025-06-03 23:34:07,764 - INFO - Epoch 2 TRAIN Summary: Avg Loss: 4.2918, Avg Acc: 5.43%, Duration: 1.95s
+2025-06-03 23:34:08,159 - INFO - Epoch 2 EVAL  Summary: Avg Loss: 4.1255, Avg Acc: 8.22%, Duration: 0.39s
+2025-06-03 23:34:08,190 - INFO - Epoch 2: 最佳模型已保存至 ./logs/resnet20_no_eca/Attention_Position_Ablation_ResNet_20_No_ECA_Baseline_for_Position/best_model.pth
+2025-06-03 23:34:08,190 - INFO - Epoch 2: 新的最佳准确率: 8.22% (已保存至 best_model.pth)
+2025-06-03 23:34:08,637 - INFO - Epoch 3/300 | Batch 0/24 | Loss: 4.2565 | Acc: 7.79% | LR: 1.00e-01
+2025-06-03 23:34:10,161 - INFO - Epoch 3 TRAIN Summary: Avg Loss: 4.1647, Avg Acc: 8.28%, Duration: 1.97s
+2025-06-03 23:34:10,552 - INFO - Epoch 3 EVAL  Summary: Avg Loss: 3.9371, Avg Acc: 11.38%, Duration: 0.39s
+2025-06-03 23:34:10,586 - INFO - Epoch 3: 最佳模型已保存至 ./logs/resnet20_no_eca/Attention_Position_Ablation_ResNet_20_No_ECA_Baseline_for_Position/best_model.pth
+2025-06-03 23:34:10,586 - INFO - Epoch 3: 新的最佳准确率: 11.38% (已保存至 best_model.pth)
+2025-06-03 23:34:11,023 - INFO - Epoch 4/300 | Batch 0/24 | Loss: 4.1401 | Acc: 8.11% | LR: 1.00e-01
