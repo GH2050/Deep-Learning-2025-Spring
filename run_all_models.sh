@@ -2,9 +2,9 @@
 
 # 模型列表
 models=(
-    # "resnet_20"
-    # "resnet_32"
-    # "resnet_56"
+    "resnet_20"
+    "resnet_32"
+    "resnet_56"
     # "eca_resnet_20"
     # "eca_resnet_32"
     # "ghost_resnet_20"
@@ -13,8 +13,8 @@ models=(
     # "convnext_tiny"
     # "improved_resnet20_convnext"
     # "segnext_mscan_tiny"
-    "mlp_mixer_tiny"
-    "mlp_mixer_b16"
+    # "mlp_mixer_tiny"
+    # "mlp_mixer_b16"
     # "cspresnet50"
     # "resnest50d"
     # "coatnet_0"
