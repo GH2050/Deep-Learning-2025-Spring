@@ -6,20 +6,19 @@
 
 ## 🎯 项目概述
 
-本项目旨在基于一个精简版的ResNet基础网络，系统性地探索、实现并对比指定的十种先进深度学习网络架构或注意力机制在CIFAR-100图像分类任务上的性能。项目重点在于理解和实现这些模型的Pytorch代码，并通过实际训练获得真实的实验数据，进行详细的性能对比分析和消融实验。最终目标是为理解这些先进技术在CIFAR-100上的表现提供洞察，并为模型选择和设计提供参考。
+本项目旨在基于一个精简版的ResNet基础网络，系统性地探索、实现并对比指定的五类先进深度学习网络架构或注意力机制在CIFAR-100图像分类任务上的性能。项目重点在于理解和实现这些模型的Pytorch代码，并通过实际训练获得真实的实验数据，进行详细的性能对比分析和消融实验。最终目标是为理解这些先进技术在CIFAR-100上的表现提供洞察，并为模型选择和设计提供参考。
 
-**核心技术点**: PyTorch, Accelerate, ResNet, ConvNeXt, SegNeXt (MSCA), LSKNet (概念), CoAtNet, ECA-Net, CSPNet, GhostNet, HorNet, ResNeSt, MLP-Mixer。
+**核心技术点**: PyTorch, Accelerate, ResNet, ConvNeXt, SegNeXt (MSCA),  CoAtNet, ECA-Net, CSPNet, GhostNet, HorNet, ResNeSt, MLP-Mixer。
 
 **团队成员**: 董瑞昕、廖望、卢艺晗、谭凯泽、喻心
 
 ## 📊 实验完成状态与核心成果
 
--   ✅ **实现了21个模型变体** (包括基础模型和ECA不同k值系列)，覆盖`requirement.md`中全部10种先进方法（自定义实现）。
+-   ✅ **实现了21个模型变体** (包括基础模型和ECA不同k值系列)，覆盖`requirement.md`中共8种先进方法。
 -   ✅ **获取了完整实验数据**，包括训练曲线、准确率、参数量、训练时间。
 -   ✅ **完成了详细的性能对比分析**，涵盖准确率、参数效率、训练速度。
 -   ✅ **执行了关键的消融实验**，验证了ECA-Net、Ghost模块及注意力位置的有效性。
 -   ✅ **撰写了完整的实验报告** (`report/实验报告-DL2025-先进卷积与注意力机制.md`)。
--   ✅ **准备了演示文稿大纲** (`report/演示文稿大纲-DL2025.md`)。
 -   ✅ **集成了统一训练系统** (`src/train.py`, `src/trainer.py`)，基于transformers Trainer设计，支持分布式训练和自动超参数加载。
 
 ### 📈 核心成果摘要 (自定义实现，从头训练，8卡V100，300轮)
@@ -271,20 +270,18 @@ bash run.sh resnet_20 10 128 0.1 quick_test
 | `ecanet20_adaptive`             | `bash run.sh ecanet20_adaptive` | **68.08**     | 0.278     | ResNet-20 + ECA (自适应k)     |
 | `resnet20_no_eca`               | `bash run.sh resnet20_no_eca`   | 66.50         | 0.278     | ResNet-20 (无ECA，对比用)     |
 
-## 🛠️ 实现的十种先进方法与代表模型 (自定义实现，从头训练)
+## 🛠️ 实现的八种先进方法与代表模型 (自定义实现，从头训练)
 
 | 序号 | 要求方法         | 本项目代表模型(部分)                  | 对应Top-1(%) | 技术特点                         |
 |:----:|------------------|---------------------------------------|-----------------:|----------------------------------|
 | 1    | ConvNeXt         | `convnext_tiny`                       | 59.09            | 现代化卷积设计                   |
 | 2    | SegNeXt (MSCA)   | `segnext_mscan_tiny`                  | 60.91            | 多尺度卷积注意力                 |
-| 3    | LSKNet           | `coatnet_0_custom_enhanced` (概念应用) | -               | 大型选择性核 (通过MBConv增强体现) |
-| 4    | CoAtNet          | `coatnet_0`, `coatnet_cifar_opt`      | 66.61 / 58.68    | 卷积+Transformer混合             |
-| 5    | ECA-Net          | `eca_resnet_20`, `ecanet20_adaptive`  | 68.00 / 68.08    | 高效通道注意力                   |
-| 6    | CSPNet           | `cspresnet50`                         | 50.22            | 跨阶段局部网络                   |
-| 7    | GhostNet         | `ghostnet_100`, `ghost_resnet_20`     | 56.94 / 35.16    | 轻量化特征生成                   |
-| 8    | HorNet           | `hornet_tiny`                         | 60.00            | 递归门控卷积                     |
-| 9    | ResNeSt          | `resnest50d`                          | 57.20            | 分裂注意力机制                   |
-| 10   | MLP-Mixer        | `mlp_mixer_b16`, `mlp_mixer_tiny`     | 60.93 / 42.47    | 纯MLP视觉架构                    |
+| 3    | CoAtNet          | `coatnet_0`, `coatnet_cifar_opt`      | 66.61 / 58.68    | 卷积+Transformer混合             |
+| 4    | ECA-Net          | `eca_resnet_20`, `ecanet20_adaptive`  | 68.00 / 68.08    | 高效通道注意力                   |
+| 5    | CSPNet           | `cspresnet50`                         | 50.22            | 跨阶段局部网络                   |
+| 6    | GhostNet         | `ghostnet_100`, `ghost_resnet_20`     | 56.94 / 35.16    | 轻量化特征生成                   |
+| 7    | HorNet           | `hornet_tiny`                         | 60.00            | 递归门控卷积                     |
+| 8    | MLP-Mixer        | `mlp_mixer_b16`, `mlp_mixer_tiny`     | 60.93 / 42.47    | 纯MLP视觉架构                    |
 
 ## 📖 参考资料与致谢
 
